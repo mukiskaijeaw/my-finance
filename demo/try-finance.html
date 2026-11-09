@@ -1,0 +1,1294 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Finance Agent Demo</title>
+  <style>
+    [hidden] { display: none !important; }
+    :root {
+      color-scheme: light;
+      --page: #F8FAFC;
+      --ink: #0F172A;
+      --muted: #64748B;
+      --line: #E2E8F0;
+      --income: #0F766E;
+      --expense: #B4533A;
+      --buy: #1E3A5F;
+      --sell: #94A3B8;
+      --error: #a13e32;
+      --soft: #F1F5F9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font: 15px/1.55 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    button, select, input { font: inherit; }
+    .app { width: min(1120px, 100%); margin: 0 auto; padding: 46px 30px 64px; }
+    .topline { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+    .eyebrow { margin: 0 0 7px; color: var(--muted); font-size: 12px; letter-spacing: 0; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(27px, 4vw, 35px); line-height: 1.2; letter-spacing: -.035em; font-weight: 550; }
+    .subtitle { margin: 7px 0 0; color: var(--muted); font-size: 14px; }
+    .status { margin-top: 9px; color: var(--muted); font-size: 12px; }
+    .filters { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; margin: 28px 0 30px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .filters label { display: grid; gap: 3px; color: var(--muted); font-size: 11px; }
+    select, .button, .file-button {
+      min-height: 38px;
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: transparent;
+      color: var(--ink);
+    }
+    select { min-width: 122px; }
+    .button, .file-button { cursor: pointer; }
+    .button:hover, .file-button:hover, select:hover { border-color: #b8c4bc; }
+    .button { margin-left: auto; }
+    .file-picker { display: grid; }
+    .file-picker input { max-width: 240px; }
+    .error { margin: -14px 0 22px; padding: 11px 13px; border-left: 2px solid var(--error); color: var(--error); background: #fbf1ef; font-size: 13px; }
+    .error[hidden] { display: none; }
+    .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0 0 44px; }
+    .metric { min-width: 0; padding: 0 22px; border-left: 1px solid var(--line); }
+    .metric:first-child { padding-left: 0; border-left: 0; }
+    .metric-label { color: var(--muted); font-size: 13px; }
+    .metric-value { margin-top: 7px; font-size: clamp(22px, 3vw, 30px); font-weight: 500; letter-spacing: -.035em; line-height: 1.25; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .income-value { color: var(--income); }
+    .expense-value { color: var(--expense); }
+    .buy-value { color: var(--buy); }
+    .sell-value { color: var(--sell); }
+    .section { margin-top: 42px; }
+    .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+    h2 { margin: 0; font-size: 17px; font-weight: 550; letter-spacing: -.015em; }
+    .section-note { color: var(--muted); font-size: 12px; }
+    .chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 34px; }
+    .chart-block { min-width: 0; }
+    .chart-title { margin: 0 0 8px; font-size: 13px; font-weight: 500; }
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 4px; color: var(--muted); font-size: 11px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .legend-income { color: var(--income); }
+    .legend-expense { color: var(--expense); }
+    .legend-buy { color: var(--buy); }
+    .legend-sell { color: var(--sell); }
+    svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+    .content-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.4fr); gap: 54px; align-items: start; }
+    .category-list { display: grid; gap: 13px; }
+    .category-row { display: grid; grid-template-columns: minmax(90px, 125px) minmax(50px, 1fr) auto; gap: 11px; align-items: center; font-size: 12px; }
+    .category-name { overflow: hidden; color: #334155; text-overflow: ellipsis; white-space: nowrap; }
+    .category-track { height: 6px; overflow: hidden; border-radius: 99px; background: var(--soft); }
+    .category-bar { height: 100%; border-radius: inherit; background: #1E3A5F; }
+    .category-amount { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .empty-state { padding: 18px 0; color: var(--muted); font-size: 13px; }
+    .table-wrap { overflow-x: auto; border-top: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; min-width: 660px; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-size: 11px; font-weight: 450; white-space: nowrap; }
+    td { font-size: 12px; }
+    td.money { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    td.date, td.type, td.action { white-space: nowrap; }
+    td.description { min-width: 140px; }
+    .type-income { color: var(--income); }
+    .type-expense { color: var(--expense); }
+    .type-investment { color: var(--buy); }
+    tr.needs-review td { background: #FFFBEB; }
+    .quality-flag { color: #92400E; font-size: 11px; }
+    .footnote { margin-top: 15px; color: var(--muted); font-size: 11px; }
+    .health { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 34px; margin: 0 0 44px; padding: 26px 28px; border: 1px solid var(--line); border-left: 4px solid var(--expense); border-radius: 10px; background: #fff; }
+    .health.good { border-left-color: var(--income); }
+    .health.watch { border-left-color: var(--buy); }
+    .verdict { margin: 4px 0 6px; font-size: clamp(24px, 3.4vw, 31px); font-weight: 600; letter-spacing: -.03em; line-height: 1.2; }
+    .health .verdict { color: var(--expense); }
+    .health.good .verdict { color: var(--income); }
+    .health.watch .verdict { color: var(--buy); }
+    .health-reason { margin: 0; color: #334155; font-size: 14px; }
+    .health-actions { margin: 12px 0 0; padding-left: 18px; font-size: 13px; color: #334155; }
+    .health-actions li { margin-top: 4px; }
+    .calc { display: grid; gap: 7px; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .calc-row { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 7px; border-bottom: 1px solid var(--line); }
+    .calc-row span:first-child { color: var(--muted); }
+    .calc-row.total { border-bottom: 0; font-weight: 600; }
+    .calc-note { color: var(--muted); font-size: 11px; }
+    .split-track { display: flex; height: 12px; overflow: hidden; border-radius: 99px; background: var(--soft); margin: 6px 0 10px; }
+    .split-fixed { background: #1E3A5F; }
+    .split-var { background: #94A3B8; }
+    .split-legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: #334155; font-variant-numeric: tabular-nums; }
+    .mini-table { width: 100%; min-width: 0; }
+    .mini-table td, .mini-table th { padding: 8px 6px; }
+    .badge { display: inline-block; padding: 1px 7px; border-radius: 99px; font-size: 10.5px; background: var(--soft); color: var(--muted); white-space: nowrap; }
+    .badge.soon { background: #fbefe9; color: var(--expense); }
+    .badge.ok { background: #e9f3ee; color: var(--income); }
+    .review-list { display: grid; gap: 8px; }
+    .review-item { padding: 10px 12px; border-radius: 8px; background: #FFFBEB; font-size: 12px; }
+    .review-item b { font-weight: 550; }
+    .review-flag { color: #92400E; font-size: 11px; }
+    .view-note { margin: -18px 0 22px; color: var(--muted); font-size: 12px; }
+    .view-note[hidden] { display: none; }
+    @media (max-width: 760px) {
+      .health { grid-template-columns: minmax(0, 1fr); padding: 20px 18px; gap: 22px; }
+    }
+    @media (max-width: 760px) {
+      .app { padding: 30px 18px 46px; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 22px; margin-bottom: 36px; }
+      .metric { padding-left: 16px; }
+      .metric:nth-child(odd) { padding-left: 0; border-left: 0; }
+      .chart-grid, .content-grid { grid-template-columns: minmax(0, 1fr); gap: 30px; }
+      .content-grid { gap: 40px; }
+      .button { margin-left: 0; }
+    }
+    @media (max-width: 390px) {
+      .app { padding-inline: 14px; }
+      .metric { padding-right: 8px; padding-left: 12px; }
+      .metric-value { font-size: 21px; }
+      .category-row { grid-template-columns: 90px minmax(30px, 1fr) auto; gap: 7px; }
+    }
+    /* ---- Card layout ---- */
+    .app { width: min(1180px, 100%); }
+    .filters { border: 1px solid var(--line); border-radius: 8px; background: #FFFFFF; padding: 14px 16px; }
+    .summary { gap: 16px; }
+    .summary .metric, .metric:first-child { padding: 18px 20px; border: 1px solid var(--line); border-radius: 8px; background: #FFFFFF; }
+    .metric-value { font-weight: 600; }
+    .chart-grid, .content-grid { gap: 20px; }
+    .chart-block, .content-grid > div { padding: 20px 22px; border: 1px solid var(--line); border-radius: 8px; background: #FFFFFF; }
+    .section { margin-top: 20px; }
+    .section > .section-heading { margin-bottom: 12px; }
+    .health { border-radius: 8px; border-left-width: 4px; background: #FFFFFF; margin-bottom: 20px; }
+    h1 { font-weight: 650; letter-spacing: -.025em; }
+    h2 { font-size: 15px; font-weight: 600; }
+    th { font-weight: 550; text-transform: uppercase; letter-spacing: .04em; font-size: 10.5px; }
+    select, .button, .file-button { border-radius: 6px; background: #FFFFFF; }
+    .button { background: #1E3A5F; border-color: #1E3A5F; color: #FFFFFF; }
+    .button:hover { background: #0F172A; border-color: #0F172A; }
+    .table-wrap { border-top: 0; }
+    .badge.ok { background: #E6F2F1; }
+    .ghost-button { min-height: 38px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 6px; background: #FFFFFF; color: var(--ink); cursor: pointer; }
+    .ghost-button:hover { border-color: #94A3B8; }
+    .ghost-button.danger { color: var(--expense); }
+    #example-button { margin-left: auto; }
+    .salary-form { max-width: 760px; }
+    .clear-confirm { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin: 0 0 20px; }
+    .clear-confirm[hidden] { display: none; }
+    @media (max-width: 760px) { #example-button { margin-left: 0; } }
+    .slip-panel { margin: 0 0 20px; padding: 20px 22px; border: 1px solid var(--line); border-radius: 8px; background: #FFFFFF; }
+    .slip-panel .section-heading { margin-bottom: 6px; }
+    .slip-intro { margin: 0 0 12px; color: var(--muted); font-size: 13px; max-width: 70ch; }
+    .slip-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .slip-choose { display: inline-flex; align-items: center; min-height: 38px; padding: 7px 14px; border: 1px solid #1E3A5F; border-radius: 6px; color: #1E3A5F; background: #FFFFFF; cursor: pointer; font-size: 14px; }
+    .slip-choose:hover { background: #F1F5F9; }
+    .slip-choose:focus-within { outline: 2px solid #1E3A5F; outline-offset: 2px; }
+    .slip-choose input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .slip-note { color: var(--muted); font-size: 12px; }
+    .slip-cards { display: grid; gap: 14px; margin-top: 14px; }
+    .slip-card { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: #F8FAFC; }
+    .slip-card img { width: 120px; max-width: 100%; max-height: 200px; object-fit: contain; object-position: top; border: 1px solid var(--line); border-radius: 4px; background: #FFFFFF; }
+    .slip-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 12px; align-content: start; }
+    .slip-form label { display: grid; gap: 3px; color: var(--muted); font-size: 11px; min-width: 0; }
+    .slip-form input, .slip-form select { min-height: 34px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: #FFFFFF; color: var(--ink); font: inherit; font-size: 13px; min-width: 0; width: 100%; }
+    .slip-form .wide { grid-column: 1 / -1; }
+    .slip-status { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+    .slip-warn { grid-column: 1 / -1; padding: 8px 10px; border-radius: 6px; background: #FFFBEB; color: #92400E; font-size: 12px; }
+    .slip-buttons { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
+    .slip-buttons button { min-height: 34px; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: #FFFFFF; color: var(--ink); cursor: pointer; font-size: 13px; }
+    .slip-buttons button.primary { background: #1E3A5F; border-color: #1E3A5F; color: #FFFFFF; }
+    .slip-buttons button:disabled { opacity: .5; cursor: default; }
+    .saved-slips { margin-top: 14px; display: grid; gap: 6px; }
+    .saved-slip { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; }
+    .saved-slip span { min-width: 0; overflow-wrap: anywhere; }
+    .saved-slip button { border: 1px solid var(--line); background: #FFFFFF; border-radius: 6px; padding: 3px 10px; cursor: pointer; font-size: 12px; color: var(--expense); }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .slip-choose.secondary { border-color: var(--line); color: var(--ink); }
+    .stmt-card { grid-template-columns: 120px minmax(0, 1fr); }
+    .stmt-body { display: grid; gap: 10px; align-content: start; min-width: 0; }
+    .stmt-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: #FFFFFF; max-height: 520px; overflow-y: auto; }
+    @media (max-width: 760px) { .stmt-card img { max-height: 140px; } }
+    .stmt-table { width: 100%; min-width: 790px; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+    .stmt-table th { position: sticky; top: 0; background: #F1F5F9; text-align: left; font-weight: 600; color: var(--muted); font-size: 11px; padding: 6px; border-bottom: 1px solid var(--line); }
+    .stmt-table th:nth-child(1) { width: 34px; } .stmt-table th:nth-child(2) { width: 132px; } .stmt-table th:nth-child(3) { width: 118px; } .stmt-table th:nth-child(5) { width: 104px; } .stmt-table th:nth-child(6) { width: 112px; } .stmt-table th:nth-child(7) { width: 136px; }
+    .stmt-table td { padding: 4px 6px; border-top: 1px solid var(--line); vertical-align: middle; }
+    .stmt-table input:not([type=checkbox]), .stmt-table select { width: 100%; min-width: 0; min-height: 30px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; background: #FFFFFF; color: var(--ink); font: inherit; font-size: 12px; }
+    .stmt-table input[type=checkbox] { width: 16px; height: 16px; }
+    .stmt-table tr.stmt-unsure td { background: #FFFBEB; }
+    .stmt-table tr.stmt-dup td { background: #F1F5F9; }
+    .stmt-table tr.stmt-off td input:not([type=checkbox]), .stmt-table tr.stmt-off td select { color: var(--muted); }
+    .stmt-table tr.stmt-missing td { background: #FEF2F2; }
+    .stmt-table tr.stmt-note-row td { border-top: 0; padding: 0 6px 6px 46px; color: #92400E; font-size: 11px; }
+    .stmt-table tr.stmt-dup + tr.stmt-note-row td { color: var(--muted); }
+    @media (max-width: 760px) {
+      .slip-card { grid-template-columns: minmax(0, 1fr); }
+      .slip-card img { width: 100%; max-height: 260px; }
+      .slip-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .content-grid:last-of-type { grid-template-columns: minmax(0, .8fr) minmax(0, 1.7fr); }
+    .content-grid table:not(.mini-table) { min-width: 0; }
+    td.money { padding-left: 4px; }
+    @media (max-width: 760px) { .content-grid:last-of-type { grid-template-columns: minmax(0, 1fr); } .content-grid table:not(.mini-table) { min-width: 560px; } }
+    @media (max-width: 760px) {
+      .summary { gap: 12px; }
+      .summary .metric, .metric:nth-child(odd) { padding: 14px 16px; border: 1px solid var(--line); }
+      .chart-block, .content-grid > div { padding: 16px; }
+    }
+  </style>
+  <main class="app">
+    <header class="topline">
+      <div>
+        <p class="eyebrow">เดโม · บาท</p>
+        <h1>ผู้ช่วยการเงินส่วนตัว (เดโม)</h1>
+        <p class="subtitle">เริ่มจากกรอกเงินเดือน แล้วเพิ่มสลิปโอนเงินหรือภาพ statement ข้อมูลทั้งหมดเก็บอยู่ในเบราว์เซอร์นี้เท่านั้น</p>
+        <div id="status" class="status" role="status" aria-live="polite">กำลังโหลด…</div>
+      </div>
+    </header>
+
+    <section class="filters" aria-label="ตัวกรอง">
+      <label for="year-filter">ปี
+        <select id="year-filter" disabled><option>กำลังโหลด…</option></select>
+      </label>
+      <label for="month-filter">เดือน
+        <select id="month-filter" disabled>
+          <option value="all">ทุกเดือน</option>
+          <option value="01">มกราคม</option><option value="02">กุมภาพันธ์</option><option value="03">มีนาคม</option>
+          <option value="04">เมษายน</option><option value="05">พฤษภาคม</option><option value="06">มิถุนายน</option>
+          <option value="07">กรกฎาคม</option><option value="08">สิงหาคม</option><option value="09">กันยายน</option>
+          <option value="10">ตุลาคม</option><option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+        </select>
+      </label>
+      <label for="view-filter">นับเดือนแบบ
+        <select id="view-filter">
+          <option value="calendar">ตามปฏิทิน</option>
+          <option value="cycle">ตามรอบเงินเดือน</option>
+        </select>
+      </label>
+      <button id="example-button" class="ghost-button" type="button">ลองดูข้อมูลตัวอย่าง</button>
+      <button id="clear-button" class="ghost-button danger" type="button">ล้างข้อมูลของฉัน</button>
+    </section>
+
+    <div id="error-message" class="error" role="alert" hidden></div>
+    <p id="view-note" class="view-note" hidden></p>
+
+    <section class="slip-panel" aria-labelledby="salary-heading">
+      <div class="section-heading"><h2 id="salary-heading">เงินเดือนของคุณ</h2><span id="salary-note" class="section-note"></span></div>
+      <div class="slip-form salary-form">
+        <label for="gross-input">เงินเดือนก่อนหัก (บาท)<input id="gross-input" type="number" min="0" step="1" placeholder="เช่น 22000"></label>
+        <label for="sso-input">ประกันสังคมที่ถูกหัก (บาท)<input id="sso-input" type="number" min="0" step="1" placeholder="เช่น 750"></label>
+        <label for="payday-input">วันที่เงินเดือนออก<input id="payday-input" type="number" min="1" max="31" step="1" placeholder="เช่น 25"></label>
+      </div>
+    </section>
+    <div id="clear-confirm" class="slip-warn clear-confirm" hidden>
+      <span>ลบทุกอย่างที่กรอกในหน้านี้ (เงินเดือน สลิป และรายการจาก statement) ใช่ไหม? ลบแล้วกู้คืนไม่ได้</span>
+      <span class="slip-buttons"><button id="clear-yes" type="button" class="primary">ลบข้อมูลของฉัน</button><button id="clear-no" type="button">ยกเลิก</button></span>
+    </div>
+
+    <section id="slip-panel" class="slip-panel" aria-labelledby="slip-heading">
+      <div class="section-heading"><h2 id="slip-heading">เพิ่มสลิปโอนเงิน หรือภาพแคป statement</h2><span id="slip-count" class="section-note"></span></div>
+      <p class="slip-intro">เลือกสลิปที่แอปธนาคารบันทึกไว้หลังโอนเงิน หรือภาพแคป statement / ประวัติรายการ (ภาพเดียวมีได้หลายรายการ) Claude จะอ่านวันที่ จำนวนเงิน และผู้รับ ตรวจกับรายการด้านล่างว่าไม่ซ้ำ แล้วให้คุณยืนยันก่อนเพิ่ม ข้อมูลเก็บอยู่ในเบราว์เซอร์ของคุณเท่านั้น ไม่มีใครเห็น</p>
+      <div class="slip-actions">
+        <label class="slip-choose" for="slip-file">เลือกภาพสลิป<input id="slip-file" type="file" accept="image/png,image/jpeg,image/webp" multiple></label>
+        <label class="slip-choose secondary" for="stmt-file">เลือกภาพแคป statement<input id="stmt-file" type="file" accept="image/png,image/jpeg,image/webp" multiple></label>
+        <span id="slip-note" class="slip-note">กำลังตรวจว่าอ่านสลิปได้ไหม…</span>
+      </div>
+      <div id="slip-cards" class="slip-cards"></div>
+      <div id="saved-slips" class="saved-slips"></div>
+    </section>
+
+    <section id="health" class="health" aria-labelledby="verdict" hidden>
+      <div>
+        <div class="metric-label">สุขภาพการเงินในเดือนทั่วไป</div>
+        <div id="verdict" class="verdict">—</div>
+        <p id="health-reason" class="health-reason"></p>
+        <ul id="health-actions" class="health-actions"></ul>
+      </div>
+      <div class="calc" id="health-calc"></div>
+    </section>
+
+    <section class="summary" aria-label="ยอดรวมของช่วงที่เลือก">
+      <article class="metric"><div class="metric-label">รายรับ</div><div id="total-income" class="metric-value income-value">—</div></article>
+      <article class="metric"><div class="metric-label">รายจ่าย</div><div id="total-expense" class="metric-value expense-value">—</div></article>
+      <article class="metric"><div class="metric-label">ซื้อการลงทุน</div><div id="total-buy" class="metric-value buy-value">—</div></article>
+      <article class="metric"><div class="metric-label">ขายการลงทุน</div><div id="total-sell" class="metric-value sell-value">—</div></article>
+    </section>
+
+    <section class="section" aria-labelledby="trend-heading">
+      <div class="section-heading">
+        <h2 id="trend-heading">แนวโน้มรายเดือน</h2>
+        <span class="section-note">แตะแท่งกราฟเพื่อดูเฉพาะเดือนนั้น</span>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-block">
+          <h3 class="chart-title">รายรับและรายจ่าย</h3>
+          <div class="chart-legend" aria-hidden="true"><span class="legend-item legend-income"><i class="legend-dot"></i>รายรับ</span><span class="legend-item legend-expense"><i class="legend-dot"></i>รายจ่าย</span></div>
+          <svg id="flow-chart" class="chart" role="img" aria-label="กราฟรายรับและรายจ่ายรายเดือน"></svg>
+        </div>
+        <div class="chart-block">
+          <h3 class="chart-title">การลงทุน</h3>
+          <div class="chart-legend" aria-hidden="true"><span class="legend-item legend-buy"><i class="legend-dot"></i>ซื้อ</span><span class="legend-item legend-sell"><i class="legend-dot"></i>ขาย</span></div>
+          <svg id="investment-chart" class="chart" role="img" aria-label="กราฟซื้อขายการลงทุนรายเดือน"></svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="section content-grid">
+      <div>
+        <div class="section-heading"><h2>รายจ่ายคงที่ vs ยืดหยุ่น</h2><span class="section-note">ช่วงที่เลือก</span></div>
+        <div id="split-track" class="split-track"></div>
+        <div id="split-legend" class="split-legend"></div>
+        <p class="footnote">คงที่ = ค่าที่พัก ค่าสมาชิกรายเดือน ผ่อนหนี้ · ที่เหลือคือรายจ่ายที่คุมได้</p>
+      </div>
+      <div>
+        <div class="section-heading"><h2>เงินรั่วจากการจ่ายบ่อย</h2><span class="section-note">จ่าย 3 ครั้งขึ้นไปในช่วงนี้</span></div>
+        <div class="table-wrap">
+          <table class="mini-table">
+            <thead><tr><th>รายการ</th><th style="text-align:right">ครั้ง</th><th style="text-align:right">รวม</th><th style="text-align:right">เฉลี่ย/ครั้ง</th></tr></thead>
+            <tbody id="leak-rows"></tbody>
+          </table>
+          <div id="leak-empty" class="empty-state" hidden>ยังไม่มีรายการที่จ่ายบ่อย</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section content-grid">
+      <div>
+        <div class="section-heading"><h2>ใกล้ถึงกำหนดจ่าย (Pillar 5)</h2><span class="section-note">รายการที่จ่ายประจำ</span></div>
+        <div class="table-wrap">
+          <table class="mini-table">
+            <thead><tr><th>รายการ</th><th style="text-align:right">ยอดล่าสุด</th><th>ครั้งถัดไป</th><th>สถานะ</th></tr></thead>
+            <tbody id="due-rows"></tbody>
+          </table>
+          <div id="due-empty" class="empty-state" hidden>ยังไม่พบรายการที่จ่ายประจำ</div>
+        </div>
+        <p class="footnote">วันครั้งถัดไปคิดจากวันเดียวกันของเดือนหน้า · เห็นครั้งเดียว = จะยืนยันเมื่อเกิดซ้ำ</p>
+      </div>
+      <div>
+        <div class="section-heading"><h2>รอให้คุณตรวจ</h2><span id="review-count" class="section-note"></span></div>
+        <div id="review-list" class="review-list"></div>
+        <div id="review-empty" class="empty-state" hidden>ไม่มีรายการให้ตรวจ ทุกรายการจัดหมวดได้มั่นใจแล้ว</div>
+      </div>
+    </section>
+
+    <section class="section content-grid">
+      <div>
+        <div class="section-heading"><h2>รายจ่ายตามหมวด</h2><span id="category-count" class="section-note"></span></div>
+        <div id="category-list" class="category-list"></div>
+        <div id="category-empty" class="empty-state" hidden>ไม่มีรายจ่ายในช่วงนี้</div>
+      </div>
+      <div>
+        <div class="section-heading"><h2>รายการล่าสุด</h2><span id="transaction-count" class="section-note"></span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>วันที่</th><th>ประเภท</th><th>รายละเอียด</th><th>หมวด</th><th>ซื้อ/ขาย</th><th style="text-align:right">จำนวนเงิน</th></tr></thead>
+            <tbody id="transaction-rows"></tbody>
+          </table>
+          <div id="table-empty" class="empty-state" hidden>ไม่มีรายการในช่วงนี้</div>
+        </div>
+      </div>
+    </section>
+    <p class="footnote">การซื้อขายการลงทุนแสดงแยกต่างหาก · เปลี่ยนตัวกรองเพื่อดูยอดรวม หมวด และรายการของแต่ละช่วง · กด "ล้างข้อมูลของฉัน" ก่อนส่งเครื่องต่อให้คนอื่น</p>
+  </main>
+
+  <script>
+    (function () {
+      const byId = function (id) { return document.getElementById(id); };
+      const palette = { income: "#0F766E", expense: "#B4533A", buy: "#1E3A5F", sell: "#94A3B8" };
+      // ---- User settings (edit these numbers) ----
+      const PROFILE = {
+        grossSalary: 0,     // filled from the "Your salary" form
+        socialSecurity: 0,
+        netSalary: 0,
+        payday: 25
+      };
+      const FIXED_CATEGORIES = ["Housing", "Subscriptions", "Debt Repayment"];
+      const state = { rows: [], selectedYear: "all", selectedMonth: "all", view: "calendar" };
+      const monthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+      const CAT_TH = { "Food/Beverage": "อาหาร/เครื่องดื่ม", "Groceries": "ของใช้/ซูเปอร์มาร์เก็ต", "Transportation": "เดินทาง", "Housing": "ที่พัก", "Utilities": "ค่าน้ำไฟ/โทรศัพท์", "Shopping": "ช้อปปิ้ง", "Health": "สุขภาพ", "Entertainment": "บันเทิง", "Subscriptions": "ค่าสมาชิกรายเดือน", "Travel": "ท่องเที่ยว", "Debt Repayment": "ผ่อนหนี้", "Transfer money": "โอนเงินระหว่างบัญชี", "Salary": "เงินเดือน", "Freelance": "งานฟรีแลนซ์", "Refund": "เงินคืน", "Fund": "กองทุน", "Other": "อื่น ๆ", "Uncategorized": "ไม่มีหมวด", "Other categories": "หมวดอื่น ๆ", "expense": "รายจ่าย", "income": "รายรับ", "transfer": "โอนระหว่างบัญชี", "investment": "ลงทุน" };
+      function catLabel(c) { return CAT_TH[c] || c; }
+      const requiredColumns = ["transaction_id", "date", "transaction_type", "amount_thb", "category"];
+
+      function parseCsv(text) {
+        const result = [];
+        let row = [], field = "", quoted = false;
+        for (let i = 0; i < text.length; i += 1) {
+          const ch = text[i];
+          if (quoted) {
+            if (ch === '"' && text[i + 1] === '"') { field += '"'; i += 1; }
+            else if (ch === '"') quoted = false;
+            else field += ch;
+          } else if (ch === '"') quoted = true;
+          else if (ch === ",") { row.push(field); field = ""; }
+          else if (ch === "\n") { row.push(field); result.push(row); row = []; field = ""; }
+          else if (ch !== "\r") field += ch;
+        }
+        if (field.length || row.length) { row.push(field); result.push(row); }
+        if (!result.length) return [];
+        const headers = result.shift().map(function (h, i) { return i === 0 ? h.replace(/^\uFEFF/, "").trim() : h.trim(); });
+        return result.filter(function (r) { return r.some(function (v) { return String(v).trim() !== ""; }); }).map(function (r) {
+          const obj = {};
+          headers.forEach(function (h, i) { obj[h] = (r[i] || "").trim(); });
+          return obj;
+        });
+      }
+
+      function parseAmount(value) {
+        const n = Number(String(value || "0").replace(/[฿,\s]/g, ""));
+        return Number.isFinite(n) ? n : 0;
+      }
+      function money(value) {
+        if (value < 0) return "−" + money(-value);
+        return "฿" + new Intl.NumberFormat("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value || 0);
+      }
+      function compact(value) {
+        if (value >= 1000000) return "฿" + (value / 1000000).toFixed(1).replace(/\.0$/, "") + "m";
+        if (value >= 1000) return "฿" + (value / 1000).toFixed(value >= 10000 ? 0 : 1).replace(/\.0$/, "") + "k";
+        return "฿" + Math.round(value || 0);
+      }
+      function monthLabel(key, includeYear) {
+        const bits = key.split("-");
+        const month = monthNames[Number(bits[1]) - 1] || key;
+        return includeYear ? month + " " + String(Number(bits[0]) + 543).slice(-2) : month;
+      }
+      function svgEl(name, attrs, text) {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+        Object.keys(attrs || {}).forEach(function (key) { el.setAttribute(key, attrs[key]); });
+        if (text !== undefined) el.textContent = text;
+        return el;
+      }
+      function allMonthsBetween(first, last) {
+        if (!first || !last) return [];
+        const a = first.split("-").map(Number), b = last.split("-").map(Number);
+        const out = [];
+        let year = a[0], month = a[1];
+        while (year < b[0] || (year === b[0] && month <= b[1])) {
+          out.push(year + "-" + String(month).padStart(2, "0"));
+          month += 1;
+          if (month > 12) { month = 1; year += 1; }
+        }
+        return out;
+      }
+      function cycleKey(date) {
+        const y = Number(date.slice(0, 4)), m = Number(date.slice(5, 7)), d = Number(date.slice(8, 10));
+        if (d >= PROFILE.payday) return y + "-" + String(m).padStart(2, "0");
+        const pm = m === 1 ? 12 : m - 1, py = m === 1 ? y - 1 : y;
+        return py + "-" + String(pm).padStart(2, "0");
+      }
+      function periodOf(r) { return state.view === "cycle" ? r._cycle : (r.year_month || r.date.slice(0, 7)); }
+      function rowsForYear() {
+        return state.selectedYear === "all" ? state.rows.slice() : state.rows.filter(function (r) { return periodOf(r).slice(0, 4) === state.selectedYear; });
+      }
+      function filteredRows() {
+        return rowsForYear().filter(function (r) { return state.selectedMonth === "all" || periodOf(r).slice(5, 7) === state.selectedMonth; });
+      }
+      function merchantKey(r) {
+        const d = String(r.description || "");
+        if (/to individual/i.test(d)) return "PromptPay to individuals";
+        if (/^Monthly room rent/i.test(d)) return "Monthly room rent";
+        return d.replace(/\s*\(KBank[^)]*\)/g, "").replace(/\s*-\s*mostly.*$/i, "").replace(/\s*\(E-MON\)/, "").replace(/\s*\(Ref [^)]*\)/, "").trim() || (r.category || "Uncategorized");
+      }
+      function dayDiff(a, b) { return Math.round((Date.parse(b) - Date.parse(a)) / 864e5); }
+      function isoToday() { const t = new Date(); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); }
+      function nextSameDay(lastDate) {
+        const today = isoToday(), day = Number(lastDate.slice(8, 10));
+        let y = Number(lastDate.slice(0, 4)), m = Number(lastDate.slice(5, 7));
+        for (let i = 0; i < 24; i += 1) {
+          m += 1; if (m > 12) { m = 1; y += 1; }
+          const dim = new Date(y, m, 0).getDate();
+          const iso = y + "-" + String(m).padStart(2, "0") + "-" + String(Math.min(day, dim)).padStart(2, "0");
+          if (iso >= today) return iso;
+        }
+        return lastDate;
+      }
+      function shortDate(iso) { return Number(iso.slice(8, 10)) + " " + monthNames[Number(iso.slice(5, 7)) - 1]; }
+      function renderHealth() {
+        const box = byId("health");
+        const expenses = state.rows.filter(function (r) { return r.transaction_type === "expense"; });
+        if (!expenses.length || !PROFILE.netSalary) { box.hidden = true; byId("salary-note").textContent = PROFILE.netSalary ? "เพิ่มรายจ่ายเพื่อดูอัตราการออม" : "กรอกเงินเดือนเพื่อดูว่าควรเริ่มเก็บเงินหรือยัง"; return; }
+        byId("salary-note").textContent = "รับจริง " + money(PROFILE.netSalary) + " ต่อเดือน";
+        box.hidden = false;
+        const dates = expenses.map(function (r) { return r.date; }).sort();
+        const days = Math.max(1, dayDiff(dates[0], dates[dates.length - 1]) + 1);
+        let fixed = 0, variable = 0; const latestFixed = {}; const varByKey = {};
+        expenses.forEach(function (r) {
+          if (FIXED_CATEGORIES.indexOf(r.category) >= 0) {
+            const k = merchantKey(r);
+            if (!latestFixed[k] || latestFixed[k].date <= r.date) latestFixed[k] = r;
+          } else {
+            variable += r._amount;
+            const k = r.category || "Other"; varByKey[k] = (varByKey[k] || 0) + r._amount;
+          }
+        });
+        Object.keys(latestFixed).forEach(function (k) { fixed += latestFixed[k]._amount; });
+        const variableMonth = variable / days * 30;
+        const spend = fixed + variableMonth;
+        const left = PROFILE.netSalary - spend;
+        const rate = left / PROFILE.netSalary;
+        const pct = (rate * 100).toFixed(1) + "%";
+        box.className = "health" + (rate >= 0.2 ? " good" : rate >= 0.1 ? " watch" : "");
+        byId("verdict").textContent = rate >= 0.2 ? "มาถูกทางแล้ว" : rate >= 0.1 ? "เก็บได้ แต่ควรเก็บให้มากขึ้น" : "ควรเริ่มเก็บเงินตอนนี้";
+        byId("health-reason").textContent = rate < 0
+          ? "เดือนทั่วไปใช้เงินเกินรายรับ " + money(Math.round(-left)) + " อัตราการออมจึงเป็น " + pct + " (เป้าหมาย: อย่างน้อย 10%)"
+          : "เดือนทั่วไปเหลือเงิน " + money(Math.round(left)) + " หรือ " + pct + " ของรายรับจริง (เป้าหมาย: 10–20%)";
+        const actions = byId("health-actions"); actions.replaceChildren();
+        const tips = [];
+        const need = 0.1 * PROFILE.netSalary - left;
+        if (need > 0) tips.push("ลดรายจ่ายยืดหยุ่นลง " + money(Math.ceil(need)) + "/เดือน (ราว " + money(Math.ceil(need / 30)) + " ต่อวัน) เพื่อออมได้ 10%");
+        const topVar = Object.keys(varByKey).sort(function (a, b) { return varByKey[b] - varByKey[a]; })[0];
+        if (topVar) tips.push("หมวดที่คุมได้และใช้มากที่สุดคือ " + catLabel(topVar) + " ราว " + money(Math.round(varByKey[topVar] / days * 30)) + "/เดือน");
+        if (PROFILE.socialSecurity) tips.push("ประกันสังคม " + money(PROFILE.socialSecurity) + " × 12 = " + money(PROFILE.socialSecurity * 12) + " นำไปลดหย่อนภาษีได้ (ส่งต่อให้ Tax Agent)");
+        tips.forEach(function (t) { const li = document.createElement("li"); li.textContent = t; actions.appendChild(li); });
+        const calc = byId("health-calc"); calc.replaceChildren();
+        [["เงินเดือนก่อนหัก", money(PROFILE.grossSalary)], ["ประกันสังคม", "−" + money(PROFILE.socialSecurity)], ["รับจริง", money(PROFILE.netSalary)],
+         ["รายจ่ายคงที่ต่อเดือน", "−" + money(Math.round(fixed))], ["รายจ่ายยืดหยุ่น (เฉลี่ย " + days + " วัน × 30)", "−" + money(Math.round(variableMonth))], ["เหลือต่อเดือน", money(Math.round(left))]]
+          .forEach(function (row, i, arr) {
+            const div = document.createElement("div"); div.className = "calc-row" + (i === arr.length - 1 ? " total" : "");
+            const a = document.createElement("span"); a.textContent = row[0]; const b = document.createElement("span"); b.textContent = row[1];
+            div.append(a, b); calc.appendChild(div);
+          });
+        const note = document.createElement("div"); note.className = "calc-note";
+        note.textContent = "คำนวณจาก " + shortDate(dates[0]) + " – " + shortDate(dates[dates.length - 1]) + " · ไม่รวมการโอนระหว่างบัญชีตัวเองและการลงทุน";
+        calc.appendChild(note);
+      }
+      function renderSplit(rows) {
+        let fixed = 0, variable = 0;
+        rows.forEach(function (r) { if (r.transaction_type !== "expense") return; if (FIXED_CATEGORIES.indexOf(r.category) >= 0) fixed += r._amount; else variable += r._amount; });
+        const total = fixed + variable || 1;
+        const track = byId("split-track"); track.replaceChildren();
+        const a = document.createElement("div"); a.className = "split-fixed"; a.style.width = (fixed / total * 100) + "%";
+        const b = document.createElement("div"); b.className = "split-var"; b.style.width = (variable / total * 100) + "%";
+        track.append(a, b);
+        byId("split-legend").textContent = "";
+        [["คงที่", fixed, "#1E3A5F"], ["ยืดหยุ่น", variable, "#94A3B8"]].forEach(function (x) {
+          const s = document.createElement("span"); s.className = "legend-item"; s.style.color = x[2];
+          const dot = document.createElement("i"); dot.className = "legend-dot";
+          const t = document.createElement("span"); t.style.color = "#334155"; t.textContent = x[0] + " " + money(Math.round(x[1] * 100) / 100) + " (" + Math.round(x[1] / total * 100) + "%)";
+          s.append(dot, t); byId("split-legend").appendChild(s);
+        });
+      }
+      function renderLeaks(rows) {
+        const groups = {};
+        rows.forEach(function (r) {
+          if (r.transaction_type !== "expense" || FIXED_CATEGORIES.indexOf(r.category) >= 0) return;
+          const k = merchantKey(r); groups[k] = groups[k] || { key: k, n: 0, sum: 0 }; groups[k].n += 1; groups[k].sum += r._amount;
+        });
+        const list = Object.keys(groups).map(function (k) { return groups[k]; }).filter(function (g) { return g.n >= 3; }).sort(function (a, b) { return b.sum - a.sum; }).slice(0, 6);
+        const body = byId("leak-rows"); body.replaceChildren();
+        byId("leak-empty").hidden = list.length > 0;
+        list.forEach(function (g) {
+          const tr = document.createElement("tr");
+          [[g.key, ""], [String(g.n), "money"], [money(Math.round(g.sum * 100) / 100), "money"], [money(Math.round(g.sum / g.n)), "money"]].forEach(function (c) { const td = document.createElement("td"); td.className = c[1]; td.textContent = c[0]; tr.appendChild(td); });
+          body.appendChild(tr);
+        });
+      }
+      function renderDue() {
+        const groups = {};
+        state.rows.forEach(function (r) {
+          const fixed = r.transaction_type === "expense" && FIXED_CATEGORIES.indexOf(r.category) >= 0;
+          const invest = r.transaction_type === "investment" && String(r.action).toLowerCase() === "buy";
+          if (!fixed && !invest) return;
+          const k = merchantKey(r);
+          groups[k] = groups[k] || { key: k, n: 0, last: r };
+          groups[k].n += 1; if (r.date >= groups[k].last.date) groups[k].last = r;
+        });
+        const today = isoToday();
+        const list = Object.keys(groups).map(function (k) { const g = groups[k]; g.next = nextSameDay(g.last.date); g.days = dayDiff(today, g.next); return g; }).sort(function (a, b) { return a.days - b.days; });
+        const body = byId("due-rows"); body.replaceChildren();
+        byId("due-empty").hidden = list.length > 0;
+        list.forEach(function (g) {
+          const tr = document.createElement("tr");
+          const name = document.createElement("td"); name.textContent = g.key + (g.last.data_quality_flag ? " ⚠" : "");
+          const amt = document.createElement("td"); amt.className = "money"; amt.textContent = money(g.last._amount);
+          const when = document.createElement("td"); when.className = "date"; when.textContent = shortDate(g.next) + " (อีก " + g.days + " วัน)";
+          const st = document.createElement("td"); const badge = document.createElement("span");
+          badge.className = "badge" + (g.days <= 7 ? " soon" : g.n >= 2 ? " ok" : "");
+          badge.textContent = g.days <= 7 ? "ใกล้ถึงกำหนด" : g.n >= 2 ? "เห็น " + g.n + " ครั้ง" : "เห็นครั้งเดียว";
+          st.appendChild(badge);
+          tr.append(name, amt, when, st); body.appendChild(tr);
+        });
+      }
+      function renderReview() {
+        const items = state.rows.filter(function (r) { return r.data_quality_flag; });
+        const list = byId("review-list"); list.replaceChildren();
+        byId("review-empty").hidden = items.length > 0;
+        byId("review-count").textContent = items.length ? items.length + " รายการ" : "";
+        items.forEach(function (r) {
+          const div = document.createElement("div"); div.className = "review-item";
+          const b = document.createElement("b"); b.textContent = merchantKey(r) + " · " + money(r._amount);
+          const meta = document.createElement("div"); meta.textContent = r.date + " · " + r.transaction_id + " · หมวดตอนนี้: " + (r.category ? catLabel(r.category) : "—");
+          const flag = document.createElement("div"); flag.className = "review-flag"; flag.textContent = r.data_quality_flag.replace(/^needs_review:\s*/, "");
+          div.append(b, meta, flag); list.appendChild(div);
+        });
+      }
+      function renderViewNote() {
+        const note = byId("view-note");
+        if (state.view !== "cycle") { note.hidden = true; return; }
+        const backPay = state.rows.some(function (r) { return r.transaction_type === "income" && /back pay/i.test(r.description || ""); });
+        note.textContent = "รอบเงินเดือน = วันที่ " + PROFILE.payday + " ถึงวันที่ " + (PROFILE.payday - 1) + " ของเดือนถัดไป · เดือนในตัวกรองคือเดือนที่รอบเริ่มต้น";
+        note.hidden = false;
+      }
+      // ---- Transfer slips: read with Claude, confirm, save ----
+      const slip = { sample: null, db: null, images: null, rows: [], counter: 0 };
+      const SLIP_COLLECTION = "slips";
+      const SLIP_CATEGORIES = ["Food/Beverage", "Groceries", "Transportation", "Housing", "Utilities", "Shopping", "Health", "Entertainment", "Subscriptions", "Travel", "Debt Repayment", "Transfer money", "Salary", "Freelance", "Refund", "Fund", "Other"];
+      function hasRuntime() { return !!(window.claude && typeof window.claude.use === "function"); }
+      function setSlipNote(text) { byId("slip-note").textContent = text; }
+      function ownAccounts() {
+        const found = {};
+        (state.csvRows || []).forEach(function (r) { const m = String(r.description || "").match(/own [A-Za-z ]*account (X\d{4})/); if (m) found[m[1]] = true; });
+        return Object.keys(found);
+      }
+      function rowTime(r) {
+        if (r.time) return r.time;
+        const m = String(r.description || "").match(/\b(\d{2}):(\d{2})\)/);
+        return m ? m[1] + ":" + m[2] : "";
+      }
+      function minutes(t) { const m = /^(\d{1,2}):(\d{2})/.exec(t || ""); return m ? Number(m[1]) * 60 + Number(m[2]) : null; }
+      function findDuplicate(t, ignoreDocId) {
+        let best = null;
+        state.rows.forEach(function (r) {
+          if (ignoreDocId && r._docId === ignoreDocId) return;
+          if (Math.abs(r._amount - t.amount) > 0.005 || !t.date) return;
+          if (Math.abs(dayDiff(r.date, t.date)) > 1) return;
+          const a = minutes(rowTime(r)), b = minutes(t.time);
+          if (a !== null && b !== null) {
+            const gap = Math.abs(a - b);
+            if (gap <= 5 || gap >= 1435) best = { row: r, sure: true };
+          } else if (!best) best = { row: r, sure: false };
+        });
+        return best;
+      }
+      function slipPrompt() {
+        const own = ownAccounts();
+        return [
+          "This image should be a Thai bank transfer e-slip (K PLUS, SCB EASY, Krungthai NEXT, Bangkok Bank, krungsri, TrueMoney or similar) for a personal finance ledger.",
+          "The ledger owner's own bank accounts end in: " + (own.length ? own.join(", ") : "unknown") + ". Masked numbers on slips look like xxx-x-x3883-x; compare the last 4 digits.",
+          "Slips saved from the owner's banking app are usually transfers the owner SENT.",
+          "Reply with only one JSON object in this shape:",
+          '{"is_slip":true,"date":"2026-11-08","time":"14:05","amount":120.00,"sender":"","receiver":"","sender_account_suffix":"3883","receiver_account_suffix":"","bank":"","memo":"","ref_suffix":"A1B2C3","direction":"out","transaction_type":"expense","category":"Food/Beverage","description":"PromptPay to <receiver first name or shop>","confidence":0.95,"unclear":[]}',
+          "Rules:",
+          "- Dates on Thai slips use Buddhist Era years: subtract 543 (short year 69 = 2026). Output ISO date and 24-hour time in Asia/Bangkok.",
+          "- direction: \"own\" if both accounts belong to the owner, \"out\" if the owner sent money, \"in\" if the owner received money, \"unknown\" if you cannot tell.",
+          "- transaction_type: out -> expense (investment if paid to a fund or broker), in -> income, own -> transfer.",
+          "- category must be one of: " + SLIP_CATEGORIES.join(", ") + ". Pick the closest from the receiver name and memo; use Transfer money for own-account moves.",
+          "- description: short, in Thai (keep shop and brand names as written), first name only for people (no surnames).",
+          "- ref_suffix: only the last 6 characters of the reference number. Never output full account numbers, the full reference, or QR contents.",
+          "- confidence: 0 to 1 for the whole reading. List any unreadable or guessed fields in unclear (for example [\"date\",\"category\"]).",
+          "- If the image is not a transfer slip, reply {\"is_slip\":false}."
+        ].join("\n");
+      }
+      async function initSlips() {
+        if (!hasRuntime()) { setSlipNote("เปิดลิงก์นี้ในเบราว์เซอร์ที่ล็อกอิน claude.ai เพื่อให้ Claude อ่านภาพให้ ตอนนี้ยังเลือกภาพแล้วกรอกข้อมูลเองได้"); loadLocalSlips(); return; }
+        try { slip.sample = await window.claude.use("sample"); } catch (e) { slip.sample = null; }
+        if (slip.sample) { try { const lim = await slip.sample.limits(); slip.images = lim && lim.images ? lim.images : null; } catch (e) { slip.images = null; } }
+        loadLocalSlips();
+        if (!slip.sample || !slip.images) { setSlipNote("หน้านี้ยังให้ Claude อ่านภาพไม่ได้ (ลองล็อกอิน claude.ai หรือเปิดใน Safari/Chrome) ตอนนี้ยังเลือกภาพแล้วกรอกข้อมูลเองได้"); return; }
+        setSlipNote("PNG, JPG หรือ WebP · Claude จะขออนุญาตในครั้งแรก");
+      }
+      function loadLocalSlips() {
+        try { const v = JSON.parse(localStorage.getItem("demo-slips") || "[]"); slip.rows = Array.isArray(v) ? v : []; } catch (e) { slip.rows = []; }
+        renderSavedSlips(); if (state.csvRows) applyRows();
+      }
+      function storeLocalSlips() {
+        try { localStorage.setItem("demo-slips", JSON.stringify(slip.rows)); } catch (e) { /* storage blocked: keep slips for this visit only */ }
+        renderSavedSlips(); if (state.csvRows) applyRows();
+      }
+      function renderSavedSlips() {
+        const box = byId("saved-slips"); box.replaceChildren();
+        byId("slip-count").textContent = slip.rows.length ? slip.rows.length + " รายการที่เพิ่มแล้ว" : "";
+        slip.rows.slice().sort(function (a, b) { return (b.date + (b.time || "")).localeCompare(a.date + (a.time || "")); }).forEach(function (r) {
+          const row = document.createElement("div"); row.className = "saved-slip";
+          const t = document.createElement("span"); t.textContent = r.date + " " + (r.time || "") + " · " + (r.description || "") + " · " + money(parseAmount(r.amount_thb)) + " · " + catLabel(r.category || "");
+          const del = document.createElement("button"); del.type = "button"; del.textContent = "ลบ";
+          del.addEventListener("click", async function () {
+            del.disabled = true;
+            slip.rows = slip.rows.filter(function (x) { return x._docId !== r._docId; }); storeLocalSlips();
+          });
+          row.append(t, del); box.appendChild(row);
+        });
+      }
+      function field(parent, id, label, el, wide) {
+        const l = document.createElement("label"); l.setAttribute("for", id); if (wide) l.className = "wide";
+        l.appendChild(document.createTextNode(label)); el.id = id; l.appendChild(el); parent.appendChild(l); return el;
+      }
+      function makeInput(type, value) { const i = document.createElement("input"); i.type = type; i.value = value == null ? "" : value; return i; }
+      function makeSelect(options, value, placeholder) {
+        const sel = document.createElement("select");
+        if (placeholder) { const p = document.createElement("option"); p.value = ""; p.textContent = placeholder; sel.appendChild(p); if (!value) { sel.value = ""; } }
+        options.forEach(function (o) { const opt = document.createElement("option"); opt.value = o; opt.textContent = catLabel(o); sel.appendChild(opt); });
+        if (value && options.indexOf(value) < 0) { const opt = document.createElement("option"); opt.value = value; opt.textContent = value; sel.appendChild(opt); }
+        sel.value = value || (placeholder ? "" : options[0]); return sel;
+      }
+      async function handleSlipImages(files) {
+        byId("slip-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+        if (!slip.sample || !slip.images) { setSlipNote(hasRuntime() ? "หน้านี้ยังให้ Claude อ่านภาพไม่ได้ (ลองเปิดลิงก์ในเบราว์เซอร์ที่ล็อกอิน claude.ai) แต่กรอกข้อมูลเองได้" : "เปิดจากลิงก์ claude.ai เพื่อให้ Claude อ่านภาพได้ ตอนนี้กรอกข้อมูลเองได้"); }
+        const list = files.slice(0, slip.images && slip.images.maxCount ? Math.max(1, slip.images.maxCount) * 3 : 10);
+        for (let i = 0; i < list.length; i += 1) await readSlip(list[i]);
+      }
+      async function readSlip(file) {
+        slip.counter += 1;
+        const n = slip.counter, card = document.createElement("div"); card.className = "slip-card";
+        const img = document.createElement("img"); img.alt = "สลิป " + file.name; img.src = URL.createObjectURL(file);
+        const form = document.createElement("div"); form.className = "slip-form";
+        const status = document.createElement("div"); status.className = "slip-status"; status.textContent = "กำลังอ่าน " + file.name + "… (Claude อาจขออนุญาตก่อน)";
+        form.appendChild(status); card.append(img, form);
+        byId("slip-cards").prepend(card);
+        let t;
+        try {
+          if (!slip.sample || !slip.images) throw { code: "unavailable" };
+          t = await slip.sample.json(slipPrompt(), { images: [file], modelTier: "default" });
+        } catch (e) {
+          const code = e && e.code;
+          status.textContent = code === "not_granted" ? "Claude ไม่ได้รับอนุญาตให้อ่านภาพ" : code === "rate_limited" ? "มีคำขอมากเกินไป ลองใหม่ในอีกสักครู่" : code === "image_rejected" ? "อ่านภาพนี้ไม่ได้ ลองใช้ PNG หรือ JPG ที่เล็กกว่า 20 MB" : code === "invalid_json" ? "อ่านคำตอบของ Claude ไม่ได้" : code === "unavailable" ? "หน้านี้ยังให้ Claude อ่านภาพไม่ได้" : "อ่านสลิปนี้ไม่ได้ (" + (code || "error") + ")";
+          t = null;
+        }
+        const manual = !t || t.is_slip === false;
+        const conf = manual ? 1 : Math.max(0, Math.min(1, Number(t.confidence) || 0));
+        const unclear = manual ? [] : (Array.isArray(t.unclear) ? t.unclear.map(String) : []);
+        const note = manual ? (t ? "ภาพนี้ดูไม่เหมือนสลิปโอนเงิน" : status.textContent) + " กรอกรายละเอียดด้านล่างเองได้ หรือกดทิ้ง" : "";
+        if (manual) t = {};
+        const typeUnsure = manual || t.direction === "unknown" || unclear.some(function (u) { return /type|direction|income|expense/i.test(u); });
+        const catUnsure = manual || unclear.some(function (u) { return /categor/i.test(u); });
+        status.textContent = "";
+        const pill = document.createElement("span"); pill.className = "badge " + (!manual && conf >= 0.9 && !unclear.length ? "ok" : "soon");
+        pill.textContent = manual ? "อ่านไม่ได้ · กรอกเอง" : "มั่นใจ " + Math.round(conf * 100) + "%" + (unclear.length ? " · ตรวจ " + unclear.join(", ") : "");
+        const who = document.createElement("span"); who.textContent = [t.sender && "จาก " + t.sender, t.receiver && "ถึง " + t.receiver, t.bank, t.ref_suffix && "ref …" + t.ref_suffix].filter(Boolean).join(" · ");
+        if (manual) who.textContent = note;
+        status.append(pill, who);
+        const date = field(form, "slip-" + n + "-date", "วันที่", makeInput("date", t.date));
+        const time = field(form, "slip-" + n + "-time", "เวลา", makeInput("time", t.time));
+        const amount = field(form, "slip-" + n + "-amount", "จำนวนเงิน (บาท)", makeInput("number", Number(t.amount) || ""));
+        amount.step = "0.01"; amount.min = "0";
+        const type = field(form, "slip-" + n + "-type", "ประเภท", makeSelect(["expense", "income", "transfer", "investment"], typeUnsure ? "" : t.transaction_type, typeUnsure && "เลือก: รายรับ / รายจ่าย…"));
+        const cat = field(form, "slip-" + n + "-category", "หมวด", makeSelect(SLIP_CATEGORIES, catUnsure && !manual ? t.category : manual ? "" : t.category, catUnsure && "เลือกหมวด"));
+        const desc = field(form, "slip-" + n + "-desc", "รายละเอียด", makeInput("text", t.description || ""));
+        const warn = document.createElement("div"); warn.className = "slip-warn"; warn.hidden = true; form.appendChild(warn);
+        const buttons = document.createElement("div"); buttons.className = "slip-buttons";
+        const save = document.createElement("button"); save.type = "button"; save.className = "primary"; save.textContent = "บันทึก";
+        const discard = document.createElement("button"); discard.type = "button"; discard.textContent = "ทิ้ง";
+        buttons.append(save, discard); form.appendChild(buttons);
+        function current() { return { date: date.value, time: time.value, amount: Number(amount.value) }; }
+        function check() {
+          const dup = findDuplicate(current());
+          if (dup) {
+            warn.hidden = false;
+            warn.textContent = (dup.sure ? "บันทึกไว้แล้ว: " : "อาจบันทึกไว้แล้ว: ") + dup.row.transaction_id + " · " + dup.row.date + " · " + (dup.row.description || "") + " · " + money(dup.row._amount) + " ถ้าบันทึกอีกจะนับซ้ำ";
+            save.textContent = "บันทึกต่อไป";
+          } else { warn.hidden = true; save.textContent = "บันทึก"; }
+        }
+        [date, time, amount].forEach(function (el) { el.addEventListener("change", check); });
+        check();
+        discard.addEventListener("click", function () { URL.revokeObjectURL(img.src); card.remove(); });
+        save.addEventListener("click", async function () {
+          const c = current();
+          if (!c.date || !(c.amount > 0)) { warn.hidden = false; warn.textContent = "ใส่วันที่และจำนวนเงินที่มากกว่า 0 ก่อนบันทึก"; return; }
+          if (!type.value) { warn.hidden = false; warn.textContent = "เลือกก่อนว่าเป็นรายรับ รายจ่าย โอนระหว่างบัญชี หรือการลงทุน"; type.focus(); return; }
+          if (!cat.value) { warn.hidden = false; warn.textContent = "เลือกหมวดก่อนบันทึก"; cat.focus(); return; }
+          const reasons = [];
+          if (conf < 0.9) reasons.push("read with " + Math.round(conf * 100) + "% confidence");
+          if (unclear.length) reasons.push("check " + unclear.join(", "));
+          if (t.direction === "unknown" && !type.value) reasons.push("direction unclear");
+          if (manual) reasons.length = 0;
+          save.disabled = true; save.textContent = "กำลังบันทึก…";
+          try {
+            slip.rows.push(Object.assign({ _docId: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }, {
+              date: c.date, time: c.time || "", transaction_type: type.value,
+              description: (desc.value || "Transfer slip") + (t.ref_suffix ? " (slip ref …" + String(t.ref_suffix).slice(-6) + ")" : manual ? " (entered by hand)" : " (slip)"),
+              amount_thb: c.amount.toFixed(2), category: cat.value, action: type.value === "investment" ? "Buy" : "",
+              year_month: c.date.slice(0, 7), source: "transfer_slip", source_reference: file.name,
+              data_quality_flag: reasons.length ? "needs_review: " + reasons.join("; ") : "",
+              confidence: conf, created_at: new Date().toISOString()
+            }));
+            slip.rows.forEach(function (x) { x.transaction_id = "SLIP-" + x._docId.slice(1, 7).toUpperCase(); x.source = x.source || "transfer_slip"; });
+            storeLocalSlips();
+            URL.revokeObjectURL(img.src); card.remove();
+            setSlipNote("เพิ่มแล้ว นับรวมในยอดทั้งหมดด้านล่างแล้ว");
+          } catch (e) {
+            save.disabled = false; save.textContent = "บันทึก";
+            warn.hidden = false; warn.textContent = "เพิ่มสลิปนี้ไม่ได้: " + ((e && e.message) || "ลองใหม่");
+          }
+        });
+      }
+      async function persistRows(list) {
+        list.forEach(function (o, i) { slip.rows.push(Object.assign({ _docId: "s" + Date.now().toString(36) + i + Math.random().toString(36).slice(2, 6) }, o)); });
+        slip.rows.forEach(function (x) { x.transaction_id = (x.source === "bank_statement" ? "STMT-" : "SLIP-") + x._docId.slice(1, 7).toUpperCase(); x.source = x.source || "transfer_slip"; });
+        storeLocalSlips();
+      }
+      const stmt = { counter: 0, cards: [] };
+      function statementPrompt() {
+        const own = ownAccounts();
+        return [
+          "This image should be a screenshot of a Thai bank statement or a transaction history list (K PLUS, SCB EASY, Krungthai NEXT, Bangkok Bank, krungsri, TrueMoney or similar) for a personal finance ledger.",
+          "The ledger owner's own bank accounts end in: " + (own.length ? own.join(", ") : "unknown") + ".",
+          "Read EVERY transaction row you can see, top to bottom, in the order shown. Do not skip, merge or invent rows.",
+          "Reply with only one JSON object in this shape:",
+          '{"is_statement":true,"bank":"KBank","account_suffix":"3883","rows":[{"date":"2026-10-27","time":"18:45","description":"Tops Pinklao","amount":60.00,"flow":"out","balance":1234.50,"own_transfer":false,"transaction_type":"expense","category":"Groceries","confidence":0.95,"unclear":[]}],"cut_off_rows":0}',
+          "Rules:",
+          "- Thai dates use Buddhist Era years: subtract 543 (short year 69 = 2026). Thai month abbreviations: ม.ค.=01 ก.พ.=02 มี.ค.=03 เม.ย.=04 พ.ค.=05 มิ.ย.=06 ก.ค.=07 ส.ค.=08 ก.ย.=09 ต.ค.=10 พ.ย.=11 ธ.ค.=12. If a row shows no date, use the date heading above it. Output ISO dates and 24-hour times.",
+          "- amount: always positive. flow: \"in\" if money came into this account (green, +, deposit, รับเงิน, เงินเข้า), \"out\" if it left (red, -, withdrawal, โอนเงิน, ชำระ), \"unknown\" if you cannot tell.",
+          "- balance: the running balance printed on that row, or null if there is none.",
+          "- own_transfer: true only if the row clearly moves money between the owner's own accounts.",
+          "- transaction_type: out -> expense (investment if paid to a fund or broker), in -> income, own_transfer -> transfer, unknown flow -> \"\".",
+          "- category must be one of: " + SLIP_CATEGORIES.join(", ") + ". Pick the closest from the merchant or memo.",
+          "- description: short, in Thai (keep shop and brand names as written), merchant name or first name only for people (no surnames). Never output full account numbers, card numbers or full reference numbers.",
+          "- confidence: 0 to 1 for each row. List unreadable or guessed fields of that row in unclear (for example [\"amount\",\"category\"]).",
+          "- cut_off_rows: how many rows at the top or bottom edge are cut off and could not be read.",
+          "- If the image is not a statement or transaction list, reply {\"is_statement\":false}."
+        ].join("\n");
+      }
+      function balanceCheck(rows) {
+        const bal = rows.map(function (r) { return r.balance == null || r.balance === "" ? null : Number(r.balance); });
+        const signed = rows.map(function (r) { const a = Number(r.amount) || 0; return r.flow === "in" ? a : r.flow === "out" ? -a : null; });
+        let pairs = 0, oldFirst = 0, newFirst = 0;
+        for (let i = 1; i < rows.length; i += 1) {
+          if (bal[i] === null || bal[i - 1] === null || !isFinite(bal[i]) || !isFinite(bal[i - 1]) || signed[i] === null || signed[i - 1] === null) continue;
+          pairs += 1;
+          if (signed[i] !== null && Math.abs(bal[i - 1] + signed[i] - bal[i]) < 0.011) oldFirst += 1;
+          if (signed[i - 1] !== null && Math.abs(bal[i] + signed[i - 1] - bal[i - 1]) < 0.011) newFirst += 1;
+        }
+        if (!pairs) return null;
+        const ok = Math.max(oldFirst, newFirst);
+        return { pairs: pairs, ok: ok, bad: pairs - ok };
+      }
+      function pendingStatementRows(exceptCard) {
+        const out = [];
+        stmt.cards.forEach(function (c) { if (c !== exceptCard && document.body.contains(c.el)) c.items.forEach(function (it) { out.push(it); }); });
+        return out;
+      }
+      async function handleStatementImages(files) {
+        byId("slip-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+        for (let i = 0; i < files.length; i += 1) await readStatement(files[i]);
+      }
+      async function readStatement(file) {
+        stmt.counter += 1;
+        const n = stmt.counter;
+        const card = document.createElement("div"); card.className = "slip-card stmt-card";
+        const img = document.createElement("img"); img.alt = "Statement " + file.name; img.src = URL.createObjectURL(file);
+        const body = document.createElement("div"); body.className = "stmt-body";
+        const status = document.createElement("div"); status.className = "slip-status"; status.textContent = "กำลังอ่านทุกรายการใน " + file.name + "… อาจใช้เวลาถึง 1 นาที";
+        body.appendChild(status); card.append(img, body);
+        byId("slip-cards").prepend(card);
+        const entry = { el: card, items: [] };
+        let t = null, fail = "";
+        try {
+          if (!slip.sample || !slip.images) throw { code: "unavailable" };
+          t = await slip.sample.json(statementPrompt(), { images: [file], modelTier: "default" });
+        } catch (e) {
+          const code = e && e.code;
+          fail = code === "not_granted" ? "Claude ไม่ได้รับอนุญาตให้อ่านภาพ" : code === "rate_limited" ? "มีคำขอมากเกินไป ลองใหม่ในอีกสักครู่ หรือพิมพ์รายการเอง" : code === "image_rejected" ? "อ่านภาพนี้ไม่ได้ ลองใช้ PNG หรือ JPG ที่เล็กกว่า 20 MB" : code === "unavailable" ? "หน้านี้ยังให้ Claude อ่านภาพไม่ได้" : "อ่าน statement นี้ไม่ได้ (" + (code || "error") + ")";
+        }
+        if (!fail && (!t || t.is_statement === false)) fail = "ภาพนี้ดูไม่เหมือน statement หรือรายการเดินบัญชี";
+        const rows = !fail && Array.isArray(t.rows) ? t.rows : [];
+        if (!fail && !rows.length) fail = "ไม่พบรายการในภาพนี้";
+        const bank = (t && t.bank) ? String(t.bank).slice(0, 24) : "Statement";
+        status.textContent = "";
+        const pill = document.createElement("span");
+        const info = document.createElement("span");
+        if (fail) { pill.className = "badge soon"; pill.textContent = "อ่านไม่ได้ · กรอกเอง"; info.textContent = fail + " เพิ่มรายการด้านล่างเองได้ หรือกดทิ้ง"; }
+        else {
+          const check = balanceCheck(rows);
+          const cut = Number(t.cut_off_rows) || 0;
+          const parts = ["อ่านได้ " + rows.length + " รายการ" + (t.account_suffix ? " · บัญชี …" + String(t.account_suffix).slice(-4) : "")];
+          if (check) parts.push(check.bad ? "ยอดคงเหลือไม่ต่อกัน " + check.bad + " จาก " + check.pairs + " จุด อาจอ่านผิดหรือขาดบางรายการ" : "ยอดคงเหลือต่อกันครบ");
+          if (cut) parts.push("มี " + cut + " รายการโดนตัดขอบภาพ ลองแคปใหม่ให้เหลื่อมกันเล็กน้อย");
+          pill.className = "badge " + (check && !check.bad && !cut ? "ok" : "soon"); pill.textContent = bank;
+          info.textContent = parts.join(" · ");
+        }
+        status.append(pill, info);
+        const wrap = document.createElement("div"); wrap.className = "stmt-wrap";
+        const table = document.createElement("table"); table.className = "stmt-table";
+        table.innerHTML = "<thead><tr><th scope=\"col\"><input type=\"checkbox\" class=\"stmt-all\" aria-label=\"เลือกทั้งหมด\" title=\"เลือกทั้งหมด\"></th><th scope=\"col\">วันที่</th><th scope=\"col\">เวลา</th><th scope=\"col\">รายละเอียด</th><th scope=\"col\">จำนวนเงิน (บาท)</th><th scope=\"col\">ประเภท</th><th scope=\"col\">หมวด</th></tr></thead>";
+        const tbody = document.createElement("tbody"); table.appendChild(tbody); wrap.appendChild(table); body.appendChild(wrap);
+        const allBox = table.querySelector(".stmt-all");
+        const others = pendingStatementRows(entry);
+        function addRow(r, idx) {
+          r = r || {};
+          const tr = document.createElement("tr");
+          const unclear = Array.isArray(r.unclear) ? r.unclear.map(String) : [];
+          const conf = r.confidence == null ? (r.manual ? 1 : 0) : Math.max(0, Math.min(1, Number(r.confidence) || 0));
+          const flow = r.own_transfer ? "own" : r.flow;
+          const typeUnsure = !r.manual && (flow === "unknown" || !r.transaction_type || unclear.some(function (u) { return /type|flow|direction|income|expense/i.test(u); }));
+          const id = "stmt-" + n + "-" + idx;
+          const pick = document.createElement("input"); pick.type = "checkbox"; pick.checked = true; pick.setAttribute("aria-label", "เลือกรายการนี้");
+          const date = makeInput("date", r.date); const time = makeInput("time", r.time);
+          const desc = makeInput("text", r.description || ""); const amount = makeInput("number", Number(r.amount) || ""); amount.step = "0.01"; amount.min = "0";
+          const type = makeSelect(["expense", "income", "transfer", "investment"], typeUnsure || r.manual ? "" : r.transaction_type, "เลือก…");
+          const cat = makeSelect(SLIP_CATEGORIES, r.manual ? "" : r.category, "เลือก…");
+          [["date", date], ["time", time], ["desc", desc], ["amount", amount], ["type", type], ["cat", cat]].forEach(function (p) { p[1].id = id + "-" + p[0]; });
+          [date, time, desc, amount, type, cat].forEach(function (el, k) { el.setAttribute("aria-label", ["วันที่", "เวลา", "รายละเอียด", "จำนวนเงิน", "ประเภท", "หมวด"][k]); });
+          const cells = [pick, date, time, desc, amount, type, cat].map(function (el) { const td = document.createElement("td"); td.appendChild(el); tr.appendChild(td); return td; });
+          const noteTr = document.createElement("tr"); noteTr.className = "stmt-note-row"; noteTr.hidden = true;
+          const noteTd = document.createElement("td"); noteTd.colSpan = 7; noteTr.appendChild(noteTd);
+          tbody.append(tr, noteTr);
+          const item = { tr: tr, pick: pick, date: date, time: time, desc: desc, amount: amount, type: type, cat: cat, conf: conf, unclear: unclear, flow: flow, balance: r.balance, manual: !!r.manual, typeUnsure: typeUnsure };
+          function refresh(initial) {
+            const notes = [];
+            const c = { date: date.value, time: time.value, amount: Number(amount.value) };
+            const dup = c.date && c.amount > 0 ? findDuplicate(c) : null;
+            const twin = c.date && c.amount > 0 ? others.concat(entry.items).find(function (o) { return o !== item && document.body.contains(o.tr) && o.date.value === c.date && o.time.value === c.time && Math.abs(Number(o.amount.value) - c.amount) < 0.005 && (o.balance == null || item.balance == null || Math.abs(Number(o.balance) - Number(item.balance)) < 0.011); }) : null;
+            if (dup) notes.push((dup.sure ? "บันทึกไว้แล้ว: " : "อาจบันทึกไว้แล้ว: ") + dup.row.transaction_id + " · " + (dup.row.description || "") + " · " + money(dup.row._amount));
+            if (twin && !dup) notes.push("รายการนี้อยู่ในอีกภาพด้วย");
+            if (!item.manual && (conf < 0.9 || unclear.length)) notes.push("ตรวจรายการนี้" + (unclear.length ? ": " + unclear.join(", ") : "") + " (มั่นใจ " + Math.round(conf * 100) + "%)");
+            if (!type.value) notes.push("เลือกว่าเป็นรายรับ รายจ่าย โอนระหว่างบัญชี หรือการลงทุน");
+            if (initial && (dup && dup.sure || twin)) pick.checked = false;
+            tr.classList.toggle("stmt-dup", !!(dup || twin));
+            tr.classList.toggle("stmt-unsure", !dup && !twin && notes.length > 0);
+            tr.classList.toggle("stmt-off", !pick.checked);
+            noteTd.textContent = notes.join(" · "); noteTr.hidden = !notes.length;
+            updateSummary();
+          }
+          item.refresh = refresh;
+          [date, time, amount, type, pick].forEach(function (el) { el.addEventListener("change", function () { refresh(false); }); });
+          entry.items.push(item);
+          refresh(true);
+          return item;
+        }
+        const summary = document.createElement("div"); summary.className = "slip-note stmt-summary";
+        const warn = document.createElement("div"); warn.className = "slip-warn"; warn.hidden = true;
+        const buttons = document.createElement("div"); buttons.className = "slip-buttons";
+        const save = document.createElement("button"); save.type = "button"; save.className = "primary"; save.textContent = "บันทึกที่เลือก";
+        const addOne = document.createElement("button"); addOne.type = "button"; addOne.textContent = "เพิ่มรายการ";
+        const discard = document.createElement("button"); discard.type = "button"; discard.textContent = "ทิ้ง";
+        buttons.append(save, addOne, discard);
+        body.append(summary, warn, buttons);
+        function updateSummary() {
+          const live = entry.items.filter(function (it) { return document.body.contains(it.tr); });
+          const chosen = live.filter(function (it) { return it.pick.checked; });
+          allBox.checked = live.length > 0 && chosen.length === live.length;
+          allBox.indeterminate = chosen.length > 0 && chosen.length < live.length;
+          const dups = live.filter(function (it) { return it.tr.classList.contains("stmt-dup"); }).length;
+          const dupsOn = chosen.filter(function (it) { return it.tr.classList.contains("stmt-dup"); }).length;
+          const unsure = chosen.filter(function (it) { return it.tr.classList.contains("stmt-unsure"); }).length;
+          let inSum = 0, outSum = 0;
+          chosen.forEach(function (it) { const a = Number(it.amount.value) || 0; if (it.type.value === "income") inSum += a; else if (it.type.value === "expense" || it.type.value === "investment") outSum += a; });
+          summary.textContent = "เลือก " + chosen.length + " จาก " + live.length + " รายการ · เข้า " + money(inSum) + " · ออก " + money(outSum) + (dups ? " · ซ้ำหรือบันทึกแล้ว " + dups + " รายการ" + (dupsOn ? " (ติ๊กอยู่ " + dupsOn + " รายการ จะนับซ้ำ)" : " (เอาติ๊กออกให้แล้ว)") : "") + (unsure ? " · ต้องตรวจ " + unsure + " รายการ" : "");
+          save.textContent = chosen.length ? "บันทึก " + chosen.length + " รายการ" : "บันทึกที่เลือก";
+          save.disabled = !chosen.length;
+        }
+        entry.items = [];
+        stmt.cards.push(entry);
+        if (rows.length) rows.forEach(function (r, i) { addRow(r, i); });
+        else addRow({ manual: true }, 0);
+        allBox.addEventListener("change", function () {
+          const on = allBox.checked;
+          entry.items.forEach(function (it) { if (document.body.contains(it.tr)) { it.pick.checked = on; it.refresh(false); } });
+        });
+        addOne.addEventListener("click", function () { const it = addRow({ manual: true }, entry.items.length); it.date.focus(); });
+        discard.addEventListener("click", function () { URL.revokeObjectURL(img.src); card.remove(); stmt.cards = stmt.cards.filter(function (c) { return c !== entry; }); });
+        save.addEventListener("click", async function () {
+          const chosen = entry.items.filter(function (it) { return document.body.contains(it.tr) && it.pick.checked; });
+          const bad = chosen.filter(function (it) { return !it.date.value || !(Number(it.amount.value) > 0) || !it.type.value || !it.cat.value; });
+          entry.items.forEach(function (it) { it.tr.classList.remove("stmt-missing"); });
+          if (bad.length) {
+            bad.forEach(function (it) { it.tr.classList.add("stmt-missing"); });
+            warn.hidden = false; warn.textContent = "มี " + bad.length + " รายการที่ยังขาดวันที่ จำนวนเงิน ประเภท หรือหมวด กรอกให้ครบหรือเอาติ๊กออก";
+            const first = bad[0]; (!first.date.value ? first.date : !(Number(first.amount.value) > 0) ? first.amount : !first.type.value ? first.type : first.cat).focus();
+            return;
+          }
+          warn.hidden = true;
+          const list = chosen.map(function (it) {
+            const reasons = [];
+            if (!it.manual && it.conf < 0.9) reasons.push("read from statement image with " + Math.round(it.conf * 100) + "% confidence");
+            if (!it.manual && it.unclear.length) reasons.push("check " + it.unclear.join(", "));
+            if (it.tr.classList.contains("stmt-dup")) reasons.push("possible duplicate, saved anyway");
+            const d = it.date.value, tm = it.time.value || "";
+            return {
+              date: d, time: tm, transaction_type: it.type.value,
+              description: (it.desc.value || "Statement row") + (it.manual ? " (entered by hand)" : tm ? " (" + bank + " " + tm + ")" : " (" + bank + ")"),
+              amount_thb: Number(it.amount.value).toFixed(2), category: it.cat.value, action: it.type.value === "investment" ? (it.flow === "in" ? "Sell" : "Buy") : "",
+              year_month: d.slice(0, 7), source: "bank_statement", source_reference: file.name,
+              data_quality_flag: reasons.length ? "needs_review: " + reasons.join("; ") : "",
+              confidence: it.conf, created_at: new Date().toISOString()
+            };
+          });
+          save.disabled = true; save.textContent = "กำลังบันทึก…";
+          try {
+            await persistRows(list);
+            URL.revokeObjectURL(img.src); card.remove(); stmt.cards = stmt.cards.filter(function (c) { return c !== entry; });
+            setSlipNote("เพิ่ม " + list.length + " รายการจาก statement แล้ว นับรวมในยอดด้านล่างแล้ว");
+          } catch (e) {
+            save.disabled = false; updateSummary();
+            warn.hidden = false; warn.textContent = "บันทึกไม่ได้: " + ((e && e.message) || "ลองใหม่");
+          }
+        });
+        updateSummary();
+      }
+      function addDiscard(form, card) {
+        const b = document.createElement("div"); b.className = "slip-buttons";
+        const d = document.createElement("button"); d.type = "button"; d.textContent = "ปิด";
+        d.addEventListener("click", function () { card.remove(); }); b.appendChild(d); form.appendChild(b);
+      }
+      function aggregateMonths(rows) {
+        const keys = rows.map(function (r) { return periodOf(r); }).filter(Boolean).sort();
+        if (!keys.length) return [];
+        const months = allMonthsBetween(keys[0], keys[keys.length - 1]);
+        const map = {};
+        months.forEach(function (m) { map[m] = { month: m, income: 0, expense: 0, buy: 0, sell: 0 }; });
+        rows.forEach(function (r) {
+          const m = periodOf(r), value = r._amount;
+          if (!map[m]) return;
+          if (r.transaction_type === "income") map[m].income += value;
+          else if (r.transaction_type === "expense") map[m].expense += value;
+          else if (r.transaction_type === "investment" && String(r.action).toLowerCase() === "buy") map[m].buy += value;
+          else if (r.transaction_type === "investment" && String(r.action).toLowerCase() === "sell") map[m].sell += value;
+        });
+        return months.map(function (m) { return map[m]; });
+      }
+      function niceMax(value) {
+        if (!value || value <= 0) return 1;
+        const raw = value / 4;
+        const power = Math.pow(10, Math.floor(Math.log10(raw)));
+        const fraction = raw / power;
+        const step = (fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10) * power;
+        return step * 4;
+      }
+      function drawLineChart(id, data, series, selectedMonth) {
+        const svg = byId(id);
+        svg.replaceChildren();
+        const width = Math.max(290, Math.floor(svg.parentElement.clientWidth));
+        const height = 236;
+        const margin = { left: 65, right: 18, top: 14, bottom: 45 };
+        const plotW = Math.max(100, width - margin.left - margin.right);
+        const plotH = height - margin.top - margin.bottom;
+        svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+        const title = series.map(function (s) { return s.label; }).join(" และ ");
+        svg.appendChild(svgEl("title", {}, title + " รายเดือน"));
+        svg.appendChild(svgEl("desc", {}, "แตะแท่งกราฟเพื่อดูเฉพาะเดือนนั้น"));
+        if (!data.length) {
+          svg.appendChild(svgEl("text", { x: 8, y: 80, fill: "#64748B", "font-size": 13 }, "ไม่มีข้อมูลในช่วงนี้"));
+          return;
+        }
+        const largest = Math.max.apply(null, data.map(function (d) { return Math.max.apply(null, series.map(function (s) { return d[s.key]; })); }));
+        const max = niceMax(largest);
+        const xAt = function (i) { return margin.left + (data.length <= 1 ? plotW / 2 : plotW * i / (data.length - 1)); };
+        const yAt = function (value) { return margin.top + plotH - (value / max) * plotH; };
+        for (let i = 0; i <= 4; i += 1) {
+          const value = max * i / 4, y = yAt(value);
+          svg.appendChild(svgEl("line", { x1: margin.left, y1: y, x2: margin.left + plotW, y2: y, stroke: "#E2E8F0", "stroke-width": 1 }));
+          svg.appendChild(svgEl("text", { x: margin.left - 8, y: y + 4, "text-anchor": "end", fill: "#64748B", "font-size": 11 }, compact(value)));
+        }
+        const tickCount = Math.min(12, data.length);
+        const tickIndexes = Array.from(new Set(Array.from({ length: tickCount }, function (_, i) { return tickCount === 1 ? 0 : Math.round(i * (data.length - 1) / (tickCount - 1)); })));
+        tickIndexes.forEach(function (i) {
+          const x = margin.left + plotW / data.length * (i + 0.5);
+          svg.appendChild(svgEl("text", { x: x, y: height - 18, "text-anchor": "middle", fill: "#64748B", "font-size": 11 }, monthLabel(data[i].month, data.length > 12)));
+        });
+        svg.appendChild(svgEl("line", { x1: margin.left, y1: margin.top + plotH, x2: margin.left + plotW, y2: margin.top + plotH, stroke: "#94A3B8", "stroke-width": 1 }));
+        const slot = plotW / data.length, groupW = Math.min(64, slot * 0.6), barW = groupW / series.length;
+        data.forEach(function (d, i) {
+          const isSelected = selectedMonth !== "all" && d.month.slice(5, 7) === selectedMonth;
+          series.forEach(function (s, j) {
+            const x = margin.left + slot * i + (slot - groupW) / 2 + j * barW, y = yAt(d[s.key]);
+            const bar = svgEl("rect", { x: x + 1, y: y, width: Math.max(1, barW - 2), height: Math.max(0, margin.top + plotH - y), rx: 2, fill: s.color, "fill-opacity": selectedMonth === "all" || isSelected ? 1 : 0.35,
+              "aria-label": monthLabel(d.month, true) + " " + s.label + " " + money(d[s.key]) });
+            bar.style.cursor = "pointer";
+            bar.appendChild(svgEl("title", {}, monthLabel(d.month, true) + " · " + s.label + " · " + money(d[s.key]) + " — แตะเพื่อดูเดือนนี้"));
+            bar.addEventListener("click", function () { selectMonth(d.month); });
+            svg.appendChild(bar);
+          });
+        });
+        svg.appendChild(svgEl("text", { x: 10, y: margin.top + plotH / 2, "text-anchor": "middle", fill: "#64748B", "font-size": 10, transform: "rotate(-90 10 " + (margin.top + plotH / 2) + ")" }, "บาท"));
+      }
+      function drawCategories(rows) {
+        const totals = {};
+        rows.forEach(function (r) {
+          if (r.transaction_type !== "expense") return;
+          const category = r.category || "Uncategorized";
+          totals[category] = (totals[category] || 0) + r._amount;
+        });
+        const all = Object.keys(totals).map(function (category) { return { category: category, amount: totals[category] }; }).sort(function (a, b) { return b.amount - a.amount; });
+        const top = all.slice(0, 7);
+        if (all.length > 7) top.push({ category: "Other categories", amount: all.slice(7).reduce(function (sum, item) { return sum + item.amount; }, 0) });
+        const list = byId("category-list");
+        list.replaceChildren();
+        byId("category-empty").hidden = top.length > 0;
+        byId("category-count").textContent = all.length ? all.length + " หมวด" : "";
+        const max = Math.max.apply(null, top.map(function (item) { return item.amount; }).concat([1]));
+        top.forEach(function (item) {
+          const row = document.createElement("div"); row.className = "category-row";
+          const name = document.createElement("span"); name.className = "category-name"; name.textContent = catLabel(item.category);
+          const track = document.createElement("div"); track.className = "category-track";
+          const bar = document.createElement("div"); bar.className = "category-bar"; bar.style.width = (item.amount / max * 100) + "%"; track.appendChild(bar);
+          const amount = document.createElement("span"); amount.className = "category-amount"; amount.textContent = money(item.amount);
+          row.append(name, track, amount); list.appendChild(row);
+        });
+      }
+      function typeLabel(type) {
+        return type === "income" ? "รายรับ" : type === "expense" ? "รายจ่าย" : type === "investment" ? "ลงทุน" : type === "transfer" ? "โอน" : type;
+      }
+      function actionLabel(action) {
+        const value = String(action || "").toLowerCase();
+        return value === "buy" ? "ซื้อ" : value === "sell" ? "ขาย" : action || "—";
+      }
+      function renderTable(rows) {
+        const body = byId("transaction-rows");
+        body.replaceChildren();
+        const recent = rows.slice().sort(function (a, b) {
+          if (a.date !== b.date) return b.date.localeCompare(a.date);
+          return b.transaction_id.localeCompare(a.transaction_id);
+        }).slice(0, 12);
+        byId("table-empty").hidden = recent.length !== 0;
+        byId("transaction-count").textContent = rows.length ? "แสดง " + Math.min(rows.length, 12) + " จาก " + rows.length.toLocaleString("en-US") : "";
+        recent.forEach(function (r) {
+          const tr = document.createElement("tr");
+          if (r.data_quality_flag) tr.className = "needs-review";
+          const values = [
+            { value: r.date, cls: "date" },
+            { value: typeLabel(r.transaction_type), cls: "type type-" + r.transaction_type },
+            { value: r.description || "(ไม่มีรายละเอียด)", cls: "description" },
+            { value: r.category ? catLabel(r.category) : "—", cls: "" },
+            { value: actionLabel(r.action), cls: "action" },
+            { value: money(r._amount), cls: "money" }
+          ];
+          values.forEach(function (cell) { const td = document.createElement("td"); td.className = cell.cls; td.textContent = cell.value; tr.appendChild(td); });
+          body.appendChild(tr);
+          if (r.data_quality_flag) {
+            const flagRow = document.createElement("tr"); flagRow.className = "needs-review";
+            const td = document.createElement("td"); td.colSpan = 6; td.className = "quality-flag";
+            td.textContent = r.transaction_id + " · " + r.data_quality_flag; flagRow.appendChild(td); body.appendChild(flagRow);
+          }
+        });
+      }
+      function updateStatus(rows) {
+        if (!state.rows.length) {
+          byId("status").textContent = "ยังไม่มีข้อมูล · กรอกเงินเดือน แล้วเพิ่มสลิปหรือภาพ statement";
+          return;
+        }
+        const period = [state.selectedMonth === "all" ? "ทุกเดือน" : byId("month-filter").selectedOptions[0].textContent, state.selectedYear === "all" ? "ทุกปี" : "ปี " + state.selectedYear].join(" ");
+        byId("status").textContent = "แสดง " + rows.length.toLocaleString("en-US") + " รายการ · " + period;
+      }
+      function render() {
+        const rows = filteredRows();
+        const totals = { income: 0, expense: 0, buy: 0, sell: 0 };
+        rows.forEach(function (r) {
+          if (r.transaction_type === "income") totals.income += r._amount;
+          else if (r.transaction_type === "expense") totals.expense += r._amount;
+          else if (r.transaction_type === "investment" && String(r.action).toLowerCase() === "buy") totals.buy += r._amount;
+          else if (r.transaction_type === "investment" && String(r.action).toLowerCase() === "sell") totals.sell += r._amount;
+        });
+        byId("total-income").textContent = money(totals.income);
+        byId("total-expense").textContent = money(totals.expense);
+        byId("total-buy").textContent = money(totals.buy);
+        byId("total-sell").textContent = money(totals.sell);
+        const months = aggregateMonths(rowsForYear());
+        drawLineChart("flow-chart", months, [{ key: "income", label: "รายรับ", color: palette.income }, { key: "expense", label: "รายจ่าย", color: palette.expense }], state.selectedMonth);
+        drawLineChart("investment-chart", months, [{ key: "buy", label: "ซื้อ", color: palette.buy }, { key: "sell", label: "ขาย", color: palette.sell }], state.selectedMonth);
+        drawCategories(rows);
+        renderTable(rows);
+        renderHealth();
+        renderSplit(rows);
+        renderLeaks(rows);
+        renderDue();
+        renderReview();
+        renderViewNote();
+        updateStatus(rows);
+      }
+      function selectMonth(key) {
+        state.selectedYear = key.slice(0, 4);
+        state.selectedMonth = key.slice(5, 7);
+        byId("year-filter").value = state.selectedYear;
+        byId("month-filter").value = state.selectedMonth;
+        render();
+      }
+      function setRows(rows, sourceLabel) {
+        const missing = rows.length ? requiredColumns.filter(function (name) { return !(name in rows[0]); }) : [];
+        if (missing.length) throw new Error("ไฟล์ขาดคอลัมน์ที่จำเป็น: " + missing.join(", "));
+        state.csvRows = rows;
+        state.sourceLabel = sourceLabel;
+        applyRows();
+      }
+      function applyRows() {
+        const rows = (state.csvRows || []).concat(slip.rows);
+        const sourceLabel = (state.sourceLabel || "database.csv") + (slip.rows.length ? " + " + slip.rows.length + " saved slip" + (slip.rows.length === 1 ? "" : "s") : "");
+        state.rows = rows.map(function (r) {
+          const date = r.date || "";
+          return Object.assign({}, r, { _amount: parseAmount(r.amount_thb), year_month: r.year_month || date.slice(0, 7), transaction_type: String(r.transaction_type || "").toLowerCase(), _cycle: date ? cycleKey(date) : "" });
+        }).filter(function (r) { return r.date && r.transaction_type; });
+        const years = Array.from(new Set(state.rows.map(function (r) { return r.date.slice(0, 4); }))).sort();
+        const select = byId("year-filter"), previous = state.selectedYear;
+        select.replaceChildren();
+        const all = document.createElement("option"); all.value = "all"; all.textContent = "ทุกปี"; select.appendChild(all);
+        years.forEach(function (year) { const option = document.createElement("option"); option.value = year; option.textContent = year; select.appendChild(option); });
+        state.selectedYear = years.indexOf(previous) >= 0 ? previous : (years.length ? years[years.length - 1] : "all");
+        select.value = state.selectedYear;
+        byId("month-filter").disabled = false;
+        select.disabled = false;
+        byId("error-message").hidden = true;
+        byId("status").textContent = "โหลดแล้ว " + state.rows.length.toLocaleString("en-US") + " รายการ";
+        render();
+      }
+      async function loadLinkedCsv() {
+                byId("status").textContent = "Loading database…";
+        try {
+          const response = await fetch("database.csv?refresh=" + Date.now(), { cache: "no-store" });
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          setRows(parseCsv(await response.text()), "database.csv");
+        } catch (err) {
+                    byId("status").textContent = "Could not load the database automatically";
+          byId("error-message").textContent = location.protocol === "file:"
+            ? "Open open-dashboard.command to load the database automatically, or choose database.csv here"
+            : "Check that database.csv is in the same folder as dashboard.html, then try again";
+          byId("error-message").hidden = false;
+        }
+      }
+
+      byId("year-filter").addEventListener("change", function (event) { state.selectedYear = event.target.value; render(); });
+      byId("month-filter").addEventListener("change", function (event) { state.selectedMonth = event.target.value; render(); });
+      byId("view-filter").addEventListener("change", function (event) { state.view = event.target.value; render(); });
+      function readCsvFile(file) {
+        const reader = new FileReader();
+        reader.onload = function () { try { const text = String(reader.result || ""); setRows(parseCsv(text), file.name); store(STORE.csv, text); } catch (err) { byId("error-message").textContent = err.message || "Could not read the CSV file"; byId("error-message").hidden = false; } };
+        reader.onerror = function () { byId("error-message").textContent = "Could not read the CSV file"; byId("error-message").hidden = false; };
+        reader.readAsText(file, "UTF-8");
+      }
+      byId("stmt-file").addEventListener("change", function (event) {
+        const images = Array.from(event.target.files || []).filter(function (f) { return /^image\//.test(f.type); });
+        if (images.length) handleStatementImages(images);
+        event.target.value = "";
+      });
+      byId("slip-file").addEventListener("change", function (event) {
+        const images = Array.from(event.target.files || []).filter(function (f) { return /^image\//.test(f.type); });
+        if (images.length) handleSlipImages(images);
+        event.target.value = "";
+      });
+      let resizeTimer;
+      window.addEventListener("resize", function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { if (state.rows.length) render(); }, 120); });
+      const STORE = { csv: "demo-csv", profile: "demo-profile", slips: "demo-slips" };
+      function store(key, value) { try { if (value == null) localStorage.removeItem(key); else localStorage.setItem(key, value); } catch (e) { /* storage blocked: data lasts for this visit only */ } }
+      function stored(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+      function applyProfile() {
+        const g = Number(byId("gross-input").value) || 0, so = Number(byId("sso-input").value) || 0, pd = Math.min(31, Math.max(1, Number(byId("payday-input").value) || 25));
+        PROFILE.grossSalary = g; PROFILE.socialSecurity = so; PROFILE.netSalary = g > 0 ? Math.max(0, g - so) : 0; PROFILE.payday = pd;
+        if (state.csvRows) applyRows();
+      }
+      function saveProfile() { applyProfile(); store(STORE.profile, JSON.stringify({ gross: byId("gross-input").value, sso: byId("sso-input").value, payday: byId("payday-input").value })); }
+      ["gross-input", "sso-input", "payday-input"].forEach(function (id) { byId(id).addEventListener("change", saveProfile); });
+      (function restore() {
+        try { const pr = JSON.parse(stored(STORE.profile) || "null"); if (pr) { byId("gross-input").value = pr.gross || ""; byId("sso-input").value = pr.sso || ""; byId("payday-input").value = pr.payday || ""; } } catch (e) { /* ignore */ }
+        applyProfile();
+        const text = stored(STORE.csv);
+        if (text) { try { setRows(parseCsv(text), "your database.csv"); return; } catch (e) { store(STORE.csv, null); } }
+        setRows([], "nothing yet");
+        byId("status").textContent = "ยังไม่มีข้อมูล · กรอกเงินเดือน แล้วเพิ่มสลิปหรือภาพ statement หรือกดลองดูข้อมูลตัวอย่าง";
+      })();
+      byId("example-button").addEventListener("click", async function () {
+        try {
+          const response = await fetch("database.example.csv", { cache: "no-store" });
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          setRows(parseCsv(await response.text()), "example data (not saved)");
+          if (!PROFILE.netSalary) { byId("gross-input").value = 22000; byId("sso-input").value = 875; byId("payday-input").value = 25; applyProfile(); }
+        } catch (e) { byId("error-message").textContent = "โหลดข้อมูลตัวอย่างไม่ได้ ลองรีเฟรชหน้าแล้วลองใหม่"; byId("error-message").hidden = false; }
+      });
+      byId("clear-button").addEventListener("click", function () { byId("clear-confirm").hidden = false; byId("clear-yes").focus(); });
+      byId("clear-no").addEventListener("click", function () { byId("clear-confirm").hidden = true; });
+      byId("clear-yes").addEventListener("click", function () {
+        store(STORE.csv, null); store(STORE.profile, null); store(STORE.slips, null);
+        slip.rows = []; renderSavedSlips(); byId("slip-cards").replaceChildren();
+        ["gross-input", "sso-input", "payday-input"].forEach(function (id) { byId(id).value = ""; });
+        applyProfile(); state.selectedYear = "all"; state.selectedMonth = "all"; byId("month-filter").value = "all";
+        setRows([], "nothing yet");
+        byId("status").textContent = "ล้างแล้ว · หน้านี้ว่างและพร้อมให้คนใหม่ใช้";
+        byId("clear-confirm").hidden = true;
+      });
+      initSlips();
+    })();
+  </script>
+
+</html>

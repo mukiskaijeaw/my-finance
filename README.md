@@ -1,0 +1,35 @@
+# My Finance · AI Personal Finance Agent
+
+เครื่องมือจัดการรายรับรายจ่ายสำหรับมนุษย์เงินเดือนและฟรีแลนซ์ชาวไทย ส่งสลิปโอนเงินหรือภาพ statement ธนาคาร แล้ว agent จะอ่าน จัดหมวด ตรวจรายการซ้ำ และบันทึกลง `database.csv` ในเครื่อง พร้อมแดชบอร์ดสรุปรายเดือน รายการประจำอย่าง Netflix, Spotify, ค่าโทรศัพท์ ถูกจัดเป็น `Subscriptions` เพื่อใช้แจ้งเตือน Subscription ต่อ
+
+## ไฟล์
+
+| ไฟล์ | ใช้ทำอะไร |
+| --- | --- |
+| `AGENTS.md` | กติกาของ agent: schema, การจัดหมวด, การอ่านสลิปธนาคารไทย (แปลงปี พ.ศ., ตัดสินประเภทจากฝั่งผู้ใช้, จับคู่สลิปกับ statement ไม่ให้ซ้ำ) |
+| `dashboard.html` | แดชบอร์ดอ่าน `database.csv` พร้อมโหมดอ่านสลิปและ statement |
+| `open-dashboard.command` | เปิดแดชบอร์ดบน Mac ผ่าน local server `127.0.0.1:8765` |
+| `database.example.csv` | แม่แบบหัวตาราง (ไม่มีข้อมูล) |
+| `demo/try-finance.html` | หน้า demo ภาษาไทย เริ่มจากว่าง กรอกเงินเดือน เพิ่มสลิป/statement หรือกด "ลองดูข้อมูลตัวอย่าง" ข้อมูลเก็บใน localStorage ของเบราว์เซอร์เท่านั้น |
+| `demo/database.example.csv` | ข้อมูลสมมติของมนุษย์เงินเดือน (Example Co. Ltd.) 3 เดือน สำหรับ demo |
+
+## เริ่มใช้กับ Codex หรือ Claude
+
+1. Clone repo นี้ไว้ในโฟลเดอร์ส่วนตัว
+2. คัดลอก `database.example.csv` เป็น `database.csv`
+3. เปิดโฟลเดอร์ใน Codex หรือ Claude Code แล้วพิมพ์ "ช่วยตั้งค่า Personal Finance Agent จาก AGENTS.md ให้พร้อมรับสลิป"
+4. แนบสลิป (PNG/JPG) หรือพิมพ์รายการ เช่น "วันนี้ค่าอาหาร 120 บาท" agent จะถามก่อนบันทึกถ้าวันที่ ยอดเงิน หรือประเภทอ่านไม่ชัด
+
+## เปิดแดชบอร์ด
+
+- Mac: ดับเบิลคลิก `open-dashboard.command` แล้วปล่อย Terminal เปิดไว้
+- เครื่องอื่น: รัน `python3 -m http.server 8765` ในโฟลเดอร์นี้ แล้วเปิด `http://127.0.0.1:8765/dashboard.html`
+- Demo: รัน `python3 -m http.server` ในโฟลเดอร์ `demo/` แล้วเปิด `try-finance.html`
+
+## Schema
+
+`transaction_id,date,transaction_type,description,amount_thb,category,action,year_month,source,source_reference,data_quality_flag`
+
+## ความเป็นส่วนตัว
+
+repo นี้มีเฉพาะข้อมูลสมมติ `database.csv` จริง สลิป และภาพ statement ถูกกันไว้ใน `.gitignore` เก็บไว้ในเครื่องเท่านั้น

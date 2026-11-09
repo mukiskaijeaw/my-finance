@@ -1,0 +1,32 @@
+# Local transaction, tax, and source files
+*.csv
+!database.example.csv
+!tax_preparation.example.csv
+database.csv
+tax_preparation.csv
+tax_preparation_2568_source.csv
+codex_usage_log.csv
+*.sqlite
+*.sqlite3
+*.db
+
+# Receipts and private attachments
+receipts/
+slips/
+private/
+attachments/
+*.heic
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.pdf
+*.mov
+
+# Credentials and machine/editor files
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+*.session.jsonl
