@@ -173,6 +173,20 @@
     .clear-confirm { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin: 0 0 20px; }
     .clear-confirm[hidden] { display: none; }
     @media (max-width: 760px) { #example-button { margin-left: 0; } }
+    .reader-box { margin: 10px 0 0; font-size: 13px; }
+    .reader-box summary { cursor: pointer; color: var(--muted); }
+    .reader-label { color: var(--ink); font-weight: 550; }
+    .reader-body { display: grid; gap: 8px; margin-top: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--soft); }
+    .reader-option { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+    .reader-option span { display: grid; }
+    .reader-option small { color: var(--muted); font-size: 12px; }
+    .reader-api { display: grid; gap: 8px; padding-left: 24px; }
+    .reader-api label { display: grid; gap: 3px; color: var(--muted); font-size: 12px; }
+    .reader-api input[type=password], .reader-api input[type=text] { min-height: 34px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: #FFFFFF; color: var(--ink); max-width: 360px; }
+    .reader-api .reader-remember { display: flex; gap: 6px; align-items: center; color: var(--ink); }
+    .reader-help { margin: 0; color: var(--muted); font-size: 12px; }
+    .reader-consent { margin: 8px 0; padding: 10px 12px; border: 1px solid #E8C9BC; border-radius: 6px; background: #FBEFE9; font-size: 13px; }
+    .reader-consent p { margin: 0 0 8px; }
     .slip-panel { margin: 0 0 20px; padding: 20px 22px; border: 1px solid var(--line); border-radius: 8px; background: #FFFFFF; }
     .slip-panel .section-heading { margin-bottom: 6px; }
     .slip-intro { margin: 0 0 12px; color: var(--muted); font-size: 13px; max-width: 70ch; }
@@ -283,12 +297,13 @@
 
     <section id="slip-panel" class="slip-panel" aria-labelledby="slip-heading">
       <div class="section-heading"><h2 id="slip-heading">เพิ่มสลิปโอนเงิน หรือภาพแคป statement</h2><span id="slip-count" class="section-note"></span></div>
-      <p class="slip-intro">เลือกสลิปที่แอปธนาคารบันทึกไว้หลังโอนเงิน หรือภาพแคป statement / ประวัติรายการ (ภาพเดียวมีได้หลายรายการ) Claude จะอ่านวันที่ จำนวนเงิน และผู้รับ ตรวจกับรายการด้านล่างว่าไม่ซ้ำ แล้วให้คุณยืนยันก่อนเพิ่ม ข้อมูลเก็บอยู่ในเบราว์เซอร์ของคุณเท่านั้น ไม่มีใครเห็น</p>
+      <p class="slip-intro">เลือกสลิปที่แอปธนาคารบันทึกไว้หลังโอนเงิน หรือภาพแคป statement / ประวัติรายการ (ภาพเดียวมีได้หลายรายการ) ตัวอ่านภาพจะอ่านวันที่ จำนวนเงิน และผู้รับ ตรวจกับรายการด้านล่างว่าไม่ซ้ำ แล้วให้คุณยืนยันก่อนเพิ่ม ข้อมูลเก็บอยู่ในเบราว์เซอร์ของคุณเท่านั้น ไม่มีใครเห็น</p>
       <div class="slip-actions">
         <label class="slip-choose" for="slip-file">เลือกภาพสลิป<input id="slip-file" type="file" accept="image/png,image/jpeg,image/webp" multiple></label>
         <label class="slip-choose secondary" for="stmt-file">เลือกภาพแคป statement<input id="stmt-file" type="file" accept="image/png,image/jpeg,image/webp" multiple></label>
         <span id="slip-note" class="slip-note">กำลังตรวจว่าอ่านสลิปได้ไหม…</span>
       </div>
+      <div id="reader-box"></div>
       <div id="slip-cards" class="slip-cards"></div>
       <div id="saved-slips" class="saved-slips"></div>
     </section>
@@ -387,6 +402,360 @@
     <p class="footnote">การซื้อขายการลงทุนแสดงแยกต่างหาก · เปลี่ยนตัวกรองเพื่อดูยอดรวม หมวด และรายการของแต่ละช่วง · กด "ล้างข้อมูลของฉัน" ก่อนส่งเครื่องต่อให้คนอื่น</p>
   </main>
 
+  <script>
+    // Image reader for slips and statement screenshots.
+    // Engines: "claude" (Claude on claude.ai, handled by the page), "local" (Tesseract.js OCR in this browser),
+    // "api" (the user's own Claude API key; the image is sent to Anthropic only after the user agrees).
+    window.FinanceReader = (function () {
+      const PREF = "demo-reader";
+      const TESSERACT_URL = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+      const st = { engine: "local", hasClaude: false, key: "", model: "claude-opus-5-5", remember: false, consent: false, worker: null, progress: null, note: function () {} };
+
+      function loadPrefs() {
+        try {
+          const p = JSON.parse(localStorage.getItem(PREF) || "{}");
+          if (p.engine) st.engine = p.engine;
+          if (p.model) st.model = p.model;
+          if (p.remember && p.key) { st.remember = true; st.key = p.key; }
+        } catch (e) { /* storage blocked: defaults only */ }
+      }
+      function savePrefs() {
+        try { localStorage.setItem(PREF, JSON.stringify({ engine: st.engine, model: st.model, remember: st.remember, key: st.remember ? st.key : "" })); } catch (e) { /* storage blocked */ }
+      }
+      function note() {
+        if (st.engine === "claude") return "Claude บน claude.ai อ่านให้ · PNG, JPG หรือ WebP · Claude จะขออนุญาตในครั้งแรก";
+        if (st.engine === "api") return st.key ? "ใช้ Claude API key ของคุณ · ภาพจะถูกส่งไป Anthropic หลังคุณกดยืนยันเท่านั้น" : "ใส่ Claude API key ในตัวเลือกด้านล่างก่อน";
+        return "อ่านในเครื่องด้วย OCR ภาษาไทย ภาพไม่ออกจากเครื่อง · ครั้งแรกต้องโหลดโมเดลภาษา · ตรวจทุกช่องก่อนบันทึก";
+      }
+      function el(tag, attrs, text) {
+        const e = document.createElement(tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text) e.textContent = text;
+        return e;
+      }
+      function buildUi(box) {
+        box.replaceChildren();
+        const det = el("details", { class: "reader-box" });
+        const sum = el("summary"); const label = el("span", { class: "reader-label" });
+        sum.append("ตัวอ่านภาพ: ", label); det.appendChild(sum);
+        const body = el("div", { class: "reader-body" });
+        const options = [
+          ["claude", "Claude บน claude.ai", "แม่นที่สุด ใช้ได้เมื่อเปิดหน้านี้จากลิงก์ claude.ai"],
+          ["local", "อ่านในเครื่อง (OCR ภาษาไทย)", "ฟรี ภาพไม่ออกจากเครื่อง แม่นน้อยกว่า ต้องตรวจทุกช่อง"],
+          ["api", "ใช้ Claude API key ของฉัน", "แม่นเท่า claude.ai และจัดหมวดให้ ภาพถูกส่งไป Anthropic หลังกดยืนยัน คิดค่าใช้จ่ายกับ key ของคุณ"]
+        ];
+        options.forEach(function (o) {
+          if (o[0] === "claude" && !st.hasClaude) return;
+          const row = el("label", { class: "reader-option" });
+          const r = el("input", { type: "radio", name: "reader-engine", value: o[0] });
+          r.checked = st.engine === o[0];
+          r.addEventListener("change", function () { if (r.checked) { st.engine = o[0]; savePrefs(); refresh(); } });
+          const txt = el("span"); txt.append(el("strong", {}, o[1]), el("small", {}, o[2]));
+          row.append(r, txt); body.appendChild(row);
+        });
+        const api = el("div", { class: "reader-api" });
+        const keyLabel = el("label", { for: "reader-key" }, "Claude API key");
+        const key = el("input", { id: "reader-key", type: "password", autocomplete: "off", placeholder: "sk-ant-…" }); key.value = st.key;
+        key.addEventListener("input", function () { st.key = key.value.trim(); st.consent = false; savePrefs(); refresh(); });
+        keyLabel.appendChild(key);
+        const modelLabel = el("label", { for: "reader-model" }, "โมเดล");
+        const model = el("input", { id: "reader-model", type: "text", autocomplete: "off" }); model.value = st.model;
+        model.addEventListener("change", function () { st.model = model.value.trim() || "claude-opus-5-5"; model.value = st.model; savePrefs(); });
+        modelLabel.appendChild(model);
+        const remLabel = el("label", { class: "reader-remember" });
+        const rem = el("input", { type: "checkbox" }); rem.checked = st.remember;
+        rem.addEventListener("change", function () { st.remember = rem.checked; savePrefs(); });
+        remLabel.append(rem, " จำ key ไว้ในเบราว์เซอร์นี้ (ไม่ติ๊ก = ลืมเมื่อปิดหน้า)");
+        const help = el("p", { class: "reader-help" }, "สร้าง key ได้ที่ console.anthropic.com · key อยู่ในเบราว์เซอร์ของคุณเท่านั้น และส่งตรงไปที่ api.anthropic.com");
+        api.append(keyLabel, modelLabel, remLabel, help); body.appendChild(api);
+        det.appendChild(body); box.appendChild(det);
+        function refresh() {
+          label.textContent = st.engine === "claude" ? "Claude บน claude.ai" : st.engine === "api" ? "Claude API key ของฉัน" : "อ่านในเครื่อง";
+          api.hidden = st.engine !== "api";
+          if (st.engine === "api" && !st.key) det.open = true;
+          st.note(note());
+        }
+        refresh();
+      }
+      function init(opts) {
+        loadPrefs();
+        st.hasClaude = !!opts.claude;
+        st.note = opts.note || st.note;
+        if (st.hasClaude && !localStorage_has()) st.engine = "claude";
+        if (st.engine === "claude" && !st.hasClaude) st.engine = "local";
+        const box = document.getElementById(opts.boxId || "reader-box");
+        if (box) buildUi(box); else st.note(note());
+      }
+      function localStorage_has() { try { return !!localStorage.getItem(PREF); } catch (e) { return false; } }
+
+      // ---------- helpers ----------
+      function fail(code, th) { const e = new Error(th); e.code = code; e.message_th = th; return e; }
+      function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+          const s = document.createElement("script"); s.src = src; s.onload = resolve;
+          s.onerror = function () { reject(fail("ocr_unavailable", "โหลดตัวอ่าน OCR ไม่ได้ ต้องต่ออินเทอร์เน็ตในการใช้ครั้งแรก")); };
+          document.head.appendChild(s);
+        });
+      }
+      function imageToBase64(file) {
+        return new Promise(function (resolve, reject) {
+          const url = URL.createObjectURL(file); const img = new Image();
+          img.onload = function () {
+            const max = 2000, scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+            const small = scale === 1 && file.size < 3.5 * 1024 * 1024 && /^image\/(png|jpeg|webp)$/.test(file.type);
+            if (small) {
+              const fr = new FileReader();
+              fr.onload = function () { URL.revokeObjectURL(url); resolve({ data: String(fr.result).split(",")[1], media: file.type }); };
+              fr.onerror = function () { URL.revokeObjectURL(url); reject(fail("image_rejected", "อ่านไฟล์ภาพไม่ได้")); };
+              fr.readAsDataURL(file); return;
+            }
+            const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * scale); c.height = Math.round(img.naturalHeight * scale);
+            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+            resolve({ data: c.toDataURL("image/jpeg", 0.9).split(",")[1], media: "image/jpeg" });
+          };
+          img.onerror = function () { URL.revokeObjectURL(url); reject(fail("image_rejected", "อ่านไฟล์ภาพนี้ไม่ได้ ลองใช้ PNG หรือ JPG")); };
+          img.src = url;
+        });
+      }
+      function parseJsonText(text) {
+        const s = String(text || ""); const a = s.indexOf("{"), b = s.lastIndexOf("}");
+        if (a < 0 || b <= a) throw fail("invalid_json", "อ่านคำตอบของ Claude ไม่ได้");
+        try { return JSON.parse(s.slice(a, b + 1)); } catch (e) { throw fail("invalid_json", "อ่านคำตอบของ Claude ไม่ได้"); }
+      }
+
+      // ---------- consent before an image leaves the device ----------
+      function askConsent(box) {
+        if (st.consent) return Promise.resolve("api");
+        return new Promise(function (resolve) {
+          const c = el("div", { class: "reader-consent", role: "group", "aria-label": "ยืนยันการส่งภาพ" });
+          c.appendChild(el("p", {}, "ภาพนี้จะถูกส่งไปให้ Claude (Anthropic) อ่าน ด้วย API key ของคุณ ส่งไหม?"));
+          const row = el("div", { class: "slip-buttons" });
+          const once = el("button", { type: "button", class: "primary" }, "ส่งภาพนี้");
+          const all = el("button", { type: "button" }, "ส่งได้ทุกภาพจนปิดหน้านี้");
+          const local = el("button", { type: "button" }, "อ่านในเครื่องแทน");
+          function done(v) { c.remove(); resolve(v); }
+          once.addEventListener("click", function () { done("api"); });
+          all.addEventListener("click", function () { st.consent = true; done("api"); });
+          local.addEventListener("click", function () { done("local"); });
+          row.append(once, all, local); c.appendChild(row); box.appendChild(c); once.focus();
+        });
+      }
+
+      // ---------- engine: Claude API with the user's key ----------
+      async function callApi(prompt, file, withFallback) {
+        const img = await imageToBase64(file);
+        const body = {
+          model: st.model || "claude-opus-5-5",
+          max_tokens: 16000,
+          output_config: { effort: "low" },
+          messages: [{ role: "user", content: [
+            { type: "image", source: { type: "base64", media_type: img.media, data: img.data } },
+            { type: "text", text: prompt + "\nReply with the JSON object only, no other text." }
+          ] }]
+        };
+        const headers = { "content-type": "application/json", "x-api-key": st.key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" };
+        if (withFallback) { body.fallbacks = "default"; headers["anthropic-beta"] = "server-side-fallback-2026-07-01"; }
+        let res;
+        try { res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: headers, body: JSON.stringify(body) }); }
+        catch (e) { throw fail("network", "ต่อ api.anthropic.com ไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองใหม่"); }
+        let msg = null; try { msg = await res.json(); } catch (e) { msg = null; }
+        if (!res.ok) {
+          const m = msg && msg.error && msg.error.message ? String(msg.error.message) : "";
+          if (res.status === 400 && withFallback && /fallback|beta/i.test(m)) return callApi(prompt, file, false);
+          if (res.status === 401 || res.status === 403) throw fail("bad_key", "API key ใช้ไม่ได้ ตรวจ key อีกครั้ง");
+          if (res.status === 429) throw fail("rate_limited", "เรียกถี่เกินไปหรือเครดิตหมด ลองใหม่ในอีกสักครู่");
+          if (res.status === 404) throw fail("bad_model", "ไม่พบโมเดล " + body.model + " ลองแก้ชื่อโมเดล");
+          throw fail("api_error", "Claude API ตอบกลับ " + res.status + (m ? ": " + m.slice(0, 120) : ""));
+        }
+        if (msg && msg.stop_reason === "refusal") throw fail("refused", "Claude ไม่อ่านภาพนี้ กรอกเองได้");
+        const text = (msg && Array.isArray(msg.content) ? msg.content : []).filter(function (b) { return b.type === "text"; }).map(function (b) { return b.text; }).join("");
+        return parseJsonText(text);
+      }
+
+      // ---------- engine: local OCR ----------
+      async function ocr(file, status) {
+        if (!window.Tesseract) await loadScript(TESSERACT_URL);
+        st.progress = function (m) {
+          if (!status) return;
+          if (m.status === "recognizing text") status.textContent = "กำลังอ่านในเครื่อง… " + Math.round((m.progress || 0) * 100) + "%";
+          else if (/load|initializ/i.test(m.status || "")) status.textContent = "กำลังเตรียมตัวอ่านภาษาไทย (ครั้งแรกอาจใช้เวลาสักพัก)…";
+        };
+        if (!st.worker) {
+          st.worker = window.Tesseract.createWorker(["tha", "eng"], 1, { logger: function (m) { if (st.progress) st.progress(m); } });
+          st.worker.catch(function () { st.worker = null; });
+        }
+        let w;
+        try { w = await st.worker; } catch (e) { st.worker = null; throw fail("ocr_unavailable", "เตรียมตัวอ่าน OCR ไม่ได้ ต้องต่ออินเทอร์เน็ตในการใช้ครั้งแรก"); }
+        const r = await w.recognize(file);
+        return cleanText(r && r.data ? r.data.text : "");
+      }
+      const THAI_DIGITS = "๐๑๒๓๔๕๖๗๘๙";
+      function cleanText(t) {
+        return String(t || "")
+          .replace(/[๐-๙]/g, function (d) { return String(THAI_DIGITS.indexOf(d)); })
+          .replace(/[ \t]+/g, " ")
+          .split(/\r?\n/).map(function (l) {
+            // OCR sometimes spaces out every Thai letter; join them only when most tokens are single letters
+            const toks = l.trim().split(" "), singles = toks.filter(function (x) { return /^[฀-๿]{1,2}$/.test(x); }).length;
+            return toks.length > 3 && singles / toks.length > 0.6 ? l.replace(/([฀-๿]) (?=[฀-๿])/g, "$1").trim() : l.trim();
+          }).filter(Boolean).join("\n");
+      }
+      const MONTHS = [
+        ["ม.ค.", "มกราคม", "jan"], ["ก.พ.", "กุมภาพันธ์", "feb"], ["มี.ค.", "มีนาคม", "mar"], ["เม.ย.", "เมษายน", "apr"],
+        ["พ.ค.", "พฤษภาคม", "may"], ["มิ.ย.", "มิถุนายน", "jun"], ["ก.ค.", "กรกฎาคม", "jul"], ["ส.ค.", "สิงหาคม", "aug"],
+        ["ก.ย.", "กันยายน", "sep"], ["ต.ค.", "ตุลาคม", "oct"], ["พ.ย.", "พฤศจิกายน", "nov"], ["ธ.ค.", "ธันวาคม", "dec"]
+      ];
+      function abbrPattern(a) { return a.replace(/\./g, "").split("").map(function (ch) { return ch + "\\.?"; }).join("\\s?"); }
+      const MONTH_RE = MONTHS.map(function (m, i) { return { i: i, re: new RegExp("(\\d{1,2})\\s*(?:" + m[1] + "|" + abbrPattern(m[0]) + "|" + m[2] + "[a-z]*\\.?)\\s*(\\d{4}|\\d{2})(?!\\d)", "i") }; });
+      function toYear(y) {
+        let n = Number(y);
+        if (y.length === 2) n = n >= 60 ? 2500 + n - 543 : 2000 + n;
+        else if (n > 2400) n -= 543;
+        return n;
+      }
+      function iso(y, m, d) {
+        if (!(m >= 1 && m <= 12 && d >= 1 && d <= 31 && y > 2000 && y < 2100)) return "";
+        return y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+      }
+      function findDate(text) {
+        for (let k = 0; k < MONTH_RE.length; k += 1) {
+          const m = MONTH_RE[k].re.exec(text);
+          if (m) { const v = iso(toYear(m[2]), MONTH_RE[k].i + 1, Number(m[1])); if (v) return v; }
+        }
+        const n = /(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4}|\d{2})(?!\d)/.exec(text);
+        if (n) return iso(toYear(n[3]), Number(n[2]), Number(n[1]));
+        return "";
+      }
+      function findTime(text) {
+        const m = /(?:^|[^\d])([01]?\d|2[0-3])[:：](\d{2})(?::\d{2})?/.exec(text) || /(?:^|[^\d.,])([01]?\d|2[0-3])\.(\d{2})\s*น/.exec(text);
+        return m ? String(m[1]).padStart(2, "0") + ":" + m[2] : "";
+      }
+      const NUM_RE = /[-+−]?\s?\d{1,3}(?:,\d{3})+(?:\.\d{2})?|[-+−]?\s?\d+\.\d{2}/g;
+      function numbers(line) { return (line.match(NUM_RE) || []).map(function (s) { return { raw: s, value: Math.abs(Number(s.replace(/[\s,+−-]/g, ""))), sign: /^[-−]/.test(s.trim()) ? -1 : /^\+/.test(s.trim()) ? 1 : 0 }; }).filter(function (n) { return n.value > 0; }); }
+      const FEE_RE = /ค่าธรรมเนียม|fee/i;
+      function findAmount(lines) {
+        const key = /จำนวน|ยอดเงิน|ยอดชำระ|amount|total|บาท|thb|฿/i;
+        for (let i = 0; i < lines.length; i += 1) {
+          if (FEE_RE.test(lines[i]) || /คงเหลือ|balance/i.test(lines[i])) continue;
+          if (key.test(lines[i])) {
+            let ns = numbers(lines[i]);
+            if (!ns.length && i + 1 < lines.length && !FEE_RE.test(lines[i + 1])) ns = numbers(lines[i + 1]);
+            if (ns.length) return ns[0].value;
+          }
+        }
+        let best = 0;
+        lines.forEach(function (l) { if (FEE_RE.test(l) || /คงเหลือ|balance/i.test(l)) return; numbers(l).forEach(function (n) { if (/\./.test(n.raw) && n.value > best) best = n.value; }); });
+        return best || null;
+      }
+      const BANKS = [[/k\s?plus|กสิกร|kbank|kasikorn/i, "KBank"], [/scb|ไทยพาณิชย์/i, "SCB"], [/krungthai|กรุงไทย|ktb/i, "Krungthai"], [/bangkok bank|ธนาคารกรุงเทพ|bualuang|bbl/i, "Bangkok Bank"], [/krungsri|กรุงศรี/i, "krungsri"], [/truemoney|ทรูมันนี่/i, "TrueMoney"], [/ttb|ทหารไทย|ธนชาต/i, "ttb"], [/ออมสิน|gsb|mymo/i, "GSB"]];
+      const CATS = [
+        ["Subscriptions", /netflix|spotify|youtube|icloud|apple\.com|google\s?(one|play)|disney|viu|wetv|true\s?id/i],
+        ["Food/Beverage", /7-?eleven|เซเว่น|cafe|คาเฟ่|กาแฟ|coffee|amazon|starbucks|grab\s?food|lineman|line man|foodpanda|robinhood|ร้านอาหาร|ก๋วยเตี๋ยว|ข้าว|ชานม|mk\b|kfc|mcdonald|ส้มตำ|หมูกระทะ|bubble/i],
+        ["Groceries", /lotus|โลตัส|big\s?c|บิ๊กซี|tops|makro|แม็คโคร|villa|foodland|gourmet/i],
+        ["Transportation", /grab(?!\s?food)|bolt|bts|mrt|ptt|ปตท|shell|bangchak|บางจาก|caltex|น้ำมัน|ทางด่วน|easy\s?pass|taxi|แท็กซี่|วินมอไซค์/i],
+        ["Utilities", /การไฟฟ้า|\bpea\b|\bmea\b|การประปา|ค่าไฟ|ค่าน้ำ|\bais\b|true\s?move|dtac|3bb|internet|อินเทอร์เน็ต/i],
+        ["Housing", /ค่าเช่า|ค่าห้อง|\brent\b|condo|คอนโด|นิติบุคคล|หอพัก|apartment/i],
+        ["Shopping", /shopee|lazada|uniqlo|central|เซ็นทรัล|watsons|robinson|power\s?buy|ikea|h&m/i],
+        ["Health", /โรงพยาบาล|hospital|คลินิก|clinic|pharmacy|ร้านยา|boots|ทันตกรรม|dental/i],
+        ["Debt Repayment", /บัตรเครดิต|credit\s?card|ผ่อน|สินเชื่อ|loan/i],
+        ["Fund", /กองทุน|\bfund\b|บลจ|asset\s?management|ssf|rmf/i]
+      ];
+      function guessCategory(text, allowed) {
+        for (let i = 0; i < CATS.length; i += 1) if (CATS[i][1].test(text) && (!allowed || allowed.indexOf(CATS[i][0]) >= 0)) return CATS[i][0];
+        return "";
+      }
+      const PERSON_RE = /^(?:นาย|นางสาว|น\.?ส\.?|นาง|mr\.?|mrs\.?|ms\.?|miss)\s*(.+)$/i;
+      const COMPANY_RE = /^(?:บจก\.?|บมจ\.?|บริษัท|หจก\.?|ร้าน|co\.,?|company)\s*(.*)$/i;
+      function displayName(line) {
+        const p = PERSON_RE.exec(line); if (p) return { name: p[1].trim().split(/\s+/)[0], person: true };
+        const c = COMPANY_RE.exec(line); if (c) return { name: line.trim(), person: false };
+        return null;
+      }
+      function parseSlip(text, ctx) {
+        const lines = text.split("\n");
+        const date = findDate(text), time = findTime(text), amount = findAmount(lines);
+        const isSlip = !!amount && (!!date || /สำเร็จ|โอนเงิน|ชำระ|successful|transfer|payment|promptpay|พร้อมเพย์/i.test(text));
+        if (!isSlip) return { is_slip: false };
+        const parties = [];
+        lines.forEach(function (l) { const d = displayName(l); if (d && parties.length < 2) parties.push(d); });
+        const accts = []; const accRe = /x{1,4}[-\s]?x?[-\s]?x?(\d{3,4})[-\s]?x/ig; let m;
+        while ((m = accRe.exec(text)) && accts.length < 2) accts.push(m[1].slice(-4));
+        const own = (ctx.ownAccounts || []).map(function (a) { return String(a).slice(-4); });
+        const bank = (BANKS.find(function (b) { return b[0].test(text); }) || [null, ""])[1];
+        const refM = /(?:เลขที่รายการ|รหัสอ้างอิง|เลขที่อ้างอิง|หมายเลขอ้างอิง|ref(?:erence)?\.?\s*(?:no\.?|id)?|transaction\s*id)\s*[:：]?\s*([A-Za-z0-9]{6,})/i.exec(text)
+          || /\b(?=[A-Za-z0-9]*\d)(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{14,}\b/.exec(text);
+        const ref = refM ? (refM[1] || refM[0]).slice(-6) : "";
+        const category = guessCategory(text, ctx.categories);
+        let receiver = parties[1] || null;
+        const merchantLine = lines.find(function (l) { return guessCategory(l, ctx.categories); });
+        if (!receiver && merchantLine) receiver = { name: merchantLine.replace(/[:：].*$/, "").slice(0, 40), person: false };
+        let direction = "out";
+        if (accts.length === 2 && own.indexOf(accts[0]) >= 0 && own.indexOf(accts[1]) >= 0) direction = "own";
+        else if (/รับเงิน|เงินเข้า|received|incoming/i.test(text) && !/โอนเงินสำเร็จ|ชำระเงินสำเร็จ/.test(text)) direction = "in";
+        const type = direction === "own" ? "transfer" : direction === "in" ? "income" : category === "Fund" ? "investment" : "expense";
+        const cat = direction === "own" ? "Transfer money" : category || "Other";
+        const unclear = [];
+        if (!date) unclear.push("date"); if (!time) unclear.push("time"); if (!receiver) unclear.push("receiver");
+        if (!category && direction !== "own") unclear.push("category");
+        const found = [date, time, amount, receiver, ref].filter(Boolean).length;
+        return {
+          is_slip: true, date: date, time: time, amount: amount,
+          sender: parties[0] ? parties[0].name : "", receiver: receiver ? receiver.name : "",
+          sender_account_suffix: accts[0] || "", receiver_account_suffix: accts[1] || "", bank: bank, memo: "", ref_suffix: ref,
+          direction: direction, transaction_type: type, category: cat,
+          description: receiver ? (direction === "own" ? "โอนเข้าบัญชีตัวเอง" : (direction === "in" ? "รับเงินจาก " : "โอนให้ ") + receiver.name) : "",
+          confidence: Math.min(0.85, 0.35 + found * 0.1), unclear: unclear, engine: "local"
+        };
+      }
+      function parseStatement(text, ctx) {
+        const lines = text.split("\n");
+        const bank = (BANKS.find(function (b) { return b[0].test(text); }) || [null, ""])[1];
+        const acc = /x{1,4}[-\s]?x?[-\s]?x?(\d{3,4})[-\s]?x/i.exec(text);
+        const rows = []; let currentDate = "", lastLabel = "";
+        lines.forEach(function (line) {
+          const d = findDate(line); if (d) currentDate = d;
+          const ns = numbers(line).filter(function (n) { return /\./.test(n.raw); });
+          const rest = line.replace(NUM_RE, " ").replace(/(\d{1,2})[:：](\d{2})(?::\d{2})?\s*(?:น\.?)?/g, " ").replace(/บาท|thb|฿/ig, " ").replace(/\s+/g, " ").trim();
+          if (!ns.length) { if (!d && rest.length > 1) lastLabel = rest; return; }
+          if (/^(?:ยอดคงเหลือ|คงเหลือ|balance|ยอดเงินคงเหลือ)\b/i.test(rest) && ns.length === 1) return;
+          let desc = rest;
+          if (d) desc = desc.replace(/\d{1,2}\s*\S+\s*\d{2,4}/, "").trim();
+          if (desc.length < 2) desc = lastLabel;
+          const amt = ns[0], bal = ns.length > 1 ? ns[ns.length - 1].value : null;
+          const all = (line + " " + desc);
+          let flow = amt.sign > 0 ? "in" : amt.sign < 0 ? "out" : "unknown";
+          if (flow === "unknown") flow = /เข้า|รับ|ฝาก|deposit|received|\bin\b|cash\s?in|refund|คืนเงิน/i.test(all) ? "in" : /โอน|ชำระ|จ่าย|ถอน|ซื้อ|หัก|withdraw|payment|purchase|\bout\b|paid/i.test(all) ? "out" : "unknown";
+          const ownMove = /บัญชีตัวเอง|own account|ระหว่างบัญชี/i.test(all);
+          const category = ownMove ? "Transfer money" : guessCategory(all, ctx.categories);
+          const type = ownMove ? "transfer" : flow === "in" ? "income" : flow === "out" ? (category === "Fund" ? "investment" : "expense") : "";
+          const unclear = [];
+          if (!currentDate) unclear.push("date"); if (flow === "unknown") unclear.push("flow"); if (!category) unclear.push("category");
+          rows.push({ date: currentDate, time: findTime(line), description: desc.slice(0, 60), amount: amt.value, flow: flow, balance: bal, own_transfer: ownMove, transaction_type: type, category: category || "Other", confidence: unclear.length ? 0.5 : 0.7, unclear: unclear });
+          lastLabel = "";
+        });
+        if (!rows.length) return { is_statement: false };
+        return { is_statement: true, bank: bank, account_suffix: acc ? acc[1].slice(-4) : "", rows: rows, cut_off_rows: 0, engine: "local" };
+      }
+
+      // ---------- public read ----------
+      async function read(kind, file, prompt, ctx) {
+        let engine = st.engine;
+        if (engine === "api") {
+          if (!st.key) throw fail("no_key", "ยังไม่ได้ใส่ Claude API key เปิด \"ตัวอ่านภาพ\" ด้านบนเพื่อใส่ key หรือเลือกอ่านในเครื่อง");
+          if (ctx.status) ctx.status.textContent = "รอคุณยืนยันการส่งภาพ…";
+          engine = await askConsent(ctx.box || document.body);
+          if (engine === "api") {
+            if (ctx.status) ctx.status.textContent = "Claude กำลังอ่าน " + file.name + "…";
+            return callApi(prompt, file, true);
+          }
+        }
+        const text = await ocr(file, ctx.status);
+        if (!text) throw fail("ocr_empty", "อ่านตัวอักษรในภาพนี้ไม่ได้ ลองภาพที่ชัดกว่านี้ หรือกรอกเอง");
+        return kind === "statement" ? parseStatement(text, ctx) : parseSlip(text, ctx);
+      }
+      return { init: init, read: read, engine: function () { return st.engine; }, note: note, _parseSlip: parseSlip, _parseStatement: parseStatement, _clean: cleanText };
+    })();
+  </script>
   <script>
     // Built-in copy of demo/database.example.csv so the demo works when opened by double-click.
     const EXAMPLE_CSV = "transaction_id,date,transaction_type,description,amount_thb,category,action,year_month,source,source_reference,data_quality_flag\nTXN000001,2026-08-25,income,Salary - Example Co. Ltd. (net after social security) (Bank 01:10),21125.00,Salary,,2026-08,bank_statement,example_statement.pdf,\nTXN000002,2026-08-25,expense,Grab taxi (Bank 08:09),59.00,Transportation,,2026-08,bank_statement,example_statement.pdf,\nTXN000003,2026-08-25,transfer,Transfer to own savings account X7310 (Bank 08:30),3000.00,Transfer money,,2026-08,bank_statement,example_statement.pdf,\nTXN000004,2026-08-25,expense,Watsons (Bank 18:32),189.00,Shopping,,2026-08,bank_statement,example_statement.pdf,\nTXN000005,2026-08-25,expense,TrueMoney top-up - 7-Eleven food (Bank 19:34),80.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,\nTXN000006,2026-08-26,expense,Grab taxi (Bank 08:15),42.00,Transportation,,2026-08,bank_statement,example_statement.pdf,\nTXN000007,2026-08-26,expense,Food court lunch (Bank 12:03),55.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,\nTXN000008,2026-08-26,expense,Uniqlo (Bank 18:37),189.00,Shopping,,2026-08,bank_statement,example_statement.pdf,\nTXN000009,2026-08-27,expense,Grab taxi (Bank 08:08),55.00,Transportation,,2026-08,bank_statement,example_statement.pdf,\nTXN000010,2026-08-27,expense,Monthly room rent - Example Residence (Bank 09:15),6500.00,Housing,,2026-08,bank_statement,example_statement.pdf,\nTXN000011,2026-08-27,expense,Food court lunch (Bank 12:34),70.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,\nTXN000012,2026-08-27,expense,Bubble tea shop (Bank 15:36),65.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,\nTXN000013,2026-08-27,expense,TrueMoney top-up - 7-Eleven food (Bank 19:43),100.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,\nTXN000014,2026-08-28,expense,Grab taxi (Bank 08:03),63.00,Transportation,,2026-08,bank_statement,example_statement.pdf,\nTXN000015,2026-08-28,expense,Som tam shop (Bank 12:43),60.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,\nTXN000016,2026-08-29,expense,Grab taxi (Bank 08:49),48.00,Transportation,,2026-08,bank_statement,example_statement.pdf,\nTXN000017,2026-08-29,expense,Som tam shop (Bank 12:19),60.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,\nTXN000018,2026-08-30,expense,Grab taxi (Bank 08:48),55.00,Transportation,,2026-08,bank_statement,example_statement.pdf,\nTXN000019,2026-08-30,expense,Som tam shop (Bank 12:31),50.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,\nTXN000020,2026-08-30,expense,Bubble tea shop (Bank 15:35),95.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,\nTXN000021,2026-08-31,expense,Grab taxi (Bank 08:29),42.00,Transportation,,2026-08,bank_statement,example_statement.pdf,\nTXN000022,2026-08-31,investment,KAsset fund subscription (Bank 10:00),1000.00,Fund,Buy,2026-08,bank_statement,example_statement.pdf,\nTXN000023,2026-08-31,expense,Tops Market (Bank 17:44),320.00,Groceries,,2026-08,bank_statement,example_statement.pdf,\nTXN000024,2026-09-01,expense,Grab taxi (Bank 08:43),59.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000025,2026-09-01,expense,Noodle shop (Bank 12:24),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000026,2026-09-02,expense,Grab taxi (Bank 08:18),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000027,2026-09-02,expense,Bubble tea shop (Bank 15:25),95.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000028,2026-09-02,expense,TrueMoney top-up - 7-Eleven food (Bank 19:31),80.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000029,2026-09-03,expense,Netflix (Bank 00:05),419.00,Subscriptions,,2026-09,bank_statement,example_statement.pdf,\nTXN000030,2026-09-03,expense,Noodle shop (Bank 12:26),65.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000031,2026-09-03,expense,Cafe Amazon (Bank 15:11),65.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000032,2026-09-03,expense,Tops Market (Bank 17:37),210.00,Groceries,,2026-09,bank_statement,example_statement.pdf,\nTXN000033,2026-09-04,expense,Grab taxi (Bank 08:00),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000034,2026-09-04,expense,Noodle shop (Bank 12:23),55.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000035,2026-09-05,expense,AIS mobile bill (Bank 07:40),599.00,Utilities,,2026-09,bank_statement,example_statement.pdf,\nTXN000036,2026-09-05,expense,Grab taxi (Bank 08:49),63.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000037,2026-09-05,expense,Som tam shop (Bank 12:25),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000038,2026-09-06,expense,Grab taxi (Bank 08:07),55.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000039,2026-09-06,expense,TrueMoney top-up - 7-Eleven food (Bank 19:36),100.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000040,2026-09-07,expense,Grab taxi (Bank 08:13),63.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000041,2026-09-07,expense,Noodle shop (Bank 12:40),60.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000042,2026-09-08,expense,Food court lunch (Bank 12:19),55.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000043,2026-09-08,expense,TrueMoney top-up - 7-Eleven food (Bank 19:21),120.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000044,2026-09-09,expense,Grab taxi (Bank 08:33),55.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000045,2026-09-09,expense,Food court lunch (Bank 12:34),70.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000046,2026-09-09,expense,TrueMoney top-up - 7-Eleven food (Bank 19:41),80.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000047,2026-09-10,expense,Spotify Premium (Bank 00:12),149.00,Subscriptions,,2026-09,bank_statement,example_statement.pdf,\nTXN000048,2026-09-10,expense,Grab taxi (Bank 08:49),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000049,2026-09-10,expense,Noodle shop (Bank 12:49),55.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000050,2026-09-11,expense,Grab taxi (Bank 08:25),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000051,2026-09-11,expense,Noodle shop (Bank 12:31),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000052,2026-09-12,expense,Grab taxi (Bank 08:22),59.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000053,2026-09-13,expense,Grab taxi (Bank 08:30),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000054,2026-09-13,expense,Food court lunch (Bank 12:30),65.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000055,2026-09-14,expense,Grab taxi (Bank 08:24),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000056,2026-09-14,expense,Som tam shop (Bank 12:11),60.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000057,2026-09-14,expense,TrueMoney top-up - 7-Eleven food (Bank 19:46),150.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000058,2026-09-15,expense,Grab taxi (Bank 08:08),42.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000059,2026-09-15,expense,Credit card payment (Bank 12:00),1250.00,Debt Repayment,,2026-09,bank_statement,example_statement.pdf,\nTXN000060,2026-09-15,expense,Khao man gai shop (Bank 12:29),70.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000061,2026-09-16,expense,Grab taxi (Bank 08:08),42.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000062,2026-09-16,expense,Food court lunch (Bank 12:46),70.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000063,2026-09-16,expense,Cafe Amazon (Bank 15:12),55.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000064,2026-09-17,expense,Grab taxi (Bank 08:37),55.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000065,2026-09-17,expense,Khao man gai shop (Bank 12:26),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000066,2026-09-18,expense,Khao man gai shop (Bank 12:32),70.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000067,2026-09-18,expense,TrueMoney top-up - 7-Eleven food (Bank 19:32),80.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000068,2026-09-19,expense,Grab taxi (Bank 08:09),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000069,2026-09-19,expense,Food court lunch (Bank 12:39),70.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000070,2026-09-19,expense,TrueMoney top-up - 7-Eleven food (Bank 19:43),150.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000071,2026-09-20,expense,Grab taxi (Bank 08:17),42.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000072,2026-09-21,expense,Grab taxi (Bank 08:39),63.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000073,2026-09-21,expense,TrueMoney top-up - 7-Eleven food (Bank 19:17),150.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000074,2026-09-22,expense,Grab taxi (Bank 08:33),55.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000075,2026-09-22,expense,Cafe Amazon (Bank 15:28),120.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000076,2026-09-23,expense,Grab taxi (Bank 08:15),59.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000077,2026-09-23,expense,Noodle shop (Bank 12:42),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000078,2026-09-23,expense,Bubble tea shop (Bank 15:45),95.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000079,2026-09-24,expense,Som tam shop (Bank 12:06),65.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000080,2026-09-24,expense,Bubble tea shop (Bank 15:27),120.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000081,2026-09-24,expense,TrueMoney top-up - 7-Eleven food (Bank 19:42),100.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000082,2026-09-25,income,Salary - Example Co. Ltd. (net after social security) (Bank 01:10),21125.00,Salary,,2026-09,bank_statement,example_statement.pdf,\nTXN000083,2026-09-25,transfer,Transfer to own savings account X7310 (Bank 08:30),3000.00,Transfer money,,2026-09,bank_statement,example_statement.pdf,\nTXN000084,2026-09-25,expense,Grab taxi (Bank 08:46),55.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000085,2026-09-25,expense,Som tam shop (Bank 12:35),65.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000086,2026-09-26,expense,Khao man gai shop (Bank 12:50),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000087,2026-09-26,expense,TrueMoney top-up - 7-Eleven food (Bank 19:17),80.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000088,2026-09-27,expense,Grab taxi (Bank 08:43),55.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000089,2026-09-27,expense,Monthly room rent - Example Residence (Bank 09:15),6500.00,Housing,,2026-09,bank_statement,example_statement.pdf,\nTXN000090,2026-09-27,expense,Som tam shop (Bank 12:34),60.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000091,2026-09-27,expense,Shopee order (Bank 18:01),189.00,Shopping,,2026-09,bank_statement,example_statement.pdf,\nTXN000092,2026-09-27,expense,TrueMoney top-up - 7-Eleven food (Bank 19:03),100.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000093,2026-09-28,expense,Grab taxi (Bank 08:14),42.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000094,2026-09-28,expense,Som tam shop (Bank 12:07),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000095,2026-09-28,expense,TrueMoney top-up - 7-Eleven food (Bank 19:35),150.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000096,2026-09-29,expense,Grab taxi (Bank 08:15),42.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000097,2026-09-29,expense,TrueMoney top-up - 7-Eleven food (Bank 19:11),100.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000098,2026-09-30,expense,Grab taxi (Bank 08:28),63.00,Transportation,,2026-09,bank_statement,example_statement.pdf,\nTXN000099,2026-09-30,expense,Bubble tea shop (Bank 15:01),65.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000100,2026-09-30,expense,TrueMoney top-up - 7-Eleven food (Bank 19:01),120.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,\nTXN000101,2026-10-01,expense,Grab taxi (Bank 08:42),59.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000102,2026-10-01,investment,KAsset fund subscription (Bank 10:00),1000.00,Fund,Buy,2026-10,bank_statement,example_statement.pdf,\nTXN000103,2026-10-02,expense,Grab taxi (Bank 08:14),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000104,2026-10-02,expense,Khao man gai shop (Bank 12:45),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000105,2026-10-02,expense,Tops Market (Bank 17:40),385.00,Groceries,,2026-10,bank_statement,example_statement.pdf,\nTXN000106,2026-10-03,expense,Netflix (Bank 00:05),419.00,Subscriptions,,2026-10,bank_statement,example_statement.pdf,\nTXN000107,2026-10-03,expense,Food court lunch (Bank 12:03),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000108,2026-10-04,expense,Grab taxi (Bank 08:29),48.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000109,2026-10-04,expense,Food court lunch (Bank 12:28),60.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000110,2026-10-04,expense,Cafe Amazon (Bank 15:19),95.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000111,2026-10-04,expense,TrueMoney top-up - 7-Eleven food (Bank 19:21),120.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000112,2026-10-05,expense,AIS mobile bill (Bank 07:40),599.00,Utilities,,2026-10,bank_statement,example_statement.pdf,\nTXN000113,2026-10-05,expense,Grab taxi (Bank 08:17),63.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000114,2026-10-05,expense,Cafe Amazon (Bank 15:05),120.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000115,2026-10-05,expense,TrueMoney top-up - 7-Eleven food (Bank 19:49),80.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000116,2026-10-06,expense,Grab taxi (Bank 08:40),48.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000117,2026-10-06,expense,Khao man gai shop (Bank 12:33),70.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000118,2026-10-06,expense,Bubble tea shop (Bank 15:46),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000119,2026-10-06,expense,Shopee order (Bank 18:45),590.00,Shopping,,2026-10,bank_statement,example_statement.pdf,\nTXN000120,2026-10-06,expense,TrueMoney top-up - 7-Eleven food (Bank 19:20),150.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000121,2026-10-07,expense,Grab taxi (Bank 08:08),63.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000122,2026-10-07,expense,Shopee order (Bank 18:43),299.00,Shopping,,2026-10,bank_statement,example_statement.pdf,\nTXN000123,2026-10-08,expense,Grab taxi (Bank 08:40),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000124,2026-10-08,expense,TrueMoney top-up - 7-Eleven food (Bank 19:28),80.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000125,2026-10-09,expense,Grab taxi (Bank 08:00),59.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000126,2026-10-10,expense,Spotify Premium (Bank 00:12),149.00,Subscriptions,,2026-10,bank_statement,example_statement.pdf,\nTXN000127,2026-10-10,expense,Grab taxi (Bank 08:47),59.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000128,2026-10-10,expense,Noodle shop (Bank 12:04),55.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000129,2026-10-10,expense,Bubble tea shop (Bank 15:47),120.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000130,2026-10-11,expense,Grab taxi (Bank 08:43),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000131,2026-10-11,expense,Uniqlo (Bank 18:09),450.00,Shopping,,2026-10,bank_statement,example_statement.pdf,\nTXN000132,2026-10-12,expense,Grab taxi (Bank 08:39),63.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000133,2026-10-12,expense,Food court lunch (Bank 12:30),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000134,2026-10-12,expense,TrueMoney top-up - 7-Eleven food (Bank 19:43),80.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000135,2026-10-12,expense,PromptPay to individual (Nok) (Bank 20:41),350.00,Transfer money,,2026-10,bank_statement,example_statement.pdf,needs_review: payment to individual - purpose unknown\nTXN000136,2026-10-13,expense,Grab taxi (Bank 08:29),59.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000137,2026-10-13,expense,Khao man gai shop (Bank 12:07),60.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000138,2026-10-13,expense,Watsons (Bank 18:29),590.00,Shopping,,2026-10,bank_statement,example_statement.pdf,\nTXN000139,2026-10-14,expense,Grab taxi (Bank 08:13),42.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000140,2026-10-14,expense,Noodle shop (Bank 12:09),60.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000141,2026-10-14,expense,TrueMoney top-up - 7-Eleven food (Bank 19:40),120.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000142,2026-10-15,expense,Credit card payment (Bank 12:00),1250.00,Debt Repayment,,2026-10,bank_statement,example_statement.pdf,\nTXN000143,2026-10-15,expense,Khao man gai shop (Bank 12:01),50.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000144,2026-10-16,expense,Grab taxi (Bank 08:24),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000145,2026-10-16,expense,Food court lunch (Bank 12:21),60.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000146,2026-10-17,expense,Grab taxi (Bank 08:47),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000147,2026-10-17,expense,Som tam shop (Bank 12:04),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000148,2026-10-18,expense,Grab taxi (Bank 08:03),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000149,2026-10-18,expense,Noodle shop (Bank 12:42),55.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000150,2026-10-18,expense,Example Studio Co. Ltd. (Bank 14:05),800.00,Other,,2026-10,bank_statement,example_statement.pdf,needs_review: merchant type unclear\nTXN000151,2026-10-18,expense,TrueMoney top-up - 7-Eleven food (Bank 19:17),150.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000152,2026-10-20,expense,Grab taxi (Bank 08:46),42.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000153,2026-10-20,expense,Som tam shop (Bank 12:46),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000154,2026-10-20,expense,Starbucks (Bank 15:18),55.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000155,2026-10-21,expense,Grab taxi (Bank 08:26),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000156,2026-10-21,expense,Noodle shop (Bank 12:16),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000157,2026-10-22,expense,Grab taxi (Bank 08:10),42.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000158,2026-10-22,expense,Khao man gai shop (Bank 12:31),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000159,2026-10-23,expense,Grab taxi (Bank 08:05),48.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000160,2026-10-23,expense,Noodle shop (Bank 12:05),55.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000161,2026-10-23,expense,TrueMoney top-up - 7-Eleven food (Bank 19:36),100.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000162,2026-10-24,expense,Grab taxi (Bank 08:33),48.00,Transportation,,2026-10,bank_statement,example_statement.pdf,\nTXN000163,2026-10-24,expense,Food court lunch (Bank 12:21),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\nTXN000164,2026-10-24,expense,TrueMoney top-up - 7-Eleven food (Bank 19:23),100.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,\n";
@@ -679,12 +1048,19 @@
         ].join("\n");
       }
       async function initSlips() {
-        if (!hasRuntime()) { setSlipNote("เปิดลิงก์นี้ในเบราว์เซอร์ที่ล็อกอิน claude.ai เพื่อให้ Claude อ่านภาพให้ ตอนนี้ยังเลือกภาพแล้วกรอกข้อมูลเองได้"); loadLocalSlips(); return; }
-        try { slip.sample = await window.claude.use("sample"); } catch (e) { slip.sample = null; }
-        if (slip.sample) { try { const lim = await slip.sample.limits(); slip.images = lim && lim.images ? lim.images : null; } catch (e) { slip.images = null; } }
+        if (hasRuntime()) {
+          try { slip.sample = await window.claude.use("sample"); } catch (e) { slip.sample = null; }
+          if (slip.sample) { try { const lim = await slip.sample.limits(); slip.images = lim && lim.images ? lim.images : null; } catch (e) { slip.images = null; } }
+        }
         loadLocalSlips();
-        if (!slip.sample || !slip.images) { setSlipNote("หน้านี้ยังให้ Claude อ่านภาพไม่ได้ (ลองล็อกอิน claude.ai หรือเปิดใน Safari/Chrome) ตอนนี้ยังเลือกภาพแล้วกรอกข้อมูลเองได้"); return; }
-        setSlipNote("PNG, JPG หรือ WebP · Claude จะขออนุญาตในครั้งแรก");
+        window.FinanceReader.init({ claude: !!(slip.sample && slip.images), note: setSlipNote, boxId: "reader-box" });
+      }
+      async function readImage(kind, file, prompt, status, box) {
+        if (window.FinanceReader.engine() === "claude") {
+          if (!slip.sample || !slip.images) throw { code: "unavailable" };
+          return slip.sample.json(prompt, { images: [file], modelTier: "default" });
+        }
+        return window.FinanceReader.read(kind, file, prompt, { status: status, box: box, ownAccounts: ownAccounts(), categories: SLIP_CATEGORIES });
       }
       function loadLocalSlips() {
         try { const v = JSON.parse(localStorage.getItem("demo-slips") || "[]"); slip.rows = Array.isArray(v) ? v : []; } catch (e) { slip.rows = []; }
@@ -722,7 +1098,6 @@
       }
       async function handleSlipImages(files) {
         byId("slip-panel").scrollIntoView({ behavior: "smooth", block: "start" });
-        if (!slip.sample || !slip.images) { setSlipNote(hasRuntime() ? "หน้านี้ยังให้ Claude อ่านภาพไม่ได้ (ลองเปิดลิงก์ในเบราว์เซอร์ที่ล็อกอิน claude.ai) แต่กรอกข้อมูลเองได้" : "เปิดจากลิงก์ claude.ai เพื่อให้ Claude อ่านภาพได้ ตอนนี้กรอกข้อมูลเองได้"); }
         const list = files.slice(0, slip.images && slip.images.maxCount ? Math.max(1, slip.images.maxCount) * 3 : 10);
         for (let i = 0; i < list.length; i += 1) await readSlip(list[i]);
       }
@@ -731,16 +1106,15 @@
         const n = slip.counter, card = document.createElement("div"); card.className = "slip-card";
         const img = document.createElement("img"); img.alt = "สลิป " + file.name; img.src = URL.createObjectURL(file);
         const form = document.createElement("div"); form.className = "slip-form";
-        const status = document.createElement("div"); status.className = "slip-status"; status.textContent = "กำลังอ่าน " + file.name + "… (Claude อาจขออนุญาตก่อน)";
+        const status = document.createElement("div"); status.className = "slip-status"; status.textContent = "กำลังอ่าน " + file.name + "…";
         form.appendChild(status); card.append(img, form);
         byId("slip-cards").prepend(card);
         let t;
         try {
-          if (!slip.sample || !slip.images) throw { code: "unavailable" };
-          t = await slip.sample.json(slipPrompt(), { images: [file], modelTier: "default" });
+          t = await readImage("slip", file, slipPrompt(), status, form);
         } catch (e) {
           const code = e && e.code;
-          status.textContent = code === "not_granted" ? "Claude ไม่ได้รับอนุญาตให้อ่านภาพ" : code === "rate_limited" ? "มีคำขอมากเกินไป ลองใหม่ในอีกสักครู่" : code === "image_rejected" ? "อ่านภาพนี้ไม่ได้ ลองใช้ PNG หรือ JPG ที่เล็กกว่า 20 MB" : code === "invalid_json" ? "อ่านคำตอบของ Claude ไม่ได้" : code === "unavailable" ? "หน้านี้ยังให้ Claude อ่านภาพไม่ได้" : "อ่านสลิปนี้ไม่ได้ (" + (code || "error") + ")";
+          status.textContent = code === "not_granted" ? "Claude ไม่ได้รับอนุญาตให้อ่านภาพ" : code === "rate_limited" ? "มีคำขอมากเกินไป ลองใหม่ในอีกสักครู่" : code === "image_rejected" ? "อ่านภาพนี้ไม่ได้ ลองใช้ PNG หรือ JPG ที่เล็กกว่า 20 MB" : code === "invalid_json" ? "อ่านคำตอบของ Claude ไม่ได้" : code === "unavailable" ? "หน้านี้ยังให้ Claude อ่านภาพไม่ได้" : (e && e.message_th) || "อ่านสลิปนี้ไม่ได้ (" + (code || "error") + ")";
           t = null;
         }
         const manual = !t || t.is_slip === false;
@@ -872,11 +1246,10 @@
         const entry = { el: card, items: [] };
         let t = null, fail = "";
         try {
-          if (!slip.sample || !slip.images) throw { code: "unavailable" };
-          t = await slip.sample.json(statementPrompt(), { images: [file], modelTier: "default" });
+          t = await readImage("statement", file, statementPrompt(), status, body);
         } catch (e) {
           const code = e && e.code;
-          fail = code === "not_granted" ? "Claude ไม่ได้รับอนุญาตให้อ่านภาพ" : code === "rate_limited" ? "มีคำขอมากเกินไป ลองใหม่ในอีกสักครู่ หรือพิมพ์รายการเอง" : code === "image_rejected" ? "อ่านภาพนี้ไม่ได้ ลองใช้ PNG หรือ JPG ที่เล็กกว่า 20 MB" : code === "unavailable" ? "หน้านี้ยังให้ Claude อ่านภาพไม่ได้" : "อ่าน statement นี้ไม่ได้ (" + (code || "error") + ")";
+          fail = code === "not_granted" ? "Claude ไม่ได้รับอนุญาตให้อ่านภาพ" : code === "rate_limited" ? "มีคำขอมากเกินไป ลองใหม่ในอีกสักครู่ หรือพิมพ์รายการเอง" : code === "image_rejected" ? "อ่านภาพนี้ไม่ได้ ลองใช้ PNG หรือ JPG ที่เล็กกว่า 20 MB" : code === "unavailable" ? "หน้านี้ยังให้ Claude อ่านภาพไม่ได้" : (e && e.message_th) || "อ่าน statement นี้ไม่ได้ (" + (code || "error") + ")";
         }
         if (!fail && (!t || t.is_statement === false)) fail = "ภาพนี้ดูไม่เหมือน statement หรือรายการเดินบัญชี";
         const rows = !fail && Array.isArray(t.rows) ? t.rows : [];
