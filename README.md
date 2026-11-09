@@ -24,7 +24,7 @@
 
 - Mac: ดับเบิลคลิก `open-dashboard.command` แล้วปล่อย Terminal เปิดไว้
 - เครื่องอื่น: รัน `python3 -m http.server 8765` ในโฟลเดอร์นี้ แล้วเปิด `http://127.0.0.1:8765/dashboard.html`
-- Demo: รัน `python3 -m http.server` ในโฟลเดอร์ `demo/` แล้วเปิด `try-finance.html`
+- Demo: ดาวน์โหลด `demo/try-finance.html` แล้วดับเบิลคลิกเปิดในเบราว์เซอร์ได้เลย ข้อมูลตัวอย่างฝังอยู่ในไฟล์แล้ว
 
 ## Schema
 
