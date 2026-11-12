@@ -2,6 +2,10 @@
 *.csv
 !database.example.csv
 !tax_preparation.example.csv
+!*.example.csv
+agent_state.json
+alerts.txt
+__pycache__/
 database.csv
 tax_preparation.csv
 tax_preparation_2568_source.csv

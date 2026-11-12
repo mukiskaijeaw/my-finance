@@ -13,6 +13,36 @@
 | `demo/try-finance.html` | หน้า demo ภาษาไทย เริ่มจากว่าง กรอกเงินเดือน เพิ่มสลิป/statement หรือกด "ลองดูข้อมูลตัวอย่าง" ข้อมูลเก็บใน localStorage ของเบราว์เซอร์เท่านั้น |
 | `demo/database.example.csv` | ข้อมูลสมมติของมนุษย์เงินเดือน (Example Co. Ltd.) 3 เดือน สำหรับ demo |
 
+## Agent รายรับรายจ่าย (Pillar 1) และแจ้งเตือน Subscription (Pillar 5)
+
+Agent มีสองส่วนทำงานคู่กัน
+
+- **System-1** (`agent/`): Python ล้วน รันบนเครื่อง ไม่ต่ออินเทอร์เน็ต จัดหมวดแต่ละรายการพร้อมคะแนนความมั่นใจ มั่นใจ 90% ขึ้นไปบันทึกเอง 60 ถึง 89% ส่งให้ Codex ต่ำกว่า 60% ถามผู้ใช้ เรียนรู้จากรายการเก่าใน ledger และจากคำตอบของผู้ใช้ (`rules.csv`)
+- **Codex skills** (`.agents/skills/`): `income-expense` อ่านภาพสลิปหรือ statement แล้วส่งแถวให้ System-1 คิดต่อกับรายการที่ก้ำกึ่ง และถามผู้ใช้เฉพาะที่ยังไม่ชัด `subscription` หารายจ่ายประจำและเตือนก่อนต่ออายุหรือครบกำหนด
+
+| ไฟล์ | ใช้ทำอะไร |
+| --- | --- |
+| `agent/system1.py` | ตัวตัดสินใจเร็วพร้อม confidence score |
+| `agent/recurring.py` | หารายจ่ายประจำ, subscription และสร้างการแจ้งเตือน |
+| `agent/cli.py` | คำสั่ง `ingest`, `review`, `answer`, `alerts`, `state` |
+| `dashboard-folder.html` | แดชบอร์ดแบบแฟ้มเอกสาร (ร่าง) ดับเบิลคลิกเปิดได้เลย มีข้อมูลตัวอย่างฝังอยู่ |
+| `demo/statement-2026-11.example.csv` | statement สมมติ 1 เดือนสำหรับลองรอบการทำงาน |
+| `demo/build-demo.py` | รันหนึ่งรอบด้วยข้อมูลสมมติ แล้วฝังผลลงแดชบอร์ด |
+
+ลองหนึ่งรอบด้วยข้อมูลสมมติ (ไม่แตะข้อมูลจริง):
+
+```sh
+mkdir -p /tmp/try && cp demo/database.example.csv /tmp/try/database.csv
+python3 agent/cli.py --dir /tmp/try --today 2026-11-12 ingest demo/statement-2026-11.example.csv
+python3 agent/cli.py --dir /tmp/try review
+python3 agent/cli.py --dir /tmp/try answer Q001 --type income --category Freelance
+python3 agent/cli.py --dir /tmp/try --today 2026-11-12 alerts --days 7
+```
+
+### สิ่งที่ pillar อื่นอ่านได้
+
+ทุกคำสั่งเขียน `agent_state.json` (schema `pillar1-state/1`) ใหม่ทุกครั้ง: `monthly` (รายรับ รายจ่าย เงินคืน เงินลงทุน แยกหมวดรายเดือน), `recurring`, `alerts`, `fixed_costs`, `review_queue`, `routing` Main agent, Tax, Investment อ่านไฟล์นี้ไฟล์เดียวโดยไม่ต้องแตะ `database.csv` เงินคืน (`Refund`) แยกออกจากรายได้แล้ว
+
 ## เริ่มใช้กับ Codex หรือ Claude
 
 1. Clone repo นี้ไว้ในโฟลเดอร์ส่วนตัว

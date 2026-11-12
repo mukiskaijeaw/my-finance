@@ -1,0 +1,62 @@
+date,time,description,amount,direction,memo,source_reference
+2026-10-24,19:23,TrueMoney top-up - 7-Eleven food,100.00,out,,statement-2026-11.example.pdf
+2026-10-25,01:10,Salary - Example Co. Ltd. (net after social security),21125.00,in,,statement-2026-11.example.pdf
+2026-10-25,08:30,Transfer to own savings account X7310,3000.00,out,,statement-2026-11.example.pdf
+2026-10-25,19:10,TrueMoney top-up - 7-Eleven food,150.00,out,,statement-2026-11.example.pdf
+2026-10-26,08:25,Grab taxi,48.00,out,,statement-2026-11.example.pdf
+2026-10-26,12:09,Rice and curry shop,55.00,out,,statement-2026-11.example.pdf
+2026-10-26,19:04,TrueMoney top-up - 7-Eleven food,100.00,out,,statement-2026-11.example.pdf
+2026-10-27,08:06,Grab taxi,48.00,out,,statement-2026-11.example.pdf
+2026-10-27,09:15,Monthly room rent - Example Residence,6500.00,out,,statement-2026-11.example.pdf
+2026-10-27,12:32,Noodle shop,55.00,out,,statement-2026-11.example.pdf
+2026-10-27,19:36,TrueMoney top-up - 7-Eleven food,150.00,out,,statement-2026-11.example.pdf
+2026-10-28,08:06,Grab taxi,59.00,out,,statement-2026-11.example.pdf
+2026-10-28,12:12,Food court lunch,55.00,out,,statement-2026-11.example.pdf
+2026-10-28,19:26,TrueMoney top-up - 7-Eleven food,80.00,out,,statement-2026-11.example.pdf
+2026-10-29,08:12,Grab taxi,48.00,out,,statement-2026-11.example.pdf
+2026-10-29,12:40,Food court lunch,65.00,out,,statement-2026-11.example.pdf
+2026-10-29,19:35,TrueMoney top-up - 7-Eleven food,80.00,out,,statement-2026-11.example.pdf
+2026-10-29,20:14,Transfer from Mr. Somchai P.,1500.00,in,,statement-2026-11.example.pdf
+2026-10-30,08:23,Grab taxi,55.00,out,,statement-2026-11.example.pdf
+2026-10-30,12:40,Rice and curry shop,60.00,out,,statement-2026-11.example.pdf
+2026-10-30,19:37,TrueMoney top-up - 7-Eleven food,100.00,out,,statement-2026-11.example.pdf
+2026-10-31,13:02,Shopee refund,259.00,in,,statement-2026-11.example.pdf
+2026-10-31,19:36,TrueMoney top-up - 7-Eleven food,80.00,out,,statement-2026-11.example.pdf
+2026-11-01,10:00,KAsset fund subscription,1000.00,out,,statement-2026-11.example.pdf
+2026-11-01,19:40,TrueMoney top-up - 7-Eleven food,100.00,out,,statement-2026-11.example.pdf
+2026-11-02,08:20,Grab taxi,59.00,out,,statement-2026-11.example.pdf
+2026-11-02,12:39,Noodle shop,65.00,out,,statement-2026-11.example.pdf
+2026-11-02,16:40,Transfer to Ms. Ploy K.,350.00,out,dinner,statement-2026-11.example.pdf
+2026-11-02,19:30,TrueMoney top-up - 7-Eleven food,120.00,out,,statement-2026-11.example.pdf
+2026-11-03,00:05,Netflix,449.00,out,,statement-2026-11.example.pdf
+2026-11-03,08:14,Grab taxi,48.00,out,,statement-2026-11.example.pdf
+2026-11-03,12:16,Rice and curry shop,60.00,out,,statement-2026-11.example.pdf
+2026-11-03,19:20,TrueMoney top-up - 7-Eleven food,150.00,out,,statement-2026-11.example.pdf
+2026-11-04,08:33,Grab taxi,55.00,out,,statement-2026-11.example.pdf
+2026-11-04,12:33,Noodle shop,55.00,out,,statement-2026-11.example.pdf
+2026-11-04,19:27,TrueMoney top-up - 7-Eleven food,100.00,out,,statement-2026-11.example.pdf
+2026-11-04,21:30,SHOPEEPAY*BKK,1290.00,out,,statement-2026-11.example.pdf
+2026-11-05,07:40,AIS mobile bill,599.00,out,,statement-2026-11.example.pdf
+2026-11-05,08:29,Grab taxi,55.00,out,,statement-2026-11.example.pdf
+2026-11-05,12:14,Noodle shop,70.00,out,,statement-2026-11.example.pdf
+2026-11-05,19:43,TrueMoney top-up - 7-Eleven food,80.00,out,,statement-2026-11.example.pdf
+2026-11-06,08:29,Grab taxi,59.00,out,,statement-2026-11.example.pdf
+2026-11-06,12:25,Noodle shop,65.00,out,,statement-2026-11.example.pdf
+2026-11-06,18:22,Baan Suan Market,240.00,out,,statement-2026-11.example.pdf
+2026-11-06,19:38,TrueMoney top-up - 7-Eleven food,150.00,out,,statement-2026-11.example.pdf
+2026-11-07,14:05,Example Studio Co. Ltd.,800.00,out,,statement-2026-11.example.pdf
+2026-11-07,19:06,TrueMoney top-up - 7-Eleven food,120.00,out,,statement-2026-11.example.pdf
+2026-11-08,00:31,YouTube Premium,179.00,out,,statement-2026-11.example.pdf
+2026-11-08,15:20,Lotus supermarket,412.00,out,,statement-2026-11.example.pdf
+2026-11-08,19:43,TrueMoney top-up - 7-Eleven food,80.00,out,,statement-2026-11.example.pdf
+2026-11-09,08:06,Grab taxi,59.00,out,,statement-2026-11.example.pdf
+2026-11-09,12:24,Rice and curry shop,70.00,out,,statement-2026-11.example.pdf
+2026-11-09,19:25,TrueMoney top-up - 7-Eleven food,120.00,out,,statement-2026-11.example.pdf
+2026-11-10,00:12,Spotify Premium,149.00,out,,statement-2026-11.example.pdf
+2026-11-10,08:05,Grab taxi,55.00,out,,statement-2026-11.example.pdf
+2026-11-10,11:11,GoodFit Gym membership,990.00,out,,statement-2026-11.example.pdf
+2026-11-10,12:27,Food court lunch,55.00,out,,statement-2026-11.example.pdf
+2026-11-10,19:14,TrueMoney top-up - 7-Eleven food,120.00,out,,statement-2026-11.example.pdf
+2026-11-11,08:09,Grab taxi,59.00,out,,statement-2026-11.example.pdf
+2026-11-11,12:20,Noodle shop,70.00,out,,statement-2026-11.example.pdf
+2026-11-11,18:05,Baan Suan Market,185.00,out,,statement-2026-11.example.pdf

@@ -41,6 +41,17 @@ The user may send e-slips: the image a Thai banking app saves after a transfer o
 - Duplicates: a slip and a bank statement row for the same transfer are one transaction. Before appending, look for an existing row with the same amount, a date within 1 day, and a matching time (within 5 minutes) or receiver. If a statement row already exists, add the slip's detail (receiver, memo) to that row's `description` instead of adding a new row. If a slip row exists and a statement arrives later, keep the slip row and do not append the statement line again.
 - Several slips at once: process each slip, then report one short summary of what was added, merged as a duplicate, or flagged.
 
+## Skills and System-1
+
+This folder holds two pillars of the team's finance agent. Each one has a skill in `.agents/skills/`:
+
+- `income-expense` (Pillar 1): read slips and statements, classify with a confidence score, ask only when unsure. Use it for every slip, receipt, statement or typed transaction instead of editing `database.csv` by hand.
+- `subscription` (Pillar 5): find recurring charges and warn before a renewal or a due date. Run it after every statement and when the user types `/subscription`.
+
+`agent/cli.py` is the System-1 side. It runs on the user's machine with plain Python and no network. It writes `agent_state.json`, the one file the dashboard, the main finance agent and the other pillars (tax, investment, price check) read from this pillar.
+
+Any action that moves real money or sends data off this machine (a payment, a cancellation, an email, a web search that includes the user's data) needs the user's yes first.
+
 ## Database schema
 
 Keep these columns in this exact order:
@@ -48,6 +59,8 @@ Keep these columns in this exact order:
 `transaction_id,date,transaction_type,description,amount_thb,category,action,year_month,source,source_reference,data_quality_flag`
 
 ## Dashboard
+
+- `dashboard-folder.html` is the new folder-style dashboard (draft). It reads `database.csv` and `agent_state.json` and shows the open questions, the confidence of each decision, and the bills and subscriptions. `dashboard.html` is the earlier dashboard and still works.
 
 - The dashboard is read-only. Update `database.csv` to add or correct transactions, then reload the page.
 - It provides year and month filters, monthly income and expense trends, investment buy and sell trends, expense categories, and recent transactions.
