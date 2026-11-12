@@ -1839,7 +1839,10 @@ TXN000217,2026-11-11,expense,Noodle shop (Bank 12:20),70.00,Food/Beverage,,2026-
       $("agent-line").textContent = total
         ? "The agent read " + total + " new entries from your last statement. It saved " + (R.saved_by_system1 || 0) + " by itself" +
           (open.length ? " and has " + open.length + (open.length === 1 ? " question" : " questions") + " for you." : ". Nothing is waiting for you.")
-        : "Send a slip or a statement to the agent to start.";
+        : S.rows.length
+          ? (function () { var ds = S.rows.map(function (r) { return r.date; }).sort(), n = S.rows.filter(function (r) { return /^needs_review/.test(r.data_quality_flag || ""); }).length;
+              return "Your ledger has " + S.rows.length + " entries, from " + ds[0] + " to " + ds[ds.length - 1] + ". " + (n ? n + (n === 1 ? " entry is" : " entries are") + " still marked to check." : "Nothing is waiting for you."); })()
+          : "Send a slip or a statement to the agent to start.";
 
       /* tabs */
       var nb = $("nav-check"); nb.hidden = !open.length; nb.textContent = open.length;
@@ -1858,6 +1861,8 @@ TXN000217,2026-11-11,expense,Noodle shop (Bank 12:20),70.00,Food/Beverage,,2026-
 
       /* chips */
       var chips = [];
+      var marked = rows.filter(function (r) { return /^needs_review/.test(r.data_quality_flag || ""); }).length;
+      if (marked) chips.push('<button class="chip" data-go="transactions" data-tab="check"><svg class="ico"><use href="#i-flag"/></svg>' + marked + (marked === 1 ? " entry" : " entries") + " marked to check</button>");
       if (open.length) chips.push('<button class="chip" data-go="check"><svg class="ico"><use href="#i-flag"/></svg>' + open.length + (open.length === 1 ? " entry needs" : " entries need") + " your answer</button>");
       urgent.forEach(function (a) {
         chips.push('<button class="chip" data-go="bills"><svg class="ico"><use href="#i-bell"/></svg>' + esc(a.level === "check" ? "New charge: " + a.name : a.name + (a.level === "late" ? " may be late" : " " + when(a.days_left))) + "</button>");
