@@ -4,6 +4,7 @@
 !tax_preparation.example.csv
 !*.example.csv
 agent_state.json
+profile.json
 alerts.txt
 __pycache__/
 database.csv

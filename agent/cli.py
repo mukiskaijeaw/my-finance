@@ -273,6 +273,8 @@ def build_state(ws, today):
                         "subscriptions_per_month": round(sum(i["monthly_cost"] for i in active if i["kind"] == "subscription"), 2),
                         "debt_per_month": round(sum(i["monthly_cost"] for i in active if i["kind"] == "debt"), 2)},
         "rules_learned": len(ws.rules),
+        # optional profile.json: {"gross_monthly": 22000, "salary_months": 12, "social_security_monthly": 875}
+        "profile": json.load(open(os.path.join(ws.dir, "profile.json"), encoding="utf-8")) if os.path.exists(os.path.join(ws.dir, "profile.json")) else {},
     }
     with open(ws.state_path, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=1)
