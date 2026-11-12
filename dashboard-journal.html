@@ -1,0 +1,2159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>The Money Journal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,400;1,500&display=swap">
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #fffdfa; --panel: #f6efe6; --band: #ebe1d3; --card: #fffdf9; --line: #e6dccd; --line-strong: #d3c5b0;
+      --ink: #2b211b; --brown: #4a342a; --muted: #7b6c60; --navy: #2f4a66; --accent: #b0563a; --good: #2f7a5c;
+      --c1: #2a6fa8; --c2: #c8553a; --c3: #2f9a7a; --c4: #c98a1e; --c5: #8a52a8; --c6: #d06a9a; --c-other: #b3a898;
+      --sans: "Inter", "IBM Plex Sans Thai Looped", "Sarabun", system-ui, sans-serif;
+      --serif: "Lora", "IBM Plex Sans Thai Looped", Georgia, serif;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.5 var(--sans); }
+    button, select, input { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; border-radius: 6px; }
+    svg.ico { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .num { font-variant-numeric: tabular-nums; }
+
+    /* ---------- banner ---------- */
+    .banner { position: relative; display: grid; place-items: center; min-height: 190px; padding: 26px 16px 22px; background: linear-gradient(#f8f1e7, #f3e9dc); overflow: hidden; text-align: center; }
+    .banner svg.art { position: absolute; bottom: 0; height: 100%; max-height: 190px; width: auto; }
+    .banner .art.left { left: 0; } .banner .art.right { right: 0; }
+    .banner h1 { position: relative; margin: 0; color: var(--brown); font: 600 clamp(28px, 5vw, 46px)/1.08 var(--serif); letter-spacing: .08em; text-transform: uppercase; }
+    .banner p { position: relative; margin: 8px 0 0; color: var(--brown); font-size: 13px; letter-spacing: .22em; text-transform: uppercase; }
+    .banner .mark { position: relative; display: block; margin: 8px auto 0; width: 26px; height: 26px; color: var(--brown); }
+
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 22px clamp(14px, 3vw, 34px) 44px; }
+    .title-row { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px 16px; margin-bottom: 16px; }
+    .title-row h2 { margin: 0; font: 700 clamp(24px, 3.4vw, 32px)/1.2 var(--sans); letter-spacing: -.01em; }
+    .title-row .sub { margin: 0 0 4px; color: var(--muted); font-size: 13.5px; }
+    .title-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+    select, .search input, .btn { min-height: 34px; padding: 4px 12px; border: 1px solid var(--line-strong); border-radius: 8px; background-color: var(--card); font-size: 13.5px; }
+    select { padding-right: 28px; appearance: none; -webkit-appearance: none; background-repeat: no-repeat; background-position: right 9px center;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='%237b6c60' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); }
+    select:hover, .search input:hover, .btn:hover { border-color: var(--brown); }
+    .btn { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+    .btn.primary { background: var(--brown); border-color: var(--brown); color: #fbf4ea; } .btn.primary:hover { background: #38261e; }
+    .btn.small { min-height: 30px; padding: 2px 10px; }
+
+    .shell { display: grid; grid-template-columns: 216px minmax(0, 1fr); gap: 18px; align-items: start; }
+
+    /* ---------- sidebar ---------- */
+    .side { position: sticky; top: 14px; padding: 14px 10px 16px; border-radius: 12px; background: var(--panel); }
+    .side h3 { display: flex; align-items: center; gap: 8px; margin: 14px 8px 4px; font: 700 11.5px/1.6 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink); }
+    .side h3:first-child { margin-top: 2px; }
+    .side h3 .ico { width: 14px; height: 14px; }
+    .tab { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 32px; padding: 4px 9px; border: 0; border-radius: 7px; background: none; color: var(--brown); font-size: 13.5px; text-align: left; }
+    .tab:hover { background: rgba(74, 52, 42, .07); }
+    .tab[aria-current="page"] { background: var(--band); font-weight: 600; }
+    .tab .ico { width: 15px; height: 15px; color: var(--brown); }
+    .badge { margin-left: auto; min-width: 20px; padding: 0 6px; border-radius: 99px; background: var(--accent); color: #fff; font: 600 11px/18px var(--sans); text-align: center; }
+    .side-note { margin: 16px 8px 0; padding-top: 12px; border-top: 1px solid var(--line-strong); color: var(--muted); font-size: 12px; line-height: 1.45; }
+
+    /* ---------- blocks ---------- */
+    .grid { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+    .grid + .grid, .grid + .block, .block + .grid { margin-top: 16px; }
+    .cols { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+    .col { display: grid; gap: 16px; min-width: 0; }
+    .block { min-width: 0; padding: 10px; border-radius: 12px; background: var(--panel); }
+    .block-head { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 8px; background: var(--band); font: 700 13.5px/1.4 var(--sans); letter-spacing: .04em; text-transform: uppercase; }
+    .block-head .ico { color: var(--brown); }
+    .block-head .link-btn { margin-left: auto; }
+    .view-tab { display: inline-flex; align-items: center; gap: 6px; margin: 8px 4px 0; padding: 4px 4px 6px; border-bottom: 2px solid var(--ink); font-size: 13px; font-weight: 600; }
+    .view-tab .ico { width: 14px; height: 14px; }
+    .view-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+    .body { padding: 10px 4px 2px; }
+    .card { min-width: 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); box-shadow: 0 1px 2px rgba(74, 52, 42, .06); }
+    .link-btn { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border: 0; background: none; color: var(--brown); font: 500 12.5px/1.4 var(--sans); letter-spacing: 0; text-transform: none; white-space: nowrap; }
+    .link-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .link-btn .ico { width: 13px; height: 13px; }
+    .empty { margin: 0; padding: 12px 4px; color: var(--muted); font-size: 13.5px; list-style: none; }
+    h4 { margin: 0 0 6px; font: 700 13px/1.4 var(--sans); }
+
+    /* summary gallery */
+    .gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .stat { display: block; width: 100%; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--card); overflow: hidden; text-align: left; box-shadow: 0 1px 2px rgba(74, 52, 42, .06); transition: transform .12s, border-color .12s; }
+    button.stat:hover { transform: translateY(-2px); border-color: var(--brown); }
+    .stat-cover { display: grid; place-items: center; height: 74px; color: #fbf4ea; }
+    .stat-cover .ico { width: 30px; height: 30px; stroke-width: 1.4; }
+    .cover-in { background: linear-gradient(135deg, #2f4a66, #3f6488); } .cover-out { background: linear-gradient(135deg, #8f3f28, #b0563a); }
+    .cover-net { background: linear-gradient(135deg, #2c5f4a, #3f8266); } .cover-fixed { background: linear-gradient(135deg, #5a4334, #7d6250); }
+    .stat-body { padding: 10px 12px 12px; }
+    .stat-top { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+    .stat-value { margin-top: 2px; font: 700 clamp(19px, 2.1vw, 24px)/1.25 var(--sans); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat-value.up { color: var(--good); }
+    .mini { height: 4px; margin: 7px 0 6px; border-radius: 99px; background: var(--band); overflow: hidden; }
+    .mini i { display: block; height: 100%; border-radius: inherit; background: var(--navy); }
+    .stat-sub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 2px 11px; border: 1px solid var(--line-strong); border-radius: 99px; background: var(--card); color: var(--brown); font-size: 12.5px; font-weight: 500; }
+    .chip:hover { border-color: var(--brown); }
+    .chip .ico { width: 13px; height: 13px; color: var(--accent); }
+
+    /* donut */
+    .donut-card { text-align: center; }
+    .donut-card h4 { letter-spacing: .06em; text-transform: uppercase; font-size: 12px; }
+    .donut-wrap { position: relative; width: min(190px, 70%); margin: 4px auto 8px; }
+    .donut-wrap svg { display: block; width: 100%; height: auto; }
+    .donut-wrap path { cursor: pointer; transition: opacity .12s; }
+    .donut-mid { position: absolute; inset: 0; display: grid; place-content: center; pointer-events: none; }
+    .donut-mid b { font: 700 20px/1.2 var(--sans); font-variant-numeric: tabular-nums; } .donut-mid span { color: var(--muted); font-size: 12px; }
+    .legend-list { display: grid; gap: 1px; text-align: left; }
+    .legend-row { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; width: 100%; padding: 4px 6px; border: 0; border-radius: 6px; background: none; font-size: 13px; text-align: left; }
+    .legend-row:hover, .legend-row.on { background: var(--panel); }
+    .legend-row i { width: 10px; height: 10px; border-radius: 3px; }
+    .legend-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .legend-row b { font-weight: 600; font-variant-numeric: tabular-nums; } .legend-row small { width: 32px; color: var(--muted); font-size: 12px; text-align: right; }
+
+    /* calendar */
+    .cal-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 14px; }
+    .cal-nav { display: inline-flex; align-items: center; gap: 4px; padding-bottom: 4px; }
+    .cal-nav b { min-width: 98px; font-size: 13px; text-align: center; }
+    .cal-nav button { display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--card); }
+    .cal-nav button:hover { border-color: var(--brown); }
+    .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); background: var(--card); }
+    .cal .dow { padding: 5px 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--panel); color: var(--muted); font-size: 11.5px; font-weight: 600; text-align: center; }
+    .day { position: relative; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-height: 58px; padding: 4px 5px; border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: none; text-align: right; cursor: default; }
+    .day .d { font-size: 12px; color: var(--ink); line-height: 18px; min-width: 18px; text-align: center; }
+    .day.out .d { color: #b9ac9d; } .day.out { background: rgba(246, 239, 230, .5); }
+    .day.today .d { border-radius: 99px; background: var(--accent); color: #fff; font-weight: 600; }
+    .day.has { cursor: pointer; } .day.has:hover, .day.sel { background: #f6eee2; }
+    .day.sel { box-shadow: inset 0 0 0 1.5px var(--brown); }
+    .marks { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 3px; margin-top: auto; }
+    .mark-i { display: grid; place-items: center; width: 19px; height: 19px; border-radius: 5px; border: 1.5px solid var(--brown); color: var(--brown); }
+    .mark-i .ico { width: 11px; height: 11px; stroke-width: 2.2; }
+    .mark-i.paid { background: var(--brown); color: #fbf4ea; }
+    .mark-i.income { border-color: var(--good); color: var(--good); } .mark-i.income.paid { background: var(--good); color: #fff; }
+    .mark-i.soon { border-color: var(--accent); color: var(--accent); background: #fbe9e1; }
+    .cal-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; color: var(--muted); font-size: 12px; }
+    .cal-key span { display: inline-flex; align-items: center; gap: 5px; }
+    .cal-key .mark-i { width: 15px; height: 15px; border-radius: 4px; } .cal-key .mark-i .ico { width: 9px; height: 9px; }
+    .cal-side { min-width: 0; }
+    .cal-side h4 { margin-top: 10px; } .cal-side h4:first-child { margin-top: 0; }
+    .mini-list { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+    .mini-list li { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 7px; align-items: start; }
+    .mini-list .ico { width: 14px; height: 14px; margin-top: 3px; color: var(--brown); }
+    .mini-list span { overflow-wrap: anywhere; } .mini-list small { display: block; color: var(--muted); font-size: 12px; }
+    .mini-list b { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .mini-list li.soon small { color: var(--accent); font-weight: 600; }
+
+    /* subscription gallery */
+    .sub-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .sub-card { min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--card); overflow: hidden; box-shadow: 0 1px 2px rgba(74, 52, 42, .06); }
+    .sub-cover { display: grid; place-items: center; height: 70px; color: #fbf4ea; font: 600 30px/1 var(--serif); }
+    .sub-body { padding: 8px 10px 10px; }
+    .sub-name { display: block; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sub-meta { display: block; color: var(--muted); font-size: 12px; }
+    .tag { display: inline-block; margin-top: 5px; padding: 0 8px; border-radius: 5px; background: #f3dfd3; color: #8a3f26; font-size: 11.5px; line-height: 19px; white-space: nowrap; }
+    .tag.blue { background: #dbe6f1; color: #2f4a66; } .tag.plain { background: var(--band); color: var(--brown); }
+    button.tag { border: 0; margin: 0 0 0 6px; } button.tag:hover { outline: 1px solid var(--brown); }
+
+    /* agent note + stats */
+    .quote { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 22px 18px; }
+    .quote .q-mark { align-self: start; color: #cdb893; font: 600 54px/.8 var(--serif); }
+    .quote p { margin: 0; font: italic 400 16.5px/1.6 var(--serif); text-align: center; }
+    .quote cite { display: block; margin-top: 8px; color: var(--muted); font: normal 12.5px/1.4 var(--sans); text-align: center; }
+    .quote svg.quill { width: 52px; height: 78px; color: var(--brown); }
+    .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .tile { padding: 14px 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); text-align: center; box-shadow: 0 1px 2px rgba(74, 52, 42, .06); }
+    button.tile:hover { border-color: var(--brown); }
+    .tile b { display: block; font: 700 23px/1.2 var(--sans); font-variant-numeric: tabular-nums; } .tile span { color: var(--muted); font-size: 12px; }
+
+    /* month chart + routing */
+    .legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 4px; color: var(--muted); font-size: 12.5px; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; } .legend i { width: 10px; height: 10px; border-radius: 3px; }
+    svg.chart { display: block; width: 100%; height: auto; overflow: visible; font-family: var(--sans); }
+    svg.chart .bar { cursor: pointer; }
+    .chart-wrap { position: relative; }
+    .tip { position: absolute; z-index: 4; pointer-events: none; min-width: 150px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--card); box-shadow: 0 8px 16px -8px rgba(74, 52, 42, .45); font-size: 12.5px; line-height: 1.5; text-align: left; }
+    .tip b { display: block; } .tip span { display: flex; justify-content: space-between; gap: 14px; color: var(--muted); } .tip span em { font-style: normal; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .route-bar { display: flex; gap: 2px; height: 12px; margin: 4px 0 10px; } .route-bar span { min-width: 6px; border-radius: 3px; }
+    .r-auto { background: var(--brown); } .r-codex { background: #b3a898; } .r-ask { background: var(--accent); }
+    .route-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+    .route-list li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
+    .route-list i { width: 10px; height: 10px; border-radius: 3px; } .route-list b { font-weight: 600; } .route-list small { display: block; color: var(--muted); font-size: 12px; }
+    .card-sub { margin: 0 0 8px; color: var(--muted); font-size: 12.5px; }
+    .links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .links button { display: grid; justify-items: center; gap: 5px; padding: 12px 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); font-size: 12px; font-weight: 600; }
+    .links button:hover { border-color: var(--brown); } .links .ico { width: 22px; height: 22px; color: var(--brown); }
+
+    /* due list (bills page) */
+    .due-list { display: grid; margin: 0; padding: 0; list-style: none; }
+    .due { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); }
+    .due:last-child { border-bottom: 0; }
+    .due-date { padding: 3px 0 4px; border: 1px solid var(--line-strong); border-radius: 7px; background: var(--panel); text-align: center; line-height: 1.1; }
+    .due-date b { display: block; font-size: 17px; font-weight: 700; } .due-date small { color: var(--muted); font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    .due.soon .due-date { background: var(--accent); border-color: var(--accent); color: #fff; } .due.soon .due-date small { color: #fff; }
+    .due-name { font-weight: 500; overflow-wrap: anywhere; }
+    .due .tag { margin: 0 0 0 6px; background: var(--band); color: var(--brown); } .due .tag.red { background: #f3dfd3; color: #8a3f26; }
+    .due-note { display: block; color: var(--muted); font-size: 12.5px; }
+    .due-amt { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .due-amt small { display: block; color: var(--muted); font-size: 12px; font-weight: 400; } .due.soon .due-amt small { color: var(--accent); font-weight: 600; }
+    .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+    .note { padding: 12px 14px; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; background: var(--card); }
+    .note.check { border-left-color: var(--navy); }
+    .note-kind { color: var(--accent); font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; } .note.check .note-kind { color: var(--navy); }
+    .note p { margin: 2px 0 0; font-size: 13.5px; }
+    .strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .strip > div { min-width: 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+    .strip b { display: block; font: 700 clamp(18px, 2vw, 22px)/1.3 var(--sans); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .strip b.up { color: var(--good); }
+    .strip span { color: var(--muted); font-size: 12.5px; }
+
+    /* questions */
+    .page-lede { margin: 0 0 12px; color: var(--muted); font-size: 13.5px; max-width: 76ch; }
+    .howto { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 4px; }
+    .howto div { padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+    .howto b { display: block; font-size: 14px; } .howto span { color: var(--muted); font-size: 12.5px; display: block; }
+    .section-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin: 16px 4px 8px; font-size: 14px; font-weight: 700; }
+    .section-title small { color: var(--muted); font-size: 12.5px; font-weight: 400; }
+    .q-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 12px; align-items: start; }
+    .q-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; color: var(--muted); font-size: 12px; }
+    .q-meta .tag { margin: 0; }
+    .q-amount { margin: 2px 0 0; font: 700 24px/1.25 var(--sans); font-variant-numeric: tabular-nums; color: var(--accent); } .q-amount.in { color: var(--navy); }
+    .q-text { margin: 4px 0 2px; font: 500 15px/1.45 var(--serif); }
+    .q-why { margin: 0; color: var(--muted); font-size: 12.5px; }
+    .meter { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; margin: 10px 0 2px; font-size: 12px; color: var(--muted); }
+    .meter-track { position: relative; height: 6px; border-radius: 99px; background: var(--band); }
+    .meter-fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--navy); }
+    .meter-mark { position: absolute; top: -4px; bottom: -4px; width: 0; border-left: 1.5px dashed var(--accent); }
+    .q-opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .q-opts .btn { min-height: 30px; padding: 2px 10px; font-size: 12.5px; } .q-opts .btn.guess { border-style: dashed; border-color: var(--brown); }
+    .q-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line-strong); color: var(--muted); font-size: 12px; }
+    .q-foot label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; } .q-foot input { accent-color: var(--brown); }
+    .more { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; color: var(--muted); font-size: 13px; }
+
+    /* table */
+    .tools { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+    .seg { display: inline-flex; max-width: 100%; overflow-x: auto; padding: 3px; border-radius: 9px; background: var(--band); }
+    .seg button { min-height: 28px; padding: 2px 10px; border: 0; border-radius: 7px; background: none; color: var(--muted); font-size: 13px; white-space: nowrap; }
+    .seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(74, 52, 42, .15); }
+    .seg .n { margin-left: 5px; font-size: 11.5px; }
+    .search { position: relative; margin-left: auto; } .search .ico { position: absolute; left: 10px; top: 9px; color: var(--muted); pointer-events: none; }
+    .search input { width: min(240px, 70vw); padding-left: 32px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 8px 10px; border-bottom: 1px solid var(--line-strong); color: var(--muted); font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; text-align: left; white-space: nowrap; }
+    td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 13.5px; }
+    tbody tr:hover td { background: #faf5ed; }
+    td.date { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    td.money, th.money { text-align: right; } td.money { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    td.sure { white-space: nowrap; color: var(--muted); font-size: 12.5px; } td.sure b { color: var(--ink); margin-right: 5px; font-variant-numeric: tabular-nums; }
+    .type-pill { white-space: nowrap; font-size: 13px; }
+    .type-pill::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: var(--muted); }
+    .type-income::before { background: var(--c1); } .type-expense::before { background: var(--c2); } .type-investment::before { background: var(--c4); } .type-transfer::before { background: var(--c-other); }
+    tr.needs-review td { background: #fbeee6; } .desc-note { display: block; color: var(--accent); font-size: 12px; }
+
+    /* plan */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .slot { padding: 14px 16px; border: 1.5px dashed var(--line-strong); border-radius: 10px; background: rgba(255, 253, 249, .6); }
+    .kicker { margin: 0 0 2px; color: var(--accent); font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .slot h4 { font: 600 17px/1.3 var(--serif); margin: 0; } .slot p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .slot dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 12px; margin: 10px 0 0; padding-top: 8px; border-top: 1px dashed var(--line-strong); font-size: 13px; }
+    .slot dt { color: var(--muted); } .slot dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+    .verdict { margin-bottom: 12px; } .verdict h4 { font: 600 20px/1.3 var(--serif); } .verdict p { margin: 4px 0 0; color: var(--muted); font-size: 13.5px; }
+
+    .foot-status { margin: 16px 4px 0; color: var(--muted); font-size: 12.5px; }
+    .toast { position: fixed; left: 50%; bottom: 20px; z-index: 20; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 8px 16px; border-radius: 8px; background: var(--ink); color: #fbf4ea; font-size: 13.5px; box-shadow: 0 8px 18px -8px rgba(0, 0, 0, .6); }
+
+    @media (max-width: 1020px) { .cols { grid-template-columns: minmax(0, 1fr); } .grid, .cal-layout { grid-template-columns: minmax(0, 1fr); } .sub-gallery { grid-template-columns: repeat(4, minmax(0, 1fr)); } .grid-3 { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-width: 820px) {
+      .banner { min-height: 150px; } .banner svg.art { opacity: .28; max-height: 150px; }
+      .shell { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      .side { position: static; display: flex; gap: 4px; padding: 6px; overflow-x: auto; scrollbar-width: none; }
+      .side::-webkit-scrollbar { display: none; }
+      .side h3, .side-note { display: none; } .tab { width: auto; flex: none; white-space: nowrap; } .badge { margin-left: 2px; }
+      .title-actions { margin-left: 0; width: 100%; } .title-actions select { flex: 1; min-width: 0; }
+      .strip, .sub-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } .howto { grid-template-columns: minmax(0, 1fr); }
+      .search { margin-left: 0; width: 100%; } .search input { width: 100%; }
+      .quote { grid-template-columns: minmax(0, 1fr); padding: 16px 12px; } .quote .q-mark, .quote svg.quill { display: none; }
+      .day { min-height: 50px; padding: 3px; } .mark-i { width: 16px; height: 16px; } .mark-i .ico { width: 9px; height: 9px; }
+    }
+    @media (max-width: 520px) { .gallery { grid-template-columns: minmax(0, 1fr); } .stat { display: grid; grid-template-columns: 74px minmax(0, 1fr); } .stat-cover { height: auto; } }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+    @media print { .side, .title-actions { display: none; } .shell { display: block; } }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.500 12 4l8 7.500V20h-5.500v-5h-5v5H4z"/></symbol>
+      <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+      <symbol id="i-flag" viewBox="0 0 24 24"><path d="M12 8.500v4.500M12 16.500h.01M10.300 4.300 2.800 17.500a2 2 0 0 0 1.700 3h15a2 2 0 0 0 1.700-3L13.700 4.300a2 2 0 0 0-3.400 0Z"/></symbol>
+      <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.500" y="5" width="17" height="15.500" rx="2.500"/><path d="M3.500 10h17M8 3v4M16 3v4"/></symbol>
+      <symbol id="i-loop" viewBox="0 0 24 24"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 4v4h-4M20 15a8 8 0 0 1-14 3l-2-2M4 20v-4h4"/></symbol>
+      <symbol id="i-plan" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.500"/><circle cx="12" cy="12" r="4.500"/><circle cx="12" cy="12" r=".8"/></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.500 12a7.500 7.500 0 1 1-2.200-5.300M19.500 4.500v4h-4"/></symbol>
+      <symbol id="i-in" viewBox="0 0 24 24"><path d="M17 7 7 17M7 9v8h8"/></symbol>
+      <symbol id="i-out" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></symbol>
+      <symbol id="i-net" viewBox="0 0 24 24"><path d="M5 9.500c0-2.500 3-4.500 7-4.500s7 2 7 4.500v6c0 2-3 3.500-7 3.500s-7-1.500-7-3.500zM5 9.500c0 2 3 3.500 7 3.500s7-1.500 7-3.500"/></symbol>
+      <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16.500V11a6 6 0 0 1 12 0v5.500l1.500 2h-15zM10 21h4"/></symbol>
+      <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+      <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.500"/><path d="m16 16 4.500 4.500"/></symbol>
+      <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7.500 11l4.500 4.500 4.500-4.500M5 19.500h14"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.500 4.500 4.500L19 7.500"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.500V12l3 2"/></symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></symbol>
+      <symbol id="i-pie" viewBox="0 0 24 24"><path d="M12 3.500V12h8.500A8.500 8.500 0 1 1 12 3.500ZM15 3.500a6.500 6.500 0 0 1 5.500 5.500H15z"/></symbol>
+      <symbol id="i-quote" viewBox="0 0 24 24"><path d="M5 5.500h14v10H10l-5 4z"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.500C10 5 7 4.500 3.500 5v13c3.500-.5 6.500 0 8.500 1.500 2-1.500 5-2 8.500-1.500V5C17 4.500 14 5 12 6.500ZM12 6.500v13"/></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="banner">
+    <svg class="art left" viewBox="0 0 260 190" aria-hidden="true">
+      <rect x="0" y="52" width="26" height="130" rx="3" fill="#6b4a36"/><rect x="5" y="66" width="16" height="4" fill="#d9b77a"/><rect x="5" y="160" width="16" height="4" fill="#d9b77a"/>
+      <rect x="28" y="38" width="30" height="144" rx="3" fill="#2f4a66"/><rect x="34" y="54" width="18" height="26" rx="2" fill="none" stroke="#d9b77a" stroke-width="2"/><path d="M43 60v14M39 64h6a2 2 0 0 1 0 4h-4a2 2 0 0 0 0 4h6" fill="none" stroke="#d9b77a" stroke-width="1.6"/>
+      <rect x="60" y="60" width="22" height="122" rx="3" fill="#c9a36a"/><rect x="64" y="74" width="14" height="3" fill="#6b4a36"/><rect x="64" y="82" width="14" height="3" fill="#6b4a36"/>
+      <rect x="84" y="46" width="26" height="136" rx="3" fill="#8f3f28" transform="rotate(7 97 182)"/>
+      <g fill="#d9a441" stroke="#a87424" stroke-width="1.5"><ellipse cx="150" cy="176" rx="24" ry="7"/><ellipse cx="150" cy="167" rx="24" ry="7"/><ellipse cx="150" cy="158" rx="24" ry="7"/><ellipse cx="150" cy="149" rx="24" ry="7"/><ellipse cx="153" cy="140" rx="24" ry="7"/></g>
+      <path d="M153 136v8M149 138.500h6a1.500 1.500 0 0 1 0 3h-4" fill="none" stroke="#a87424" stroke-width="1.4"/>
+      <g fill="#d9a441" stroke="#a87424" stroke-width="1.5"><ellipse cx="204" cy="178" rx="20" ry="6"/><ellipse cx="204" cy="170" rx="20" ry="6"/></g>
+      <rect x="0" y="182" width="260" height="8" fill="#eadfce"/>
+    </svg>
+    <svg class="art right" viewBox="0 0 260 190" aria-hidden="true">
+      <path d="M150 182h60" stroke="#4a342a" stroke-width="6" stroke-linecap="round"/><path d="M180 182V96l-34-40" fill="none" stroke="#4a342a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M112 78l44-52 26 22-44 52z" fill="#2f4a66"/><path d="M112 78l26 22" stroke="#f3d489" stroke-width="5" stroke-linecap="round"/>
+      <rect x="196" y="150" width="64" height="16" rx="3" fill="#2f4a66"/><rect x="190" y="134" width="70" height="16" rx="3" fill="#b0563a"/><rect x="200" y="118" width="60" height="16" rx="3" fill="#6b4a36"/><rect x="196" y="166" width="64" height="16" rx="3" fill="#c9a36a"/>
+      <path d="M64 150h42v14a16 16 0 0 1-16 16h-10a16 16 0 0 1-16-16z" fill="#fffdf9" stroke="#4a342a" stroke-width="2.500"/><path d="M106 154h6a7 7 0 0 1 0 14h-7" fill="none" stroke="#4a342a" stroke-width="2.500"/><ellipse cx="85" cy="150" rx="19" ry="3.500" fill="#6b4a36"/>
+      <path d="M78 138c-5-7 5-9 0-17M90 138c-5-7 5-9 0-17" fill="none" stroke="#b9ac9d" stroke-width="2" stroke-linecap="round"/>
+      <path d="M52 182h64" stroke="#4a342a" stroke-width="2.500" stroke-linecap="round"/>
+      <rect x="0" y="182" width="260" height="8" fill="#eadfce"/>
+    </svg>
+    <div>
+      <h1>The Money<br>Journal</h1>
+      <p>Every baht has a page.</p>
+      <svg class="ico mark"><use href="#i-book"/></svg>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="title-row">
+      <div><h2>My Money Dashboard</h2></div>
+      <p class="sub"><span id="today"></span> · <span id="crumb-page">Dashboard</span></p>
+      <div class="title-actions">
+        <select id="month-filter" aria-label="Month"></select>
+        <button id="refresh" class="btn primary" type="button"><svg class="ico"><use href="#i-refresh"/></svg>Refresh data</button>
+      </div>
+    </div>
+
+    <div class="shell">
+      <nav class="side" aria-label="Sections">
+        <h3><svg class="ico"><use href="#i-home"/></svg>Overview</h3>
+        <button class="tab" type="button" data-go="overview"><svg class="ico"><use href="#i-grid"/></svg>Dashboard</button>
+        <h3><svg class="ico"><use href="#i-book"/></svg>My ledger</h3>
+        <button class="tab" type="button" data-go="transactions"><svg class="ico"><use href="#i-list"/></svg>Transactions</button>
+        <button class="tab" type="button" data-go="check"><svg class="ico"><use href="#i-flag"/></svg>To check<span id="nav-check" class="badge" hidden></span></button>
+        <h3><svg class="ico"><use href="#i-cal"/></svg>Bills</h3>
+        <button class="tab" type="button" data-go="bills"><svg class="ico"><use href="#i-loop"/></svg>Bills &amp; subscriptions<span id="nav-bills" class="badge" hidden></span></button>
+        <h3><svg class="ico"><use href="#i-plan"/></svg>Money goals</h3>
+        <button class="tab" type="button" data-go="plan"><svg class="ico"><use href="#i-plan"/></svg>Plan</button>
+        <p class="side-note">Send a slip or a statement to the agent in chat. This page updates when you press Refresh.</p>
+      </nav>
+
+      <main>
+        <!-- ================= DASHBOARD ================= -->
+        <section id="page-overview">
+          <div class="cols">
+          <div class="col">
+            <div class="block">
+              <div class="block-head"><svg class="ico"><use href="#i-book"/></svg>Money summary</div>
+              <div class="view-row"><span class="view-tab"><svg class="ico"><use href="#i-grid"/></svg><span id="sum-scope">All months</span></span></div>
+              <div class="gallery">
+                <button class="stat" type="button" data-go="transactions" data-tab="income">
+                  <div class="stat-cover cover-in"><svg class="ico"><use href="#i-in"/></svg></div>
+                  <div class="stat-body"><div class="stat-top">Money in</div><div id="s-in" class="stat-value">—</div><div class="mini"><i id="bar-in" style="width:100%"></i></div><div id="s-in-sub" class="stat-sub">&nbsp;</div></div>
+                </button>
+                <button class="stat" type="button" data-go="transactions" data-tab="expense">
+                  <div class="stat-cover cover-out"><svg class="ico"><use href="#i-out"/></svg></div>
+                  <div class="stat-body"><div class="stat-top">Money out</div><div id="s-out" class="stat-value">—</div><div class="mini"><i id="bar-out" style="background:var(--accent)"></i></div><div id="s-out-sub" class="stat-sub">&nbsp;</div></div>
+                </button>
+                <button class="stat" type="button" data-go="transactions" data-tab="all">
+                  <div class="stat-cover cover-net"><svg class="ico"><use href="#i-net"/></svg></div>
+                  <div class="stat-body"><div class="stat-top">Left over</div><div id="s-net" class="stat-value">—</div><div class="mini"><i id="bar-net" style="background:var(--good)"></i></div><div id="s-net-sub" class="stat-sub">&nbsp;</div></div>
+                </button>
+              </div>
+              <div class="chips" id="chips"></div>
+            </div>
+            <div class="block">
+              <div class="block-head"><svg class="ico"><use href="#i-cal"/></svg>Payment calendar<button class="link-btn" type="button" data-go="bills">All bills<svg class="ico"><use href="#i-right"/></svg></button></div>
+              <div class="view-row"><span class="view-tab"><svg class="ico"><use href="#i-cal"/></svg>Calendar view</span>
+                <span class="cal-nav"><button type="button" id="cal-prev" aria-label="Previous month"><svg class="ico"><use href="#i-left"/></svg></button><b id="cal-title"></b><button type="button" id="cal-next" aria-label="Next month"><svg class="ico"><use href="#i-right"/></svg></button></span></div>
+              <div class="cal-layout">
+                <div>
+                  <div class="cal" id="cal"></div>
+                  <div class="cal-key"><span><i class="mark-i paid"><svg class="ico"><use href="#i-check"/></svg></i>Paid</span><span><i class="mark-i"><svg class="ico"><use href="#i-clock"/></svg></i>Coming</span><span><i class="mark-i soon"><svg class="ico"><use href="#i-bell"/></svg></i>Due soon</span><span><i class="mark-i income paid"><svg class="ico"><use href="#i-in"/></svg></i>Payday</span></div>
+                </div>
+                <div class="cal-side" id="cal-side"></div>
+              </div>
+            </div>
+            <div class="block">
+              <div class="block-head">Note from your agent</div>
+              <div class="quote">
+                <span class="q-mark" aria-hidden="true">“</span>
+                <div><p><span id="greeting">Hello</span>. <span id="agent-line"></span></p><cite>- Your finance agent</cite></div>
+                <svg class="quill" viewBox="0 0 52 78" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M44 4C24 10 12 28 12 50l-6 24M12 50c14-2 26-14 32-46M16 40l12-6M14 48l16-10M20 30l12-8"/></svg>
+              </div>
+            </div>
+            <div class="block">
+              <div class="block-head"><svg class="ico"><use href="#i-chart"/></svg>Month by month</div>
+              <div class="body"><div class="card">
+                <p class="card-sub">Click a month to focus the whole page on it</p>
+                <div class="legend"><span><i style="background:var(--c1)"></i>Money in</span><span><i style="background:var(--c2)"></i>Money out</span></div>
+                <div class="chart-wrap"><svg id="chart" class="chart" role="img" aria-label="Money in and money out for each month"></svg><div id="tip" class="tip" hidden></div></div>
+              </div></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="block">
+              <div class="block-head"><svg class="ico"><use href="#i-pie"/></svg>Spending by type</div>
+              <div class="body">
+                <div class="card donut-card">
+                  <h4 id="cat-sub">Where your money went</h4>
+                  <div class="donut-wrap chart-wrap"><svg id="donut" viewBox="0 0 200 200" role="img" aria-label="Spending by category"></svg><div class="donut-mid"><b id="donut-total">—</b><span id="donut-label">spent</span></div></div>
+                  <div class="legend-list" id="cat-list"></div>
+                </div>
+              </div>
+            </div>
+            <div class="block">
+              <div class="block-head"><svg class="ico"><use href="#i-loop"/></svg>Subscriptions</div>
+              <div class="view-row"><span class="view-tab"><svg class="ico"><use href="#i-grid"/></svg>Gallery</span><span class="card-sub" id="subs-home-sub" style="margin:0"></span></div>
+              <div class="sub-gallery" id="subs-gallery"></div>
+            </div>
+            <div class="block">
+              <div class="block-head">Money stats</div>
+              <div class="body tiles">
+                <button class="tile" type="button" data-go="transactions"><b id="m-total">—</b><span>Entries in the ledger</span></button>
+                <button class="tile" type="button" data-go="check"><b id="m-auto">—</b><span>Saved without asking</span></button>
+                <button class="tile" type="button" data-go="bills"><b id="s-fixed">—</b><span>Fixed costs a month</span></button>
+                <button class="tile" type="button" data-go="check"><b id="m-open">—</b><span>Questions for you</span></button>
+              </div>
+              <p id="s-fixed-sub" hidden></p>
+            </div>
+            <div class="block">
+              <div class="block-head">How the agent decided</div>
+              <div class="body"><div class="card">
+                <p class="card-sub" id="route-sub"></p>
+                <div class="route-bar" id="route-bar" aria-hidden="true"></div>
+                <ul class="route-list" id="route-list"></ul>
+              </div></div>
+              <div class="block-head" style="margin-top:10px">Quick links</div>
+              <div class="body links">
+                <button type="button" data-go="check"><svg class="ico"><use href="#i-flag"/></svg>To check</button>
+                <button type="button" data-go="transactions"><svg class="ico"><use href="#i-list"/></svg>Ledger</button>
+                <button type="button" data-go="plan"><svg class="ico"><use href="#i-plan"/></svg>Plan</button>
+              </div>
+            </div>
+          </div>
+          </div>
+          <ul id="due-short" hidden></ul>
+        </section>
+
+        <!-- ================= TO CHECK ================= -->
+        <section id="page-check" hidden>
+          <div class="block">
+            <div class="block-head"><svg class="ico"><use href="#i-flag"/></svg><span id="check-title">Nothing to check</span></div>
+            <div class="body">
+              <p class="page-lede">The agent asks only when it is not sure. It reads every entry, saves the clear ones, and puts the unclear ones here with its best guess.</p>
+              <div class="howto">
+                <div><b id="how-auto">90% or more</b><span>Saved by the agent. You do not need to do anything.</span></div>
+                <div><b id="how-codex">60% to 89%</b><span>Codex takes a deeper look. You can also answer here.</span></div>
+                <div><b id="how-ask">Under 60%</b><span>The agent does not guess. It asks you.</span></div>
+              </div>
+              <div id="check-body"></div>
+              <div class="more" id="answers-bar" hidden>
+                <span id="answers-count"></span>
+                <button class="btn small" id="answers-download" type="button"><svg class="ico"><use href="#i-down"/></svg>Download answers.csv for the agent</button>
+                <button class="btn small" id="answers-undo" type="button">Undo my answers</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TRANSACTIONS ================= -->
+        <section id="page-transactions" hidden>
+          <div class="block">
+            <div class="block-head"><svg class="ico"><use href="#i-list"/></svg>Transactions<span class="card-sub" id="tx-kicker" style="margin:0 0 0 auto;text-transform:none;letter-spacing:0;font-weight:400"></span></div>
+            <div class="body">
+              <div class="strip">
+                <div><b id="t-in">—</b><span>Money in</span></div><div><b id="t-out">—</b><span>Money out</span></div>
+                <div><b id="t-inv">—</b><span>Invested</span></div><div><b id="t-count">—</b><span>Entries shown</span></div>
+              </div>
+              <div class="tools">
+                <div class="seg" id="tx-tabs" role="group" aria-label="Type"></div>
+                <select id="cat-filter" aria-label="Category"></select>
+                <label class="search"><svg class="ico"><use href="#i-search"/></svg><input id="tx-search" type="search" placeholder="Search entries" aria-label="Search entries"></label>
+              </div>
+              <div class="card" style="padding:4px 10px 10px"><div class="table-wrap">
+                <table>
+                  <thead><tr><th>Date</th><th>Details</th><th>Type</th><th>How sure</th><th class="money">Amount</th></tr></thead>
+                  <tbody id="tx-body"></tbody>
+                </table>
+              </div>
+              <div class="more" id="tx-more" hidden><span id="tx-more-text"></span><button class="btn small" id="tx-more-btn" type="button">Show more</button></div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= BILLS ================= -->
+        <section id="page-bills" hidden>
+          <div class="block">
+            <div class="block-head"><svg class="ico"><use href="#i-loop"/></svg>Bills &amp; subscriptions</div>
+            <div class="body">
+              <p class="page-lede">The agent looks for the same merchant, a similar amount, and a steady gap between payments. It tells you before a renewal or a due date. It never pays or cancels anything without your yes.</p>
+              <div class="strip">
+                <div><b id="b-fixed">—</b><span>Fixed costs each month</span></div><div><b id="b-subs">—</b><span>Subscriptions each month</span></div>
+                <div><b id="b-year">—</b><span>Subscriptions each year</span></div><div><b id="b-next">—</b><span id="b-next-sub">Next payment</span></div>
+              </div>
+              <div class="section-title">Alerts <small id="alerts-sub"></small></div>
+              <div class="notes" id="notes"></div>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="block">
+              <div class="block-head"><svg class="ico"><use href="#i-cal"/></svg>Next payments</div>
+              <div class="body"><div class="card"><ul class="due-list" id="due-full"></ul></div></div>
+            </div>
+            <div class="block">
+              <div class="block-head"><svg class="ico"><use href="#i-loop"/></svg>Subscriptions</div>
+              <div class="body"><div class="card"><p class="card-sub" id="subs-sub"></p><ul class="due-list" id="subs-list"></ul></div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PLAN ================= -->
+        <section id="page-plan" hidden>
+          <div class="block">
+            <div class="block-head"><svg class="ico"><use href="#i-plan"/></svg>The whole plan</div>
+            <div class="body">
+              <p class="page-lede">This journal holds Pillar 1 (income and expenses) and Pillar 5 (bills and subscriptions). The cards below are empty places for the team's other pillars. Each one shows the numbers this journal already passes to it.</p>
+              <div class="card verdict"><p class="kicker">Main finance agent · final answer</p><h4>"Start saving now" or "You are on track"</h4><p id="verdict-line"></p></div>
+              <div class="grid-3">
+                <div class="slot"><p class="kicker">Pillar 3</p><h4>Tax</h4><p>Estimated income tax for the year and how to use the allowances that are left.</p><dl id="slot-tax"></dl></div>
+                <div class="slot"><p class="kicker">Pillar 2</p><h4>Investment research</h4><p>Research notes on the stocks and funds you follow. No buy or sell advice.</p><dl id="slot-inv"></dl></div>
+                <div class="slot"><p class="kicker">Pillar 4</p><h4>Price check</h4><p>Compares the same model and specs across Thai shops before you buy.</p><dl id="slot-price"></dl></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <p class="foot-status" id="status">Loading…</p>
+      </main>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script type="application/json" id="demo-state">/*DEMO-STATE*/{
+ "schema": "pillar1-state/1",
+ "generated_at": "2026-11-12T13:25:46",
+ "today": "2026-11-12",
+ "ledger": {
+  "rows": 217,
+  "from": "2026-08-25",
+  "to": "2026-11-11"
+ },
+ "thresholds": {
+  "auto_at": 0.9,
+  "codex_at": 0.6
+ },
+ "routing": {
+  "saved_by_system1": 53,
+  "solved_by_codex": 0,
+  "answered_by_user": 0,
+  "waiting_for_codex": 2,
+  "waiting_for_user": 4
+ },
+ "review_queue": [
+  {
+   "date": "2026-10-29",
+   "time": "20:14",
+   "description": "Transfer from Mr. Somchai P.",
+   "amount": 1500.0,
+   "direction": "in",
+   "memo": "",
+   "source_reference": "statement-2026-11.example.pdf",
+   "source": "bank_statement",
+   "question_id": "Q001",
+   "route": "ask",
+   "same_as": "",
+   "confidence": 0.4,
+   "guess_type": "income",
+   "guess_category": "Other",
+   "guess_action": "",
+   "reason": "Money from a person I have not seen before.",
+   "question": "Mr. Somchai P. sent you 1,500.00 THB. Is it pay for work, or someone paying you back?",
+   "candidates": [
+    {
+     "transaction_type": "income",
+     "category": "Freelance",
+     "label": "Pay for work (freelance income)"
+    },
+    {
+     "transaction_type": "income",
+     "category": "Refund",
+     "label": "Money returned to me (not income)"
+    },
+    {
+     "transaction_type": "transfer",
+     "category": "Transfer money",
+     "label": "From my own account"
+    },
+    {
+     "transaction_type": "income",
+     "category": "Salary",
+     "label": "Salary"
+    },
+    {
+     "transaction_type": "income",
+     "category": "Other",
+     "label": "Other income"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-02",
+   "time": "16:40",
+   "description": "Transfer to Ms. Ploy K.",
+   "amount": 350.0,
+   "direction": "out",
+   "memo": "dinner",
+   "source_reference": "statement-2026-11.example.pdf",
+   "source": "bank_statement",
+   "question_id": "Q002",
+   "route": "ask",
+   "same_as": "",
+   "confidence": 0.45,
+   "guess_type": "expense",
+   "guess_category": "Transfer money",
+   "guess_action": "",
+   "reason": "Money to a person I have not seen before.",
+   "question": "You sent 350.00 THB to Ms. Ploy K. What was it for?",
+   "candidates": [
+    {
+     "transaction_type": "expense",
+     "category": "Transfer money",
+     "label": "Money sent to a person"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Food/Beverage",
+     "label": "Food or drink"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Shopping",
+     "label": "Shopping"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Subscriptions",
+     "label": "A subscription"
+    },
+    {
+     "transaction_type": "transfer",
+     "category": "Transfer money",
+     "label": "To my own account"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Other",
+     "label": "Something else"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-04",
+   "time": "21:30",
+   "description": "SHOPEEPAY*BKK",
+   "amount": 1290.0,
+   "direction": "out",
+   "memo": "",
+   "source_reference": "statement-2026-11.example.pdf",
+   "source": "bank_statement",
+   "question_id": "Q003",
+   "route": "codex",
+   "same_as": "",
+   "confidence": 0.8,
+   "guess_type": "expense",
+   "guess_category": "Shopping",
+   "guess_action": "",
+   "reason": "The name suggests Shopping, but this kind of merchant can be several things.",
+   "question": "SHOPEEPAY*BKK: 1,290.00 THB went out. I think it is Shopping, but I am only 80% sure. What is it?",
+   "candidates": [
+    {
+     "transaction_type": "expense",
+     "category": "Shopping",
+     "label": "Shopping (my best guess)"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Transfer money",
+     "label": "Money sent to a person"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Food/Beverage",
+     "label": "Food or drink"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Subscriptions",
+     "label": "A subscription"
+    },
+    {
+     "transaction_type": "transfer",
+     "category": "Transfer money",
+     "label": "To my own account"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Other",
+     "label": "Something else"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-06",
+   "time": "18:22",
+   "description": "Baan Suan Market",
+   "amount": 240.0,
+   "direction": "out",
+   "memo": "",
+   "source_reference": "statement-2026-11.example.pdf",
+   "source": "bank_statement",
+   "question_id": "Q004",
+   "route": "ask",
+   "same_as": "",
+   "confidence": 0.35,
+   "guess_type": "expense",
+   "guess_category": "Other",
+   "guess_action": "",
+   "reason": "I do not know this merchant.",
+   "question": "You paid 240.00 THB to 'Baan Suan Market'. What was it for?",
+   "candidates": [
+    {
+     "transaction_type": "expense",
+     "category": "Transfer money",
+     "label": "Money sent to a person"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Food/Beverage",
+     "label": "Food or drink"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Shopping",
+     "label": "Shopping"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Subscriptions",
+     "label": "A subscription"
+    },
+    {
+     "transaction_type": "transfer",
+     "category": "Transfer money",
+     "label": "To my own account"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Other",
+     "label": "Something else"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-07",
+   "time": "14:05",
+   "description": "Example Studio Co. Ltd.",
+   "amount": 800.0,
+   "direction": "out",
+   "memo": "",
+   "source_reference": "statement-2026-11.example.pdf",
+   "source": "bank_statement",
+   "question_id": "Q005",
+   "route": "ask",
+   "same_as": "",
+   "confidence": 0.35,
+   "guess_type": "expense",
+   "guess_category": "Other",
+   "guess_action": "",
+   "reason": "I do not know this merchant.",
+   "question": "You paid 800.00 THB to 'Example Studio Co. Ltd.'. What was it for?",
+   "candidates": [
+    {
+     "transaction_type": "expense",
+     "category": "Transfer money",
+     "label": "Money sent to a person"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Food/Beverage",
+     "label": "Food or drink"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Shopping",
+     "label": "Shopping"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Subscriptions",
+     "label": "A subscription"
+    },
+    {
+     "transaction_type": "transfer",
+     "category": "Transfer money",
+     "label": "To my own account"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Other",
+     "label": "Something else"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-10",
+   "time": "11:11",
+   "description": "GoodFit Gym membership",
+   "amount": 990.0,
+   "direction": "out",
+   "memo": "",
+   "source_reference": "statement-2026-11.example.pdf",
+   "source": "bank_statement",
+   "question_id": "Q006",
+   "route": "codex",
+   "same_as": "",
+   "confidence": 0.72,
+   "guess_type": "expense",
+   "guess_category": "Health",
+   "guess_action": "",
+   "reason": "The name suggests Health, but this kind of merchant can be several things.",
+   "question": "GoodFit Gym membership: 990.00 THB went out. I think it is Health, but I am only 72% sure. What is it?",
+   "candidates": [
+    {
+     "transaction_type": "expense",
+     "category": "Health",
+     "label": "Health (my best guess)"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Transfer money",
+     "label": "Money sent to a person"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Food/Beverage",
+     "label": "Food or drink"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Shopping",
+     "label": "Shopping"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Subscriptions",
+     "label": "A subscription"
+    },
+    {
+     "transaction_type": "transfer",
+     "category": "Transfer money",
+     "label": "To my own account"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Other",
+     "label": "Something else"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "18:05",
+   "description": "Baan Suan Market",
+   "amount": 185.0,
+   "direction": "out",
+   "memo": "",
+   "source_reference": "statement-2026-11.example.pdf",
+   "source": "bank_statement",
+   "question_id": "Q007",
+   "route": "ask",
+   "same_as": "Q004",
+   "confidence": 0.35,
+   "guess_type": "expense",
+   "guess_category": "Other",
+   "guess_action": "",
+   "reason": "I do not know this merchant.",
+   "question": "You paid 185.00 THB to 'Baan Suan Market'. What was it for?",
+   "candidates": [
+    {
+     "transaction_type": "expense",
+     "category": "Transfer money",
+     "label": "Money sent to a person"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Food/Beverage",
+     "label": "Food or drink"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Shopping",
+     "label": "Shopping"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Subscriptions",
+     "label": "A subscription"
+    },
+    {
+     "transaction_type": "transfer",
+     "category": "Transfer money",
+     "label": "To my own account"
+    },
+    {
+     "transaction_type": "expense",
+     "category": "Other",
+     "label": "Something else"
+    }
+   ]
+  }
+ ],
+ "decisions": {
+  "TXN000165": {
+   "confidence": 0.98,
+   "decided_by": "system1",
+   "reason": "Same as 2 earlier entries for 'salary example co ltd net after social security'."
+  },
+  "TXN000166": {
+   "confidence": 0.97,
+   "decided_by": "system1",
+   "reason": "Same as 2 earlier entries for 'transfer to own savings account'."
+  },
+  "TXN000167": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 25 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000168": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 53 earlier entries for 'grab taxi'."
+  },
+  "TXN000169": {
+   "confidence": 0.91,
+   "decided_by": "system1",
+   "reason": "The name matches a known Food/Beverage merchant."
+  },
+  "TXN000170": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 26 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000171": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 54 earlier entries for 'grab taxi'."
+  },
+  "TXN000172": {
+   "confidence": 0.94,
+   "decided_by": "system1",
+   "reason": "Same as 2 earlier entries for 'monthly room rent example residence'."
+  },
+  "TXN000173": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 12 earlier entries for 'noodle shop'."
+  },
+  "TXN000174": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 27 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000175": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 55 earlier entries for 'grab taxi'."
+  },
+  "TXN000176": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 12 earlier entries for 'food court lunch'."
+  },
+  "TXN000177": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 28 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000178": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 56 earlier entries for 'grab taxi'."
+  },
+  "TXN000179": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 13 earlier entries for 'food court lunch'."
+  },
+  "TXN000180": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 29 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000181": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 57 earlier entries for 'grab taxi'."
+  },
+  "TXN000182": {
+   "confidence": 0.93,
+   "decided_by": "system1",
+   "reason": "Same as 1 earlier entry for 'rice and curry shop'."
+  },
+  "TXN000183": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 30 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000184": {
+   "confidence": 0.92,
+   "decided_by": "system1",
+   "reason": "The name matches a known Refund merchant."
+  },
+  "TXN000185": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 31 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000186": {
+   "confidence": 0.94,
+   "decided_by": "system1",
+   "reason": "Same as 2 earlier entries for 'kasset fund subscription'."
+  },
+  "TXN000187": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 32 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000188": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 58 earlier entries for 'grab taxi'."
+  },
+  "TXN000189": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 13 earlier entries for 'noodle shop'."
+  },
+  "TXN000190": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 33 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000191": {
+   "confidence": 0.97,
+   "decided_by": "system1",
+   "reason": "Same as 2 earlier entries for 'netflix'."
+  },
+  "TXN000192": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 59 earlier entries for 'grab taxi'."
+  },
+  "TXN000193": {
+   "confidence": 0.93,
+   "decided_by": "system1",
+   "reason": "Same as 2 earlier entries for 'rice and curry shop'."
+  },
+  "TXN000194": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 34 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000195": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 60 earlier entries for 'grab taxi'."
+  },
+  "TXN000196": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 14 earlier entries for 'noodle shop'."
+  },
+  "TXN000197": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 35 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000198": {
+   "confidence": 0.95,
+   "decided_by": "system1",
+   "reason": "Same as 2 earlier entries for 'ais mobile bill'."
+  },
+  "TXN000199": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 61 earlier entries for 'grab taxi'."
+  },
+  "TXN000200": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 15 earlier entries for 'noodle shop'."
+  },
+  "TXN000201": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 36 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000202": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 62 earlier entries for 'grab taxi'."
+  },
+  "TXN000203": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 16 earlier entries for 'noodle shop'."
+  },
+  "TXN000204": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 37 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000205": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 38 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000206": {
+   "confidence": 0.95,
+   "decided_by": "system1",
+   "reason": "The name matches a known Subscriptions merchant. First time I see this charge, so it may be a new subscription or a trial that started to bill."
+  },
+  "TXN000207": {
+   "confidence": 0.91,
+   "decided_by": "system1",
+   "reason": "The name matches a known Groceries merchant."
+  },
+  "TXN000208": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 39 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000209": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 63 earlier entries for 'grab taxi'."
+  },
+  "TXN000210": {
+   "confidence": 0.96,
+   "decided_by": "system1",
+   "reason": "Same as 3 earlier entries for 'rice and curry shop'."
+  },
+  "TXN000211": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 40 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000212": {
+   "confidence": 0.97,
+   "decided_by": "system1",
+   "reason": "Same as 2 earlier entries for 'spotify premium'."
+  },
+  "TXN000213": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 64 earlier entries for 'grab taxi'."
+  },
+  "TXN000214": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 14 earlier entries for 'food court lunch'."
+  },
+  "TXN000215": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 41 earlier entries for 'truemoney top up eleven food'."
+  },
+  "TXN000216": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 65 earlier entries for 'grab taxi'."
+  },
+  "TXN000217": {
+   "confidence": 0.99,
+   "decided_by": "system1",
+   "reason": "Same as 17 earlier entries for 'noodle shop'."
+  }
+ },
+ "monthly": [
+  {
+   "month": "2026-08",
+   "income": 21125.0,
+   "refunds": 0.0,
+   "expense": 8197.0,
+   "invested": 1000.0,
+   "net": 12928.0,
+   "by_category": {
+    "Housing": 6500.0,
+    "Food/Beverage": 635.0,
+    "Shopping": 378.0,
+    "Transportation": 364.0,
+    "Groceries": 320.0
+   }
+  },
+  {
+   "month": "2026-09",
+   "income": 21125.0,
+   "refunds": 0.0,
+   "expense": 14101.0,
+   "invested": 0.0,
+   "net": 7024.0,
+   "by_category": {
+    "Housing": 6500.0,
+    "Food/Beverage": 3480.0,
+    "Transportation": 1305.0,
+    "Debt Repayment": 1250.0,
+    "Utilities": 599.0,
+    "Subscriptions": 568.0,
+    "Groceries": 210.0,
+    "Shopping": 189.0
+   }
+  },
+  {
+   "month": "2026-10",
+   "income": 21125.0,
+   "refunds": 259.0,
+   "expense": 17277.0,
+   "invested": 1000.0,
+   "net": 4107.0,
+   "by_category": {
+    "Housing": 6500.0,
+    "Food/Beverage": 3510.0,
+    "Shopping": 1929.0,
+    "Transportation": 1386.0,
+    "Debt Repayment": 1250.0,
+    "Other": 800.0,
+    "Utilities": 599.0,
+    "Subscriptions": 568.0,
+    "Groceries": 385.0,
+    "Transfer money": 350.0
+   }
+  },
+  {
+   "month": "2026-11",
+   "income": 0.0,
+   "refunds": 0.0,
+   "expense": 3887.0,
+   "invested": 1000.0,
+   "net": -3887.0,
+   "by_category": {
+    "Food/Beverage": 1650.0,
+    "Subscriptions": 777.0,
+    "Utilities": 599.0,
+    "Transportation": 449.0,
+    "Groceries": 412.0
+   }
+  }
+ ],
+ "recurring": [
+  {
+   "key": "credit card payment",
+   "name": "Credit card payment",
+   "kind": "debt",
+   "category": "Debt Repayment",
+   "amount": 1250.0,
+   "last_paid": "2026-10-15",
+   "times_seen": 2,
+   "transaction_ids": [
+    "TXN000059",
+    "TXN000142"
+   ],
+   "cadence": "monthly",
+   "status": "active",
+   "next_due": "2026-11-15",
+   "confidence": 0.87,
+   "monthly_cost": 1250.0,
+   "note": ""
+  },
+  {
+   "key": "salary example co ltd net after social security",
+   "name": "Salary - Example Co. Ltd. (net after social security)",
+   "kind": "income",
+   "category": "Salary",
+   "amount": 21125.0,
+   "last_paid": "2026-10-25",
+   "times_seen": 3,
+   "transaction_ids": [
+    "TXN000001",
+    "TXN000082",
+    "TXN000165"
+   ],
+   "cadence": "monthly",
+   "status": "active",
+   "next_due": "2026-11-25",
+   "confidence": 0.99,
+   "monthly_cost": 21125.0,
+   "note": ""
+  },
+  {
+   "key": "monthly room rent example residence",
+   "name": "Monthly room rent - Example Residence",
+   "kind": "bill",
+   "category": "Housing",
+   "amount": 6500.0,
+   "last_paid": "2026-10-27",
+   "times_seen": 3,
+   "transaction_ids": [
+    "TXN000010",
+    "TXN000089",
+    "TXN000172"
+   ],
+   "cadence": "monthly",
+   "status": "active",
+   "next_due": "2026-11-27",
+   "confidence": 0.99,
+   "monthly_cost": 6500.0,
+   "note": ""
+  },
+  {
+   "key": "kasset fund subscription",
+   "name": "KAsset fund subscription",
+   "kind": "saving",
+   "category": "Fund",
+   "amount": 1000.0,
+   "last_paid": "2026-11-01",
+   "times_seen": 3,
+   "transaction_ids": [
+    "TXN000022",
+    "TXN000102",
+    "TXN000186"
+   ],
+   "cadence": "monthly",
+   "status": "active",
+   "next_due": "2026-12-01",
+   "confidence": 0.99,
+   "monthly_cost": 1000.0,
+   "note": ""
+  },
+  {
+   "key": "netflix",
+   "name": "Netflix",
+   "kind": "subscription",
+   "category": "Subscriptions",
+   "amount": 449.0,
+   "last_paid": "2026-11-03",
+   "times_seen": 3,
+   "transaction_ids": [
+    "TXN000029",
+    "TXN000106",
+    "TXN000191"
+   ],
+   "cadence": "monthly",
+   "status": "active",
+   "next_due": "2026-12-03",
+   "confidence": 0.99,
+   "monthly_cost": 449.0,
+   "note": "The price went up from 419 to 449 THB.",
+   "price_change": 30.0
+  },
+  {
+   "key": "ais mobile bill",
+   "name": "AIS mobile bill",
+   "kind": "bill",
+   "category": "Utilities",
+   "amount": 599.0,
+   "last_paid": "2026-11-05",
+   "times_seen": 3,
+   "transaction_ids": [
+    "TXN000035",
+    "TXN000112",
+    "TXN000198"
+   ],
+   "cadence": "monthly",
+   "status": "active",
+   "next_due": "2026-12-05",
+   "confidence": 0.99,
+   "monthly_cost": 599.0,
+   "note": ""
+  },
+  {
+   "key": "youtube premium",
+   "name": "YouTube Premium",
+   "kind": "subscription",
+   "category": "Subscriptions",
+   "amount": 179.0,
+   "last_paid": "2026-11-08",
+   "times_seen": 1,
+   "transaction_ids": [
+    "TXN000206"
+   ],
+   "cadence": "monthly",
+   "status": "new",
+   "next_due": "2026-12-08",
+   "confidence": 0.6,
+   "monthly_cost": 179.0,
+   "note": "Seen once. It may be a new subscription or a free trial that started to charge."
+  },
+  {
+   "key": "spotify premium",
+   "name": "Spotify Premium",
+   "kind": "subscription",
+   "category": "Subscriptions",
+   "amount": 149.0,
+   "last_paid": "2026-11-10",
+   "times_seen": 3,
+   "transaction_ids": [
+    "TXN000047",
+    "TXN000126",
+    "TXN000212"
+   ],
+   "cadence": "monthly",
+   "status": "active",
+   "next_due": "2026-12-10",
+   "confidence": 0.99,
+   "monthly_cost": 149.0,
+   "note": ""
+  }
+ ],
+ "alerts": [
+  {
+   "key": "credit card payment",
+   "name": "Credit card payment",
+   "kind": "debt",
+   "amount": 1250.0,
+   "due": "2026-11-15",
+   "days_left": 3,
+   "level": "soon",
+   "remind_on": "2026-11-10",
+   "message": "Credit card payment is due in 3 days (2026-11-15): 1,250 THB."
+  },
+  {
+   "key": "youtube premium",
+   "name": "YouTube Premium",
+   "kind": "subscription",
+   "amount": 179.0,
+   "due": "2026-12-08",
+   "days_left": 26,
+   "level": "check",
+   "remind_on": "2026-12-05",
+   "message": "New charge: YouTube Premium took 179 THB on 2026-11-08. Do you want to keep it? It will likely charge again on 2026-12-08."
+  },
+  {
+   "key": "monthly room rent example residence",
+   "name": "Monthly room rent - Example Residence",
+   "kind": "bill",
+   "amount": 6500.0,
+   "due": "2026-11-27",
+   "days_left": 15,
+   "level": "upcoming",
+   "remind_on": "2026-11-22",
+   "message": "Monthly room rent - Example Residence is due in 15 days (2026-11-27): 6,500 THB."
+  },
+  {
+   "key": "kasset fund subscription",
+   "name": "KAsset fund subscription",
+   "kind": "saving",
+   "amount": 1000.0,
+   "due": "2026-12-01",
+   "days_left": 19,
+   "level": "upcoming",
+   "remind_on": "2026-11-29",
+   "message": "KAsset fund subscription is planned in 19 days (2026-12-01): 1,000 THB."
+  },
+  {
+   "key": "netflix",
+   "name": "Netflix",
+   "kind": "subscription",
+   "amount": 449.0,
+   "due": "2026-12-03",
+   "days_left": 21,
+   "level": "upcoming",
+   "remind_on": "2026-11-30",
+   "message": "Netflix renews in 21 days (2026-12-03): 449 THB. The price went up from 419 to 449 THB."
+  },
+  {
+   "key": "ais mobile bill",
+   "name": "AIS mobile bill",
+   "kind": "bill",
+   "amount": 599.0,
+   "due": "2026-12-05",
+   "days_left": 23,
+   "level": "upcoming",
+   "remind_on": "2026-11-30",
+   "message": "AIS mobile bill is due in 23 days (2026-12-05): 599 THB."
+  },
+  {
+   "key": "spotify premium",
+   "name": "Spotify Premium",
+   "kind": "subscription",
+   "amount": 149.0,
+   "due": "2026-12-10",
+   "days_left": 28,
+   "level": "upcoming",
+   "remind_on": "2026-12-07",
+   "message": "Spotify Premium renews in 28 days (2026-12-10): 149 THB."
+  }
+ ],
+ "fixed_costs": {
+  "per_month": 9126.0,
+  "subscriptions_per_month": 777.0,
+  "debt_per_month": 1250.0
+ },
+ "rules_learned": 0
+}/*END-DEMO-STATE*/</script>
+  <script type="text/plain" id="demo-ledger">/*DEMO-LEDGER*/transaction_id,date,transaction_type,description,amount_thb,category,action,year_month,source,source_reference,data_quality_flag
+TXN000001,2026-08-25,income,Salary - Example Co. Ltd. (net after social security) (Bank 01:10),21125.00,Salary,,2026-08,bank_statement,example_statement.pdf,
+TXN000002,2026-08-25,expense,Grab taxi (Bank 08:09),59.00,Transportation,,2026-08,bank_statement,example_statement.pdf,
+TXN000003,2026-08-25,transfer,Transfer to own savings account X7310 (Bank 08:30),3000.00,Transfer money,,2026-08,bank_statement,example_statement.pdf,
+TXN000004,2026-08-25,expense,Watsons (Bank 18:32),189.00,Shopping,,2026-08,bank_statement,example_statement.pdf,
+TXN000005,2026-08-25,expense,TrueMoney top-up - 7-Eleven food (Bank 19:34),80.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,
+TXN000006,2026-08-26,expense,Grab taxi (Bank 08:15),42.00,Transportation,,2026-08,bank_statement,example_statement.pdf,
+TXN000007,2026-08-26,expense,Food court lunch (Bank 12:03),55.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,
+TXN000008,2026-08-26,expense,Uniqlo (Bank 18:37),189.00,Shopping,,2026-08,bank_statement,example_statement.pdf,
+TXN000009,2026-08-27,expense,Grab taxi (Bank 08:08),55.00,Transportation,,2026-08,bank_statement,example_statement.pdf,
+TXN000010,2026-08-27,expense,Monthly room rent - Example Residence (Bank 09:15),6500.00,Housing,,2026-08,bank_statement,example_statement.pdf,
+TXN000011,2026-08-27,expense,Food court lunch (Bank 12:34),70.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,
+TXN000012,2026-08-27,expense,Bubble tea shop (Bank 15:36),65.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,
+TXN000013,2026-08-27,expense,TrueMoney top-up - 7-Eleven food (Bank 19:43),100.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,
+TXN000014,2026-08-28,expense,Grab taxi (Bank 08:03),63.00,Transportation,,2026-08,bank_statement,example_statement.pdf,
+TXN000015,2026-08-28,expense,Som tam shop (Bank 12:43),60.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,
+TXN000016,2026-08-29,expense,Grab taxi (Bank 08:49),48.00,Transportation,,2026-08,bank_statement,example_statement.pdf,
+TXN000017,2026-08-29,expense,Som tam shop (Bank 12:19),60.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,
+TXN000018,2026-08-30,expense,Grab taxi (Bank 08:48),55.00,Transportation,,2026-08,bank_statement,example_statement.pdf,
+TXN000019,2026-08-30,expense,Som tam shop (Bank 12:31),50.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,
+TXN000020,2026-08-30,expense,Bubble tea shop (Bank 15:35),95.00,Food/Beverage,,2026-08,bank_statement,example_statement.pdf,
+TXN000021,2026-08-31,expense,Grab taxi (Bank 08:29),42.00,Transportation,,2026-08,bank_statement,example_statement.pdf,
+TXN000022,2026-08-31,investment,KAsset fund subscription (Bank 10:00),1000.00,Fund,Buy,2026-08,bank_statement,example_statement.pdf,
+TXN000023,2026-08-31,expense,Tops Market (Bank 17:44),320.00,Groceries,,2026-08,bank_statement,example_statement.pdf,
+TXN000024,2026-09-01,expense,Grab taxi (Bank 08:43),59.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000025,2026-09-01,expense,Noodle shop (Bank 12:24),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000026,2026-09-02,expense,Grab taxi (Bank 08:18),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000027,2026-09-02,expense,Bubble tea shop (Bank 15:25),95.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000028,2026-09-02,expense,TrueMoney top-up - 7-Eleven food (Bank 19:31),80.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000029,2026-09-03,expense,Netflix (Bank 00:05),419.00,Subscriptions,,2026-09,bank_statement,example_statement.pdf,
+TXN000030,2026-09-03,expense,Noodle shop (Bank 12:26),65.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000031,2026-09-03,expense,Cafe Amazon (Bank 15:11),65.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000032,2026-09-03,expense,Tops Market (Bank 17:37),210.00,Groceries,,2026-09,bank_statement,example_statement.pdf,
+TXN000033,2026-09-04,expense,Grab taxi (Bank 08:00),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000034,2026-09-04,expense,Noodle shop (Bank 12:23),55.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000035,2026-09-05,expense,AIS mobile bill (Bank 07:40),599.00,Utilities,,2026-09,bank_statement,example_statement.pdf,
+TXN000036,2026-09-05,expense,Grab taxi (Bank 08:49),63.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000037,2026-09-05,expense,Som tam shop (Bank 12:25),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000038,2026-09-06,expense,Grab taxi (Bank 08:07),55.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000039,2026-09-06,expense,TrueMoney top-up - 7-Eleven food (Bank 19:36),100.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000040,2026-09-07,expense,Grab taxi (Bank 08:13),63.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000041,2026-09-07,expense,Noodle shop (Bank 12:40),60.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000042,2026-09-08,expense,Food court lunch (Bank 12:19),55.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000043,2026-09-08,expense,TrueMoney top-up - 7-Eleven food (Bank 19:21),120.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000044,2026-09-09,expense,Grab taxi (Bank 08:33),55.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000045,2026-09-09,expense,Food court lunch (Bank 12:34),70.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000046,2026-09-09,expense,TrueMoney top-up - 7-Eleven food (Bank 19:41),80.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000047,2026-09-10,expense,Spotify Premium (Bank 00:12),149.00,Subscriptions,,2026-09,bank_statement,example_statement.pdf,
+TXN000048,2026-09-10,expense,Grab taxi (Bank 08:49),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000049,2026-09-10,expense,Noodle shop (Bank 12:49),55.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000050,2026-09-11,expense,Grab taxi (Bank 08:25),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000051,2026-09-11,expense,Noodle shop (Bank 12:31),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000052,2026-09-12,expense,Grab taxi (Bank 08:22),59.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000053,2026-09-13,expense,Grab taxi (Bank 08:30),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000054,2026-09-13,expense,Food court lunch (Bank 12:30),65.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000055,2026-09-14,expense,Grab taxi (Bank 08:24),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000056,2026-09-14,expense,Som tam shop (Bank 12:11),60.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000057,2026-09-14,expense,TrueMoney top-up - 7-Eleven food (Bank 19:46),150.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000058,2026-09-15,expense,Grab taxi (Bank 08:08),42.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000059,2026-09-15,expense,Credit card payment (Bank 12:00),1250.00,Debt Repayment,,2026-09,bank_statement,example_statement.pdf,
+TXN000060,2026-09-15,expense,Khao man gai shop (Bank 12:29),70.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000061,2026-09-16,expense,Grab taxi (Bank 08:08),42.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000062,2026-09-16,expense,Food court lunch (Bank 12:46),70.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000063,2026-09-16,expense,Cafe Amazon (Bank 15:12),55.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000064,2026-09-17,expense,Grab taxi (Bank 08:37),55.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000065,2026-09-17,expense,Khao man gai shop (Bank 12:26),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000066,2026-09-18,expense,Khao man gai shop (Bank 12:32),70.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000067,2026-09-18,expense,TrueMoney top-up - 7-Eleven food (Bank 19:32),80.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000068,2026-09-19,expense,Grab taxi (Bank 08:09),48.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000069,2026-09-19,expense,Food court lunch (Bank 12:39),70.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000070,2026-09-19,expense,TrueMoney top-up - 7-Eleven food (Bank 19:43),150.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000071,2026-09-20,expense,Grab taxi (Bank 08:17),42.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000072,2026-09-21,expense,Grab taxi (Bank 08:39),63.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000073,2026-09-21,expense,TrueMoney top-up - 7-Eleven food (Bank 19:17),150.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000074,2026-09-22,expense,Grab taxi (Bank 08:33),55.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000075,2026-09-22,expense,Cafe Amazon (Bank 15:28),120.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000076,2026-09-23,expense,Grab taxi (Bank 08:15),59.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000077,2026-09-23,expense,Noodle shop (Bank 12:42),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000078,2026-09-23,expense,Bubble tea shop (Bank 15:45),95.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000079,2026-09-24,expense,Som tam shop (Bank 12:06),65.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000080,2026-09-24,expense,Bubble tea shop (Bank 15:27),120.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000081,2026-09-24,expense,TrueMoney top-up - 7-Eleven food (Bank 19:42),100.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000082,2026-09-25,income,Salary - Example Co. Ltd. (net after social security) (Bank 01:10),21125.00,Salary,,2026-09,bank_statement,example_statement.pdf,
+TXN000083,2026-09-25,transfer,Transfer to own savings account X7310 (Bank 08:30),3000.00,Transfer money,,2026-09,bank_statement,example_statement.pdf,
+TXN000084,2026-09-25,expense,Grab taxi (Bank 08:46),55.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000085,2026-09-25,expense,Som tam shop (Bank 12:35),65.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000086,2026-09-26,expense,Khao man gai shop (Bank 12:50),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000087,2026-09-26,expense,TrueMoney top-up - 7-Eleven food (Bank 19:17),80.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000088,2026-09-27,expense,Grab taxi (Bank 08:43),55.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000089,2026-09-27,expense,Monthly room rent - Example Residence (Bank 09:15),6500.00,Housing,,2026-09,bank_statement,example_statement.pdf,
+TXN000090,2026-09-27,expense,Som tam shop (Bank 12:34),60.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000091,2026-09-27,expense,Shopee order (Bank 18:01),189.00,Shopping,,2026-09,bank_statement,example_statement.pdf,
+TXN000092,2026-09-27,expense,TrueMoney top-up - 7-Eleven food (Bank 19:03),100.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000093,2026-09-28,expense,Grab taxi (Bank 08:14),42.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000094,2026-09-28,expense,Som tam shop (Bank 12:07),50.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000095,2026-09-28,expense,TrueMoney top-up - 7-Eleven food (Bank 19:35),150.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000096,2026-09-29,expense,Grab taxi (Bank 08:15),42.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000097,2026-09-29,expense,TrueMoney top-up - 7-Eleven food (Bank 19:11),100.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000098,2026-09-30,expense,Grab taxi (Bank 08:28),63.00,Transportation,,2026-09,bank_statement,example_statement.pdf,
+TXN000099,2026-09-30,expense,Bubble tea shop (Bank 15:01),65.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000100,2026-09-30,expense,TrueMoney top-up - 7-Eleven food (Bank 19:01),120.00,Food/Beverage,,2026-09,bank_statement,example_statement.pdf,
+TXN000101,2026-10-01,expense,Grab taxi (Bank 08:42),59.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000102,2026-10-01,investment,KAsset fund subscription (Bank 10:00),1000.00,Fund,Buy,2026-10,bank_statement,example_statement.pdf,
+TXN000103,2026-10-02,expense,Grab taxi (Bank 08:14),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000104,2026-10-02,expense,Khao man gai shop (Bank 12:45),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000105,2026-10-02,expense,Tops Market (Bank 17:40),385.00,Groceries,,2026-10,bank_statement,example_statement.pdf,
+TXN000106,2026-10-03,expense,Netflix (Bank 00:05),419.00,Subscriptions,,2026-10,bank_statement,example_statement.pdf,
+TXN000107,2026-10-03,expense,Food court lunch (Bank 12:03),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000108,2026-10-04,expense,Grab taxi (Bank 08:29),48.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000109,2026-10-04,expense,Food court lunch (Bank 12:28),60.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000110,2026-10-04,expense,Cafe Amazon (Bank 15:19),95.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000111,2026-10-04,expense,TrueMoney top-up - 7-Eleven food (Bank 19:21),120.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000112,2026-10-05,expense,AIS mobile bill (Bank 07:40),599.00,Utilities,,2026-10,bank_statement,example_statement.pdf,
+TXN000113,2026-10-05,expense,Grab taxi (Bank 08:17),63.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000114,2026-10-05,expense,Cafe Amazon (Bank 15:05),120.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000115,2026-10-05,expense,TrueMoney top-up - 7-Eleven food (Bank 19:49),80.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000116,2026-10-06,expense,Grab taxi (Bank 08:40),48.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000117,2026-10-06,expense,Khao man gai shop (Bank 12:33),70.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000118,2026-10-06,expense,Bubble tea shop (Bank 15:46),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000119,2026-10-06,expense,Shopee order (Bank 18:45),590.00,Shopping,,2026-10,bank_statement,example_statement.pdf,
+TXN000120,2026-10-06,expense,TrueMoney top-up - 7-Eleven food (Bank 19:20),150.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000121,2026-10-07,expense,Grab taxi (Bank 08:08),63.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000122,2026-10-07,expense,Shopee order (Bank 18:43),299.00,Shopping,,2026-10,bank_statement,example_statement.pdf,
+TXN000123,2026-10-08,expense,Grab taxi (Bank 08:40),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000124,2026-10-08,expense,TrueMoney top-up - 7-Eleven food (Bank 19:28),80.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000125,2026-10-09,expense,Grab taxi (Bank 08:00),59.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000126,2026-10-10,expense,Spotify Premium (Bank 00:12),149.00,Subscriptions,,2026-10,bank_statement,example_statement.pdf,
+TXN000127,2026-10-10,expense,Grab taxi (Bank 08:47),59.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000128,2026-10-10,expense,Noodle shop (Bank 12:04),55.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000129,2026-10-10,expense,Bubble tea shop (Bank 15:47),120.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000130,2026-10-11,expense,Grab taxi (Bank 08:43),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000131,2026-10-11,expense,Uniqlo (Bank 18:09),450.00,Shopping,,2026-10,bank_statement,example_statement.pdf,
+TXN000132,2026-10-12,expense,Grab taxi (Bank 08:39),63.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000133,2026-10-12,expense,Food court lunch (Bank 12:30),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000134,2026-10-12,expense,TrueMoney top-up - 7-Eleven food (Bank 19:43),80.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000135,2026-10-12,expense,PromptPay to individual (Nok) (Bank 20:41),350.00,Transfer money,,2026-10,bank_statement,example_statement.pdf,needs_review: payment to individual - purpose unknown
+TXN000136,2026-10-13,expense,Grab taxi (Bank 08:29),59.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000137,2026-10-13,expense,Khao man gai shop (Bank 12:07),60.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000138,2026-10-13,expense,Watsons (Bank 18:29),590.00,Shopping,,2026-10,bank_statement,example_statement.pdf,
+TXN000139,2026-10-14,expense,Grab taxi (Bank 08:13),42.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000140,2026-10-14,expense,Noodle shop (Bank 12:09),60.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000141,2026-10-14,expense,TrueMoney top-up - 7-Eleven food (Bank 19:40),120.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000142,2026-10-15,expense,Credit card payment (Bank 12:00),1250.00,Debt Repayment,,2026-10,bank_statement,example_statement.pdf,
+TXN000143,2026-10-15,expense,Khao man gai shop (Bank 12:01),50.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000144,2026-10-16,expense,Grab taxi (Bank 08:24),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000145,2026-10-16,expense,Food court lunch (Bank 12:21),60.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000146,2026-10-17,expense,Grab taxi (Bank 08:47),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000147,2026-10-17,expense,Som tam shop (Bank 12:04),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000148,2026-10-18,expense,Grab taxi (Bank 08:03),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000149,2026-10-18,expense,Noodle shop (Bank 12:42),55.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000150,2026-10-18,expense,Example Studio Co. Ltd. (Bank 14:05),800.00,Other,,2026-10,bank_statement,example_statement.pdf,needs_review: merchant type unclear
+TXN000151,2026-10-18,expense,TrueMoney top-up - 7-Eleven food (Bank 19:17),150.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000152,2026-10-20,expense,Grab taxi (Bank 08:46),42.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000153,2026-10-20,expense,Som tam shop (Bank 12:46),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000154,2026-10-20,expense,Starbucks (Bank 15:18),55.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000155,2026-10-21,expense,Grab taxi (Bank 08:26),55.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000156,2026-10-21,expense,Noodle shop (Bank 12:16),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000157,2026-10-22,expense,Grab taxi (Bank 08:10),42.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000158,2026-10-22,expense,Khao man gai shop (Bank 12:31),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000159,2026-10-23,expense,Grab taxi (Bank 08:05),48.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000160,2026-10-23,expense,Noodle shop (Bank 12:05),55.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000161,2026-10-23,expense,TrueMoney top-up - 7-Eleven food (Bank 19:36),100.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000162,2026-10-24,expense,Grab taxi (Bank 08:33),48.00,Transportation,,2026-10,bank_statement,example_statement.pdf,
+TXN000163,2026-10-24,expense,Food court lunch (Bank 12:21),65.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000164,2026-10-24,expense,TrueMoney top-up - 7-Eleven food (Bank 19:23),100.00,Food/Beverage,,2026-10,bank_statement,example_statement.pdf,
+TXN000165,2026-10-25,income,Salary - Example Co. Ltd. (net after social security) (Bank 01:10),21125.00,Salary,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000166,2026-10-25,transfer,Transfer to own savings account X7310 (Bank 08:30),3000.00,Transfer money,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000167,2026-10-25,expense,TrueMoney top-up - 7-Eleven food (Bank 19:10),150.00,Food/Beverage,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000168,2026-10-26,expense,Grab taxi (Bank 08:25),48.00,Transportation,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000169,2026-10-26,expense,Rice and curry shop (Bank 12:09),55.00,Food/Beverage,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000170,2026-10-26,expense,TrueMoney top-up - 7-Eleven food (Bank 19:04),100.00,Food/Beverage,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000171,2026-10-27,expense,Grab taxi (Bank 08:06),48.00,Transportation,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000172,2026-10-27,expense,Monthly room rent - Example Residence (Bank 09:15),6500.00,Housing,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000173,2026-10-27,expense,Noodle shop (Bank 12:32),55.00,Food/Beverage,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000174,2026-10-27,expense,TrueMoney top-up - 7-Eleven food (Bank 19:36),150.00,Food/Beverage,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000175,2026-10-28,expense,Grab taxi (Bank 08:06),59.00,Transportation,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000176,2026-10-28,expense,Food court lunch (Bank 12:12),55.00,Food/Beverage,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000177,2026-10-28,expense,TrueMoney top-up - 7-Eleven food (Bank 19:26),80.00,Food/Beverage,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000178,2026-10-29,expense,Grab taxi (Bank 08:12),48.00,Transportation,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000179,2026-10-29,expense,Food court lunch (Bank 12:40),65.00,Food/Beverage,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000180,2026-10-29,expense,TrueMoney top-up - 7-Eleven food (Bank 19:35),80.00,Food/Beverage,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000181,2026-10-30,expense,Grab taxi (Bank 08:23),55.00,Transportation,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000182,2026-10-30,expense,Rice and curry shop (Bank 12:40),60.00,Food/Beverage,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000183,2026-10-30,expense,TrueMoney top-up - 7-Eleven food (Bank 19:37),100.00,Food/Beverage,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000184,2026-10-31,income,Shopee refund (Bank 13:02),259.00,Refund,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000185,2026-10-31,expense,TrueMoney top-up - 7-Eleven food (Bank 19:36),80.00,Food/Beverage,,2026-10,bank_statement,statement-2026-11.example.pdf,
+TXN000186,2026-11-01,investment,KAsset fund subscription (Bank 10:00),1000.00,Fund,Buy,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000187,2026-11-01,expense,TrueMoney top-up - 7-Eleven food (Bank 19:40),100.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000188,2026-11-02,expense,Grab taxi (Bank 08:20),59.00,Transportation,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000189,2026-11-02,expense,Noodle shop (Bank 12:39),65.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000190,2026-11-02,expense,TrueMoney top-up - 7-Eleven food (Bank 19:30),120.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000191,2026-11-03,expense,Netflix (Bank 00:05),449.00,Subscriptions,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000192,2026-11-03,expense,Grab taxi (Bank 08:14),48.00,Transportation,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000193,2026-11-03,expense,Rice and curry shop (Bank 12:16),60.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000194,2026-11-03,expense,TrueMoney top-up - 7-Eleven food (Bank 19:20),150.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000195,2026-11-04,expense,Grab taxi (Bank 08:33),55.00,Transportation,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000196,2026-11-04,expense,Noodle shop (Bank 12:33),55.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000197,2026-11-04,expense,TrueMoney top-up - 7-Eleven food (Bank 19:27),100.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000198,2026-11-05,expense,AIS mobile bill (Bank 07:40),599.00,Utilities,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000199,2026-11-05,expense,Grab taxi (Bank 08:29),55.00,Transportation,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000200,2026-11-05,expense,Noodle shop (Bank 12:14),70.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000201,2026-11-05,expense,TrueMoney top-up - 7-Eleven food (Bank 19:43),80.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000202,2026-11-06,expense,Grab taxi (Bank 08:29),59.00,Transportation,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000203,2026-11-06,expense,Noodle shop (Bank 12:25),65.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000204,2026-11-06,expense,TrueMoney top-up - 7-Eleven food (Bank 19:38),150.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000205,2026-11-07,expense,TrueMoney top-up - 7-Eleven food (Bank 19:06),120.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000206,2026-11-08,expense,YouTube Premium (Bank 00:31),179.00,Subscriptions,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000207,2026-11-08,expense,Lotus supermarket (Bank 15:20),412.00,Groceries,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000208,2026-11-08,expense,TrueMoney top-up - 7-Eleven food (Bank 19:43),80.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000209,2026-11-09,expense,Grab taxi (Bank 08:06),59.00,Transportation,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000210,2026-11-09,expense,Rice and curry shop (Bank 12:24),70.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000211,2026-11-09,expense,TrueMoney top-up - 7-Eleven food (Bank 19:25),120.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000212,2026-11-10,expense,Spotify Premium (Bank 00:12),149.00,Subscriptions,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000213,2026-11-10,expense,Grab taxi (Bank 08:05),55.00,Transportation,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000214,2026-11-10,expense,Food court lunch (Bank 12:27),55.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000215,2026-11-10,expense,TrueMoney top-up - 7-Eleven food (Bank 19:14),120.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000216,2026-11-11,expense,Grab taxi (Bank 08:09),59.00,Transportation,,2026-11,bank_statement,statement-2026-11.example.pdf,
+TXN000217,2026-11-11,expense,Noodle shop (Bank 12:20),70.00,Food/Beverage,,2026-11,bank_statement,statement-2026-11.example.pdf,
+/*END-DEMO-LEDGER*/</script>
+  <script>
+  (function () {
+    "use strict";
+    var $ = function (id) { return document.getElementById(id); };
+    var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+    var baht = function (n, dp) { return "฿" + Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: dp || 0, maximumFractionDigits: dp || 0 }); };
+    var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var monthName = function (ym) { return MONTHS[+ym.slice(5, 7) - 1] + " " + ym.slice(0, 4); };
+    var PAGES = { overview: "Dashboard", check: "To check", transactions: "Transactions", bills: "Bills & subscriptions", plan: "Plan" };
+    var KIND = { subscription: "Subscription", bill: "Bill", debt: "Debt", saving: "Saving plan", income: "Income" };
+
+    var S = { rows: [], agent: null, source: "", month: "all", tab: "all", cat: "all", q: "", limit: 60, answers: [] };
+
+    /* ---------- data ---------- */
+    function parseCSV(text) {
+      var rows = [], row = [], cur = "", q = false;
+      text = text.replace(/^﻿/, "");
+      for (var i = 0; i < text.length; i++) {
+        var c = text[i];
+        if (q) { if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+        else if (c === '"') q = true;
+        else if (c === ",") { row.push(cur); cur = ""; }
+        else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(cur); cur = ""; if (row.length > 1 || row[0]) rows.push(row); row = []; }
+        else cur += c;
+      }
+      if (cur || row.length) { row.push(cur); rows.push(row); }
+      var head = rows.shift() || [];
+      return rows.map(function (r) { var o = {}; head.forEach(function (h, i) { o[h.trim()] = (r[i] || "").trim(); }); o.amount = parseFloat(o.amount_thb) || 0; return o; });
+    }
+    function demoText(id) { return $(id).textContent.replace(/\/\*(END-)?DEMO-[A-Z]+\*\//g, ""); }
+    function emptyAgent() {
+      return { today: new Date().toISOString().slice(0, 10), thresholds: { auto_at: .9, codex_at: .6 }, routing: {}, review_queue: [], decisions: {}, recurring: [], alerts: [], fixed_costs: {} };
+    }
+    function load() {
+      var live = location.protocol.indexOf("http") === 0;
+      var get = function (u) { return fetch(u + "?t=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r; }); };
+      var p = live ? Promise.all([get("database.csv").then(function (r) { return r.text(); }), get("agent_state.json").then(function (r) { return r.json(); }).catch(function () { return null; })])
+                   : Promise.reject();
+      return p.then(function (res) { S.rows = parseCSV(res[0]); S.agent = res[1] || emptyAgent(); S.source = "live"; })
+        .catch(function () {
+          var st = null; try { st = JSON.parse(demoText("demo-state")); } catch (e) {}
+          S.rows = parseCSV(demoText("demo-ledger")); S.agent = st || emptyAgent(); S.source = "demo";
+        })
+        .then(function () {
+          S.queue = S.agent.review_queue.slice(); S.answers = [];
+          try { var saved = JSON.parse(localStorage.getItem("folder-answers") || "null"); if (saved && saved.stamp === S.agent.generated_at) saved.answers.forEach(function (a) { applyAnswer(a, true); }); } catch (e) {}
+          var months = Array.from(new Set(S.rows.map(function (r) { return r.year_month; }))).sort().reverse();
+          $("month-filter").innerHTML = '<option value="all">All months</option>' + months.map(function (m) { return '<option value="' + m + '">' + monthName(m) + "</option>"; }).join("");
+          if (months.indexOf(S.month) < 0) S.month = "all";
+          $("month-filter").value = S.month;
+          render();
+        });
+    }
+
+    /* ---------- answering a question in the page ---------- */
+    function applyAnswer(a, quiet) {
+      var group = S.queue.filter(function (q) { return q.question_id === a.question_id || q.same_as === a.question_id; });
+      if (!group.length) return;
+      group.forEach(function (q) {
+        S.rows.push({ transaction_id: "NEW-" + q.question_id, date: q.date, transaction_type: a.transaction_type,
+          description: q.description + (q.memo ? " - " + q.memo : "") + (q.time ? " (Bank " + q.time + ")" : ""), amount: q.amount, amount_thb: q.amount,
+          category: a.category, action: a.transaction_type === "investment" ? "Buy" : "", year_month: q.date.slice(0, 7), source: q.source, data_quality_flag: "" });
+        S.agent.decisions["NEW-" + q.question_id] = { confidence: 1, decided_by: "user", reason: "You answered." };
+      });
+      S.queue = S.queue.filter(function (q) { return group.indexOf(q) < 0; });
+      S.answers.push(a);
+      if (!quiet) { try { localStorage.setItem("folder-answers", JSON.stringify({ stamp: S.agent.generated_at, answers: S.answers })); } catch (e) {} }
+    }
+    function toast(msg) { var t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { t.hidden = true; }, 2600); }
+
+    /* ---------- helpers ---------- */
+    function inMonth(r) { return S.month === "all" || r.year_month === S.month; }
+    function totals(rows) {
+      var t = { income: 0, expense: 0, invested: 0, nIn: 0, nOut: 0 };
+      rows.forEach(function (r) {
+        if (r.transaction_type === "income") { if (r.category !== "Refund") { t.income += r.amount; t.nIn++; } }  /* a refund is not income */
+        else if (r.transaction_type === "expense") { t.expense += r.amount; t.nOut++; }
+        else if (r.transaction_type === "investment") t.invested += r.action === "Sell" ? -r.amount : r.amount;
+      });
+      return t;
+    }
+    function daysLeft(iso) { return Math.round((Date.parse(iso) - Date.parse(S.agent.today)) / 864e5); }
+    function when(d) { return d < 0 ? Math.abs(d) + " days ago" : d === 0 ? "today" : d === 1 ? "tomorrow" : "in " + d + " days"; }
+    function openQuestions() { return S.queue.filter(function (q) { return !q.same_as; }); }
+    function dueRow(it, showKind) {
+      var d = daysLeft(it.next_due), soon = d >= 0 && d <= 5;
+      return '<li class="due' + (soon ? " soon" : "") + '"><div class="due-date"><b>' + (+it.next_due.slice(8)) + "</b><small>" + MONTHS[+it.next_due.slice(5, 7) - 1] + "</small></div>" +
+        '<div><span class="due-name">' + esc(it.name) + "</span>" + (showKind ? '<span class="tag' + (it.status === "new" ? " red" : "") + '">' + (it.status === "new" ? "New" : KIND[it.kind]) + "</span>" : "") +
+        (it.note ? '<span class="due-note">' + esc(it.note) + "</span>" : "") + "</div>" +
+        '<div class="due-amt">' + baht(it.amount) + "<small>" + when(d) + "</small></div></li>";
+    }
+
+    /* ---------- render ---------- */
+    function render() {
+      var A = S.agent, rows = S.rows.filter(inMonth), t = totals(rows), open = openQuestions();
+      var now = new Date(), h = now.getHours();
+      $("today").textContent = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+      $("greeting").textContent = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+      var R = A.routing || {}, askN = S.queue.filter(function (q) { return q.route === "ask"; }).length, codexN = S.queue.length - askN;
+      var total = (R.saved_by_system1 || 0) + (R.solved_by_codex || 0) + (R.answered_by_user || 0) + S.rows.filter(function (r) { return /^NEW-/.test(r.transaction_id); }).length + S.queue.length;
+      $("agent-line").textContent = total
+        ? "The agent read " + total + " new entries from your last statement. It saved " + (R.saved_by_system1 || 0) + " by itself" +
+          (open.length ? " and has " + open.length + (open.length === 1 ? " question" : " questions") + " for you." : ". Nothing is waiting for you.")
+        : "Send a slip or a statement to the agent to start.";
+
+      /* tabs */
+      var nb = $("nav-check"); nb.hidden = !open.length; nb.textContent = open.length;
+      var urgent = A.alerts.filter(function (a) { return a.level !== "upcoming"; });
+      var bb = $("nav-bills"); bb.hidden = !urgent.length; bb.textContent = urgent.length;
+
+      /* overview: totals */
+      var scope = S.month === "all" ? "all months" : monthName(S.month);
+      $("s-in").textContent = baht(t.income); $("s-in-sub").textContent = t.nIn + (t.nIn === 1 ? " entry" : " entries") + " · " + scope;
+      $("s-out").textContent = baht(t.expense); $("s-out-sub").textContent = t.nOut + " entries · " + scope;
+      var net = t.income - t.expense, sn = $("s-net");
+      sn.textContent = (net >= 0 ? "+" : "−") + baht(Math.abs(net)); sn.className = "stat-value" + (net >= 0 ? " up" : "");
+      $("s-net-sub").textContent = t.income ? (net >= 0 ? "You kept " + Math.round(net / t.income * 100) + "% of your income" : "You spent more than came in") : "No income in this period yet";
+      var F = A.fixed_costs || {};
+      $("s-fixed").textContent = baht(F.per_month); $("s-fixed-sub").textContent = "Subscriptions " + baht(F.subscriptions_per_month) + " · debt " + baht(F.debt_per_month);
+
+      /* chips */
+      var chips = [];
+      if (open.length) chips.push('<button class="chip" data-go="check"><svg class="ico"><use href="#i-flag"/></svg>' + open.length + (open.length === 1 ? " entry needs" : " entries need") + " your answer</button>");
+      urgent.forEach(function (a) {
+        chips.push('<button class="chip" data-go="bills"><svg class="ico"><use href="#i-bell"/></svg>' + esc(a.level === "check" ? "New charge: " + a.name : a.name + (a.level === "late" ? " may be late" : " " + when(a.days_left))) + "</button>");
+      });
+      $("chips").innerHTML = chips.join("");
+
+      renderChart(); renderRouting(R, askN, codexN);
+
+      /* coming up */
+      var next = A.recurring.filter(function (i) { var d = daysLeft(i.next_due); return i.kind !== "income" && d >= 0 && d <= 30; });
+      $("due-short").innerHTML = next.slice(0, 5).map(function (i) { return dueRow(i, true); }).join("") || '<li class="empty">Nothing is due in the next 30 days.</li>';
+
+      /* categories */
+      var cats = {}; rows.forEach(function (r) { if (r.transaction_type === "expense") cats[r.category] = (cats[r.category] || 0) + r.amount; });
+      var list = Object.keys(cats).map(function (c) { return [c, cats[c]]; }).sort(function (a, b) { return b[1] - a[1]; });
+      renderDonut(list, t.expense, scope); renderExtras(t, open);
+
+      renderCheck(open); renderTx(); renderBills(urgent); renderPlan();
+      $("status").textContent = S.source === "demo"
+        ? "Showing example data (" + S.rows.length + " entries). Serve this folder on a local server to load your own database.csv."
+        : "Loaded " + S.rows.length + " entries from database.csv" + (A.generated_at ? " · agent last ran " + A.generated_at.replace("T", " ") : " · run the agent to see questions and alerts");
+    }
+
+    function renderRouting(R, askN, codexN) {
+      var answered = S.rows.filter(function (r) { return /^NEW-/.test(r.transaction_id); }).length;
+      var parts = [
+        ["r-auto", "Saved by System-1", "Sure enough to save without asking", R.saved_by_system1 || 0],
+        ["r-codex", "Checked by Codex", "A deeper look" + (codexN ? ", " + codexN + " still open" : ""), (R.solved_by_codex || 0) + codexN],
+        ["r-ask", "Asked you", (R.answered_by_user || 0) + answered + " answered, " + askN + " waiting", (R.answered_by_user || 0) + answered + askN]
+      ];
+      var sum = parts.reduce(function (a, p) { return a + p[3]; }, 0);
+      $("route-sub").textContent = sum ? "Out of " + sum + " new entries, the agent handled " + Math.round(parts[0][3] / sum * 100) + "% alone" : "No new entries yet";
+      $("route-bar").innerHTML = parts.map(function (p) { return p[3] ? '<span class="' + p[0] + '" style="flex:' + p[3] + '"></span>' : ""; }).join("");
+      $("route-list").innerHTML = parts.map(function (p) { return '<li><i class="' + p[0] + '"></i><span>' + p[1] + "<small>" + p[2] + "</small></span><b>" + p[3] + "</b></li>"; }).join("");
+    }
+
+    function renderChart() {
+      var by = {}; S.rows.forEach(function (r) { var m = by[r.year_month] = by[r.year_month] || { income: 0, expense: 0 }; if ((r.transaction_type === "income" && r.category !== "Refund") || r.transaction_type === "expense") m[r.transaction_type] += r.amount; });
+      var keys = Object.keys(by).sort().slice(-6), svg = $("chart");
+      if (!keys.length) { svg.innerHTML = ""; return; }
+      var W = 640, H = 250, L = 46, B = 30, T = 14, max = Math.max.apply(null, keys.map(function (k) { return Math.max(by[k].income, by[k].expense); })) || 1;
+      var step = Math.pow(10, Math.floor(Math.log10(max))); step = max / step < 2.5 ? step / 2 : step; var top = Math.ceil(max / step) * step;
+      var y = function (v) { return T + (H - T - B) * (1 - v / top); }, slot = (W - L) / keys.length, bw = Math.min(26, slot / 4), out = "";
+      for (var v = 0; v <= top + 1; v += step) out += '<line x1="' + L + '" x2="' + W + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="rgba(74,52,42,' + (v ? ".12" : ".7") + ')"/><text x="' + (L - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end" font-size="11" fill="#7b6c60">฿' + (v >= 1000 ? v / 1000 + "k" : v) + "</text>";
+      keys.forEach(function (k, i) {
+        var cx = L + slot * (i + .5), m = by[k], sel = S.month === k, dim = S.month !== "all" && !sel ? ' opacity=".35"' : "";
+        var bar = function (val, x, col) { var h = Math.max(0, y(0) - y(val)); return h < 1 ? "" : '<path d="M' + x + " " + y(0) + "v" + -(h - 4) + "q0 -4 4 -4h" + (bw - 8) + "q4 0 4 4v" + (h - 4) + 'z" fill="' + col + '"/>'; };
+        out += '<g class="bar" data-month="' + k + '"' + dim + ">" + '<rect x="' + (cx - slot / 2) + '" y="' + T + '" width="' + slot + '" height="' + (H - T - B) + '" fill="transparent"/>' +
+          bar(m.income, cx - bw - 1, "#2a6fa8") + bar(m.expense, cx + 1, "#c8553a") +
+          '<text x="' + cx + '" y="' + (H - 9) + '" text-anchor="middle" font-size="11.5" fill="#7b6c60"' + (sel ? ' font-weight="500" text-decoration="underline"' : "") + ">" + MONTHS[+k.slice(5) - 1] + "</text></g>";
+      });
+      svg.setAttribute("viewBox", "0 0 " + W + " " + H); svg.innerHTML = out;
+      var tip = $("tip");
+      svg.querySelectorAll(".bar").forEach(function (g) {
+        var k = g.dataset.month, m = by[k];
+        g.addEventListener("mousemove", function (e) {
+          var box = svg.getBoundingClientRect();
+          tip.innerHTML = "<b>" + monthName(k) + '</b><span>Money in<em>' + baht(m.income) + "</em></span><span>Money out<em>" + baht(m.expense) + "</em></span><span>Left over<em>" + (m.income - m.expense < 0 ? "−" : "+") + baht(Math.abs(m.income - m.expense)) + "</em></span>";
+          tip.hidden = false; tip.style.left = Math.min(e.clientX - box.left + 14, box.width - 170) + "px"; tip.style.top = Math.max(0, e.clientY - box.top - 20) + "px";
+        });
+        g.addEventListener("mouseleave", function () { tip.hidden = true; });
+        g.addEventListener("click", function () { S.month = S.month === k ? "all" : k; $("month-filter").value = S.month; render(); });
+      });
+    }
+
+    function renderCheck(open) {
+      var A = S.agent, th = A.thresholds || {}, ask = open.filter(function (q) { return q.route === "ask"; }), codex = open.filter(function (q) { return q.route !== "ask"; });
+      $("how-auto").textContent = Math.round((th.auto_at || .9) * 100) + "% sure or more";
+      $("how-codex").textContent = Math.round((th.codex_at || .6) * 100) + "% to " + (Math.round((th.auto_at || .9) * 100) - 1) + "%";
+      $("how-ask").textContent = "Under " + Math.round((th.codex_at || .6) * 100) + "%";
+      $("check-title").textContent = open.length ? open.length + (open.length === 1 ? " entry" : " entries") + " to check" : "Nothing to check. All clear";
+      var card = function (q) {
+        var twins = S.queue.filter(function (x) { return x.same_as === q.question_id; }), pct = Math.round(q.confidence * 100);
+        return '<article class="card" data-q="' + esc(q.question_id) + '"><div class="q-meta"><span>' + esc(q.date) + (q.time ? " " + esc(q.time) : "") + "</span><span>" + esc(q.description) + "</span>" +
+          (twins.length ? '<span class="tag red">and ' + twins.length + " more like this</span>" : "") + "</div>" +
+          '<p class="q-amount ' + q.direction + '">' + (q.direction === "in" ? "+" : "−") + baht(q.amount, 2) + "</p>" +
+          '<p class="q-text">' + esc(q.question) + '</p><p class="q-why">' + esc(q.reason) + (q.memo ? " Note on the slip: “" + esc(q.memo) + "”." : "") + "</p>" +
+          '<div class="meter"><div class="meter-track"><div class="meter-fill" style="width:' + pct + '%"></div><div class="meter-mark" style="left:' + (th.auto_at || .9) * 100 + '%" title="Needed to save without asking"></div></div><span>' + pct + "% sure</span></div>" +
+          '<div class="q-opts">' + q.candidates.map(function (c, i) { return '<button class="btn' + (/best guess/.test(c.label) ? " guess" : "") + '" type="button" data-i="' + i + '">' + esc(c.label) + "</button>"; }).join("") + "</div>" +
+          '<div class="q-foot"><label><input type="checkbox"' + (/^transfer (from|to) /i.test(q.description) ? "" : " checked") + '> Remember this for next time</label><span>' + esc(q.question_id) + "</span></div></article>";
+      };
+      var html = "";
+      if (ask.length) html += '<div class="section-title">The agent needs you <small>' + ask.length + (ask.length === 1 ? " question" : " questions") + '</small></div><div class="q-list">' + ask.map(card).join("") + "</div>";
+      if (codex.length) html += '<div class="section-title">Codex is looking at these <small>You can answer now if you already know</small></div><div class="q-list">' + codex.map(card).join("") + "</div>";
+      if (!open.length) html = '<div class="card"><p class="empty" style="padding:0">Every entry is in the ledger. New questions appear here after the agent reads your next slip or statement.</p></div>';
+      $("check-body").innerHTML = html;
+      $("answers-bar").hidden = !S.answers.length;
+      $("answers-count").textContent = S.answers.length + (S.answers.length === 1 ? " answer" : " answers") + " saved on this page";
+    }
+
+    function renderTx() {
+      var base = S.rows.filter(inMonth), dec = S.agent.decisions || {};
+      var isCheck = function (r) { return /^needs_review/.test(r.data_quality_flag || ""); };
+      var tabs = [["all", "All"], ["income", "Money in"], ["expense", "Money out"], ["investment", "Investments"], ["transfer", "Transfers"], ["check", "To check"]];
+      var match = function (r, tab) { return tab === "all" || (tab === "check" ? isCheck(r) : r.transaction_type === tab); };
+      $("tx-tabs").innerHTML = tabs.map(function (t) { return '<button type="button" data-tab="' + t[0] + '" aria-pressed="' + (S.tab === t[0]) + '">' + t[1] + '<span class="n">' + base.filter(function (r) { return match(r, t[0]); }).length + "</span></button>"; }).join("");
+      var cats = Array.from(new Set(base.map(function (r) { return r.category; }))).sort();
+      if (S.cat !== "all" && cats.indexOf(S.cat) < 0) S.cat = "all";
+      $("cat-filter").innerHTML = '<option value="all">All categories</option>' + cats.map(function (c) { return '<option' + (c === S.cat ? " selected" : "") + ">" + esc(c) + "</option>"; }).join("");
+      var q = S.q.toLowerCase();
+      var rows = base.filter(function (r) { return match(r, S.tab) && (S.cat === "all" || r.category === S.cat) && (!q || (r.description + " " + r.category).toLowerCase().indexOf(q) >= 0); })
+        .sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : a.transaction_id < b.transaction_id ? 1 : -1; });
+      var t = totals(rows);
+      $("t-in").textContent = baht(t.income); $("t-out").textContent = baht(t.expense); $("t-inv").textContent = baht(t.invested); $("t-count").textContent = rows.length;
+      $("tx-kicker").textContent = (S.month === "all" ? "All months" : monthName(S.month)) + " · " + base.length + " entries";
+      var who = { system1: "System-1", codex: "Codex", user: "You" };
+      $("tx-body").innerHTML = rows.slice(0, S.limit).map(function (r) {
+        var d = dec[r.transaction_id], sign = r.transaction_type === "income" ? "+" : r.transaction_type === "expense" ? "−" : "";
+        return '<tr class="' + (isCheck(r) ? "needs-review" : "") + '"><td class="date">' + esc(r.date) + "</td><td>" + esc(r.description) +
+          '<button class="tag" type="button" data-cat="' + esc(r.category) + '">' + esc(r.category) + "</button>" + (isCheck(r) ? '<span class="desc-note">' + esc(r.data_quality_flag.replace(/^needs_review:\s*/, "To check: ")) + "</span>" : "") +
+          '</td><td><span class="type-pill type-' + esc(r.transaction_type) + '">' + esc(r.transaction_type) + (r.action ? " · " + esc(r.action) : "") + "</span></td>" +
+          '<td class="sure"' + (d ? ' title="' + esc(d.reason) + '"' : "") + ">" + (d ? "<b>" + Math.round(d.confidence * 100) + "%</b>" + (who[d.decided_by] || d.decided_by) : "—") + "</td>" +
+          '<td class="money">' + sign + baht(r.amount, 2) + "</td></tr>";
+      }).join("") || '<tr><td colspan="5" class="empty">No entries match.</td></tr>';
+      $("tx-more").hidden = rows.length <= S.limit; $("tx-more-text").textContent = "Showing " + Math.min(S.limit, rows.length) + " of " + rows.length;
+    }
+
+    function renderBills(urgent) {
+      var A = S.agent, F = A.fixed_costs || {}, items = A.recurring.filter(function (i) { return i.kind !== "income"; });
+      $("b-fixed").textContent = baht(F.per_month); $("b-subs").textContent = baht(F.subscriptions_per_month); $("b-year").textContent = baht((F.subscriptions_per_month || 0) * 12);
+      var next = items.filter(function (i) { return daysLeft(i.next_due) >= 0; })[0];
+      $("b-next").textContent = next ? when(daysLeft(next.next_due)) : "—"; $("b-next-sub").textContent = next ? "Next: " + next.name : "Next payment";
+      var label = { soon: "Due soon", late: "Not seen yet", check: "Please check" };
+      $("alerts-sub").textContent = urgent.length ? urgent.length + " need your attention" : "Nothing needs your attention right now";
+      $("notes").innerHTML = urgent.map(function (a) { return '<div class="note ' + a.level + '"><span class="note-kind">' + label[a.level] + "</span><p>" + esc(a.message) + "</p></div>"; }).join("");
+      $("notes").hidden = !urgent.length;
+      $("due-full").innerHTML = items.map(function (i) { return dueRow(i, true); }).join("") || '<li class="empty">No repeating charges found yet. The agent needs about two months of entries.</li>';
+      var subs = items.filter(function (i) { return i.kind === "subscription"; });
+      $("subs-sub").textContent = subs.length + " found · " + baht(F.subscriptions_per_month) + " each month";
+      $("subs-list").innerHTML = subs.map(function (i) {
+        return '<li class="due" style="grid-template-columns:minmax(0,1fr) auto"><div><span class="due-name">' + esc(i.name) + "</span>" + (i.status === "new" ? '<span class="tag red">New</span>' : "") +
+          '<span class="due-note">' + (i.status === "new" ? "Seen once" : "Paid " + i.times_seen + " times") + " · " + i.cadence + " · " + Math.round(i.confidence * 100) + "% sure it repeats" + (i.note && i.status !== "new" ? " · " + esc(i.note) : "") + "</span></div>" +
+          '<div class="due-amt">' + baht(i.amount) + "<small>" + baht(i.amount * (i.cadence === "yearly" ? 1 : i.cadence === "weekly" ? 52 : 12)) + " a year</small></div></li>";
+      }).join("") || '<li class="empty">No subscriptions found yet.</li>';
+    }
+
+    function renderPlan() {
+      var A = S.agent, year = A.today.slice(0, 4), yr = S.rows.filter(function (r) { return r.date.slice(0, 4) === year; }), t = totals(yr);
+      var salary = yr.filter(function (r) { return r.transaction_type === "income" && r.category === "Salary"; }).reduce(function (a, r) { return a + r.amount; }, 0);
+      var other = yr.filter(function (r) { return r.transaction_type === "income" && r.category !== "Salary" && r.category !== "Refund"; }).reduce(function (a, r) { return a + r.amount; }, 0);
+      var dl = function (pairs) { return pairs.map(function (p) { return "<dt>" + p[0] + "</dt><dd>" + p[1] + "</dd>"; }).join(""); };
+      $("slot-tax").innerHTML = dl([["Salary received in " + year, baht(salary)], ["Other income in " + year, baht(other)], ["Open questions about income", openQuestions().filter(function (q) { return q.direction === "in"; }).length]]);
+      $("slot-inv").innerHTML = dl([["Invested in " + year, baht(t.invested)], ["Saving plans found", A.recurring.filter(function (i) { return i.kind === "saving"; }).length]]);
+      var months = Array.from(new Set(yr.map(function (r) { return r.year_month; }))).length || 1;
+      $("slot-price").innerHTML = dl([["Shopping each month (average)", baht(yr.filter(function (r) { return r.category === "Shopping"; }).reduce(function (a, r) { return a + r.amount; }, 0) / months)]]);
+      var F = A.fixed_costs || {};
+      $("verdict-line").textContent = "The main agent decides this after it hears from every pillar. From this folder it gets: left over so far " + baht(t.income - t.expense) + ", fixed costs " + baht(F.per_month) + " each month, and " + openQuestions().length + " entries still unclear.";
+    }
+
+    /* ---------- journal extras: donut, calendar, subscription gallery, stats ---------- */
+    var CAT_COLORS = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)", "var(--c5)", "var(--c6)"], catColor = {};
+    function colorFor(cat) {  /* a colour follows the category, never its rank */
+      if (cat === "Other categories") return "var(--c-other)";
+      if (!catColor[cat]) { var n = Object.keys(catColor).length; catColor[cat] = n < CAT_COLORS.length ? CAT_COLORS[n] : "var(--c-other)"; }
+      return catColor[cat];
+    }
+    function renderDonut(list, total, scope) {
+      if (!Object.keys(catColor).length) {  /* fix the colour order once, from the whole ledger */
+        var all = {}; S.rows.forEach(function (r) { if (r.transaction_type === "expense") all[r.category] = (all[r.category] || 0) + r.amount; });
+        Object.keys(all).sort(function (a, b) { return all[b] - all[a]; }).forEach(colorFor);
+      }
+      var shown = list.filter(function (c) { return CAT_COLORS.indexOf(colorFor(c[0])) >= 0; }), rest = list.filter(function (c) { return shown.indexOf(c) < 0; });
+      shown = shown.slice(0, 6); if (rest.length) shown.push(["Other categories", rest.reduce(function (a, c) { return a + c[1]; }, 0)]);
+      $("cat-sub").textContent = "Spending · " + scope; $("donut-total").textContent = baht(total); $("donut-label").textContent = "spent";
+      var svg = $("donut"), R = 86, r = 56, a0 = -Math.PI / 2, out = "";
+      if (!total) { svg.innerHTML = '<circle cx="100" cy="100" r="71" fill="none" stroke="#ebe1d3" stroke-width="30"/>'; $("cat-list").innerHTML = '<p class="empty">No spending in this period.</p>'; return; }
+      shown.forEach(function (c, i) {
+        var frac = c[1] / total, a1 = a0 + frac * Math.PI * 2, gap = shown.length > 1 ? .012 : 0, s = a0 + gap, e = a1 - gap, big = e - s > Math.PI ? 1 : 0;
+        if (frac >= .999) { s = a0; e = a0 + Math.PI * 2 - .001; big = 1; }
+        var p = function (rad, ang) { return (100 + rad * Math.cos(ang)).toFixed(2) + " " + (100 + rad * Math.sin(ang)).toFixed(2); };
+        if (e > s) out += '<path data-i="' + i + '" d="M' + p(R, s) + "A" + R + " " + R + " 0 " + big + " 1 " + p(R, e) + "L" + p(r, e) + "A" + r + " " + r + " 0 " + big + " 0 " + p(r, s) + 'Z" fill="' + colorFor(c[0]) + '"/>';
+        a0 = a1;
+      });
+      svg.innerHTML = out;
+      $("cat-list").innerHTML = shown.map(function (c, i) {
+        var other = c[0] === "Other categories";
+        return '<button class="legend-row" type="button" data-i="' + i + '" data-go="transactions" data-tab="expense"' + (other ? "" : ' data-cat="' + esc(c[0]) + '"') + '><i style="background:' + colorFor(c[0]) + '"></i><span>' + esc(c[0]) + '</span><b>' + baht(c[1]) + "</b><small>" + Math.round(c[1] / total * 100) + "%</small></button>";
+      }).join("");
+      var focus = function (i) {
+        svg.querySelectorAll("path").forEach(function (x) { x.style.opacity = i == null || x.dataset.i == i ? 1 : .35; });
+        $("cat-list").querySelectorAll(".legend-row").forEach(function (x) { x.classList.toggle("on", x.dataset.i == i); });
+        $("donut-total").textContent = baht(i == null ? total : shown[i][1]); $("donut-label").textContent = i == null ? "spent" : shown[i][0] + " · " + Math.round(shown[i][1] / total * 100) + "%";
+      };
+      svg.querySelectorAll("path").forEach(function (x) {
+        x.addEventListener("mouseenter", function () { focus(x.dataset.i); }); x.addEventListener("mouseleave", function () { focus(null); });
+        x.addEventListener("click", function () { var c = shown[x.dataset.i][0]; go("transactions", { tab: "expense", cat: c === "Other categories" ? null : c }); });
+      });
+      $("cat-list").querySelectorAll(".legend-row").forEach(function (x) { x.addEventListener("mouseenter", function () { focus(x.dataset.i); }); x.addEventListener("mouseleave", function () { focus(null); }); });
+    }
+
+    function iso(y, m, d) { return y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0"); }
+    function calendarEvents() {
+      var ev = {}, byId = {}, A = S.agent;
+      S.rows.forEach(function (r) { byId[r.transaction_id] = r; });
+      var add = function (date, e) { (ev[date] = ev[date] || []).push(e); };
+      A.recurring.forEach(function (it) {
+        (it.transaction_ids || []).forEach(function (id) { var r = byId[id]; if (r) add(r.date, { name: it.name, amount: r.amount, kind: it.kind, paid: true }); });
+        var d = new Date(it.next_due + "T00:00:00Z"), day = d.getUTCDate();
+        for (var k = 0; k < (it.cadence === "weekly" ? 16 : it.cadence === "yearly" ? 1 : 4); k++) {
+          var date = d.toISOString().slice(0, 10), left = daysLeft(date);
+          add(date, { name: it.name, amount: it.amount, kind: it.kind, paid: false, isNew: it.status === "new", soon: it.kind !== "income" && left >= 0 && left <= 5, left: left });
+          if (it.cadence === "weekly") d.setUTCDate(d.getUTCDate() + 7);
+          else if (it.cadence === "yearly") d.setUTCFullYear(d.getUTCFullYear() + 1);
+          else { d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + 1); d.setUTCDate(Math.min(day, new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate())); }
+        }
+      });
+      return ev;
+    }
+    function markIcon(e) { return '<i class="mark-i' + (e.kind === "income" ? " income" : "") + (e.paid ? " paid" : e.soon ? " soon" : "") + '"><svg class="ico"><use href="#' + (e.kind === "income" ? "i-in" : e.paid ? "i-check" : e.soon ? "i-bell" : "i-clock") + '"/></svg></i>'; }
+    function renderCalendar() {
+      var A = S.agent; if (!S.cal) S.cal = A.today.slice(0, 7);
+      var y = +S.cal.slice(0, 4), m = +S.cal.slice(5, 7), ev = calendarEvents();
+      $("cal-title").textContent = monthName(S.cal);
+      var first = new Date(Date.UTC(y, m - 1, 1)), lead = (first.getUTCDay() + 6) % 7, days = new Date(Date.UTC(y, m, 0)).getUTCDate(), cells = Math.ceil((lead + days) / 7) * 7;
+      var html = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(function (d) { return '<div class="dow">' + d + "</div>"; }).join("");
+      for (var i = 0; i < cells; i++) {
+        var dt = new Date(Date.UTC(y, m - 1, 1 - lead + i)), date = dt.toISOString().slice(0, 10), es = ev[date] || [], inM = dt.getUTCMonth() === m - 1;
+        html += '<button type="button" class="day' + (inM ? "" : " out") + (date === A.today ? " today" : "") + (es.length ? " has" : "") + (date === S.calDay ? " sel" : "") + '" data-date="' + date + '"' + (es.length ? ' title="' + esc(es.map(function (e) { return e.name + " " + baht(e.amount); }).join("\n")) + '"' : ' tabindex="-1"') +
+          '><span class="d">' + dt.getUTCDate() + '</span><span class="marks">' + es.slice(0, 3).map(markIcon).join("") + "</span></button>";
+      }
+      $("cal").innerHTML = html;
+      var prefix = S.cal + "-", inMonth = Object.keys(ev).filter(function (d) { return d.indexOf(prefix) === 0; }).sort(), flat = [];
+      inMonth.forEach(function (d) { ev[d].forEach(function (e) { flat.push({ date: d, e: e }); }); });
+      var row = function (x) { var e = x.e; return '<li class="' + (e.soon ? "soon" : "") + '"><svg class="ico"><use href="#' + (e.kind === "income" ? "i-in" : e.paid ? "i-check" : e.soon ? "i-bell" : "i-clock") + '"/></svg><span>' + esc(e.name) + "<small>" + (+x.date.slice(8)) + " " + MONTHS[+x.date.slice(5, 7) - 1] + (e.paid ? "" : " · " + when(e.left)) + (e.isNew ? " · new, please check" : "") + "</small></span><b>" + (e.kind === "income" ? "+" : "") + baht(e.amount) + "</b></li>"; };
+      var side = "";
+      if (S.calDay && ev[S.calDay]) side += "<h4>On " + (+S.calDay.slice(8)) + " " + MONTHS[+S.calDay.slice(5, 7) - 1] + '</h4><ul class="mini-list">' + ev[S.calDay].map(function (e) { return row({ date: S.calDay, e: e }); }).join("") + "</ul>";
+      var coming = flat.filter(function (x) { return !x.e.paid && x.e.kind !== "income"; }), paid = flat.filter(function (x) { return x.e.paid && x.e.kind !== "income"; }), pay = flat.filter(function (x) { return x.e.kind === "income"; });
+      var sum = function (a) { return a.reduce(function (s, x) { return s + x.e.amount; }, 0); };
+      side += "<h4>Coming up" + (coming.length ? " · " + baht(sum(coming)) : "") + '</h4><ul class="mini-list">' + (coming.map(row).join("") || '<li class="empty" style="display:block">Nothing left to pay this month.</li>') + "</ul>";
+      side += "<h4>Paid this month" + (paid.length ? " · " + baht(sum(paid)) : "") + '</h4><ul class="mini-list">' + (paid.map(row).join("") || '<li class="empty" style="display:block">No repeating payment yet.</li>') + "</ul>";
+      if (pay.length) side += '<h4>Payday</h4><ul class="mini-list">' + pay.map(row).join("") + "</ul>";
+      $("cal-side").innerHTML = side;
+    }
+    function shiftCal(n) { var y = +S.cal.slice(0, 4), m = +S.cal.slice(5, 7) + n; if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } S.cal = iso(y, m, 1).slice(0, 7); S.calDay = null; renderCalendar(); }
+
+    function renderExtras(t, open) {
+      var A = S.agent, F = A.fixed_costs || {}, R = A.routing || {};
+      $("sum-scope").textContent = S.month === "all" ? "All months" : monthName(S.month);
+      var net = t.income - t.expense;
+      $("bar-out").style.width = (t.income ? Math.min(100, t.expense / t.income * 100) : t.expense ? 100 : 0) + "%";
+      $("bar-net").style.width = (t.income && net > 0 ? net / t.income * 100 : 0) + "%";
+      $("m-total").textContent = S.rows.length.toLocaleString("en-US");
+      var handled = (R.saved_by_system1 || 0) + (R.solved_by_codex || 0) + (R.answered_by_user || 0) + S.queue.length + S.rows.filter(function (r) { return /^NEW-/.test(r.transaction_id); }).length;
+      $("m-auto").textContent = handled ? Math.round((R.saved_by_system1 || 0) / handled * 100) + "%" : "—";
+      $("m-open").textContent = open.length;
+      var subs = A.recurring.filter(function (i) { return i.kind === "subscription"; }), covers = ["#2f4a66", "#8f3f28", "#2c5f4a", "#5a4334", "#6a4a7a", "#8a6a1e"];
+      $("subs-home-sub").textContent = subs.length ? baht(F.subscriptions_per_month) + " a month" : "";
+      $("subs-gallery").innerHTML = subs.map(function (i, n) {
+        var d = daysLeft(i.next_due);
+        return '<div class="sub-card"><div class="sub-cover" style="background:' + covers[n % covers.length] + '">' + esc(i.name.charAt(0).toUpperCase()) + '</div><div class="sub-body"><span class="sub-name" title="' + esc(i.name) + '">' + esc(i.name) + '</span><span class="sub-meta">' + baht(i.amount) + " · " + i.cadence + '</span><span class="sub-meta">Next: ' + (+i.next_due.slice(8)) + " " + MONTHS[+i.next_due.slice(5, 7) - 1] + " (" + when(d) + ')</span><span class="tag' + (i.status === "new" ? "" : i.price_change ? " blue" : " plain") + '">' + (i.status === "new" ? "New · please check" : i.price_change > 0 ? "Price went up" : i.price_change < 0 ? "Price went down" : "Active") + "</span></div></div>";
+      }).join("") || '<p class="empty" style="grid-column:1/-1">No subscriptions found yet. The agent needs about two months of entries.</p>';
+      renderCalendar();
+    }
+
+    /* ---------- navigation and events ---------- */
+    function go(page, opts) {
+      if (!PAGES[page]) page = "overview";
+      Object.keys(PAGES).forEach(function (p) { $("page-" + p).hidden = p !== page; });
+      document.querySelectorAll(".tab").forEach(function (b) { if (b.dataset.go === page) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+      $("crumb-page").textContent = PAGES[page];
+      if (opts) { if (opts.tab) S.tab = opts.tab; S.cat = opts.cat || "all"; S.limit = 60; renderTx(); }
+      if (location.hash !== "#" + page) history.replaceState(null, "", "#" + page);
+      window.scrollTo(0, 0);
+    }
+    document.addEventListener("click", function (e) {
+      var opt = e.target.closest(".q-opts .btn");
+      if (opt) {
+        var card = opt.closest("[data-q]"), q = S.queue.filter(function (x) { return x.question_id === card.dataset.q; })[0], c = q.candidates[+opt.dataset.i];
+        applyAnswer({ question_id: q.question_id, transaction_type: c.transaction_type, category: c.category, remember: card.querySelector("input").checked });
+        render(); toast("Saved as " + c.category + ". " + (openQuestions().length ? openQuestions().length + " left." : "All clear."));
+        return;
+      }
+      var day = e.target.closest(".day.has");
+      if (day) { S.calDay = S.calDay === day.dataset.date ? null : day.dataset.date; renderCalendar(); return; }
+      var tag = e.target.closest("button.tag[data-cat]");
+      if (tag) { S.cat = tag.dataset.cat; renderTx(); return; }
+      var seg = e.target.closest("#tx-tabs button");
+      if (seg) { S.tab = seg.dataset.tab; S.limit = 60; renderTx(); return; }
+      var g = e.target.closest("[data-go]");
+      if (g) go(g.dataset.go, g.dataset.tab || g.dataset.cat ? { tab: g.dataset.tab, cat: g.dataset.cat } : null);
+    });
+    $("cal-prev").addEventListener("click", function () { shiftCal(-1); });
+    $("cal-next").addEventListener("click", function () { shiftCal(1); });
+    $("month-filter").addEventListener("change", function () { S.month = this.value; render(); });
+    $("cat-filter").addEventListener("change", function () { S.cat = this.value; renderTx(); });
+    $("tx-search").addEventListener("input", function () { S.q = this.value; renderTx(); });
+    $("tx-more-btn").addEventListener("click", function () { S.limit += 60; renderTx(); });
+    $("refresh").addEventListener("click", function () { load().then(function () { toast("Data refreshed"); }); });
+    $("answers-undo").addEventListener("click", function () { try { localStorage.removeItem("folder-answers"); } catch (e) {} load(); });
+    $("answers-download").addEventListener("click", function () {
+      var csv = "question_id,transaction_type,category,remember\n" + S.answers.map(function (a) { return [a.question_id, a.transaction_type, a.category, a.remember ? "yes" : "no"].join(","); }).join("\n") + "\n";
+      var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "answers.csv"; a.click();
+    });
+    window.addEventListener("hashchange", function () { go(location.hash.slice(1)); });
+    load().then(function () { go(location.hash.slice(1) || "overview"); });
+  })();
+  </script>
+</body>
+</html>

@@ -60,7 +60,7 @@ Keep these columns in this exact order:
 
 ## Dashboard
 
-- `dashboard-folder.html` is the new folder-style dashboard (draft). It reads `database.csv` and `agent_state.json` and shows the open questions, the confidence of each decision, and the bills and subscriptions. `dashboard.html` is the earlier dashboard and still works.
+- `dashboard-journal.html` (journal look: sidebar, payment calendar, spending chart) and `dashboard-folder.html` (folder-tab look) are the new dashboard drafts. Each reads `database.csv` and `agent_state.json` and shows the open questions, the confidence of each decision, and the bills and subscriptions. `dashboard.html` is the earlier dashboard and still works.
 
 - The dashboard is read-only. Update `database.csv` to add or correct transactions, then reload the page.
 - It provides year and month filters, monthly income and expense trends, investment buy and sell trends, expense categories, and recent transactions.

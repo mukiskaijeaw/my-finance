@@ -25,6 +25,7 @@ Agent มีสองส่วนทำงานคู่กัน
 | `agent/system1.py` | ตัวตัดสินใจเร็วพร้อม confidence score |
 | `agent/recurring.py` | หารายจ่ายประจำ, subscription และสร้างการแจ้งเตือน |
 | `agent/cli.py` | คำสั่ง `ingest`, `review`, `answer`, `alerts`, `state` |
+| `dashboard-journal.html` | แดชบอร์ดแบบสมุดบันทึก (ร่างล่าสุด): แบนเนอร์ เมนูซ้ายมือ ปฏิทินวันจ่าย กราฟประเภทรายจ่าย ดับเบิลคลิกเปิดได้เลย |
 | `dashboard-folder.html` | แดชบอร์ดแบบแฟ้มเอกสาร (ร่าง) ดับเบิลคลิกเปิดได้เลย มีข้อมูลตัวอย่างฝังอยู่ |
 | `demo/statement-2026-11.example.csv` | statement สมมติ 1 เดือนสำหรับลองรอบการทำงาน |
 | `demo/build-demo.py` | รันหนึ่งรอบด้วยข้อมูลสมมติ แล้วฝังผลลงแดชบอร์ด |
