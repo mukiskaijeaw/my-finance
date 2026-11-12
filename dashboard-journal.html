@@ -648,7 +648,7 @@
 
   <script type="application/json" id="demo-state">/*DEMO-STATE*/{
  "schema": "pillar1-state/1",
- "generated_at": "2026-11-12T13:51:12",
+ "generated_at": "2026-11-12T14:55:16",
  "today": "2026-11-12",
  "ledger": {
   "rows": 217,
@@ -1929,8 +1929,8 @@ TXN000217,2026-11-11,expense,Noodle shop (Bank 12:20),70.00,Food/Beverage,,2026-
       var R = A.routing || {}, askN = S.queue.filter(function (q) { return q.route === "ask"; }).length, codexN = S.queue.length - askN;
       var total = (R.saved_by_system1 || 0) + (R.solved_by_codex || 0) + (R.answered_by_user || 0) + S.rows.filter(function (r) { return /^NEW-/.test(r.transaction_id); }).length + S.queue.length;
       $("agent-line").textContent = total
-        ? "The agent read " + total + " new entries from your last statement. It saved " + (R.saved_by_system1 || 0) + " by itself" +
-          (open.length ? " and has " + open.length + (open.length === 1 ? " question" : " questions") + " for you." : ". Nothing is waiting for you.")
+        ? "The agent read " + total + " new entries. It saved " + (R.saved_by_system1 || 0) + " by itself" +
+          (open.length ? " and has " + open.length + (open.length === 1 ? " question" : " questions") + " for you." : (function () { var n = S.rows.filter(function (r) { return /^needs_review/.test(r.data_quality_flag || ""); }).length; return n ? ". " + n + (n === 1 ? " entry is" : " entries are") + " marked for you to check." : ". Nothing is waiting for you."; })())
         : S.rows.length
           ? (function () { var ds = S.rows.map(function (r) { return r.date; }).sort(), n = S.rows.filter(function (r) { return /^needs_review/.test(r.data_quality_flag || ""); }).length;
               return "Your ledger has " + S.rows.length + " entries, from " + ds[0] + " to " + ds[ds.length - 1] + ". " + (n ? n + (n === 1 ? " entry is" : " entries are") + " still marked to check." : "Nothing is waiting for you."); })()
