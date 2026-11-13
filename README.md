@@ -24,7 +24,8 @@ Agent มีสองส่วนทำงานคู่กัน
 | --- | --- |
 | `agent/system1.py` | ตัวตัดสินใจเร็วพร้อม confidence score |
 | `agent/recurring.py` | หารายจ่ายประจำ, subscription และสร้างการแจ้งเตือน |
-| `agent/cli.py` | คำสั่ง `ingest`, `review`, `answer`, `alerts`, `state` |
+| `agent/cli.py` | คำสั่ง `ingest`, `review`, `answer`, `alerts`, `state`, `dashboard` |
+| `.agents/skills/dashboard` | skill `/dashboard`: พิมพ์ "ขอดูสรุป" แล้ว agent สร้าง `my-dashboard.html` จากข้อมูลของเราแล้วเปิดให้ |
 | `dashboard-journal.html` | แดชบอร์ดแบบสมุดบันทึก (ร่างล่าสุด): แบนเนอร์ เมนูซ้ายมือ ปฏิทินวันจ่าย กราฟประเภทรายจ่าย ดับเบิลคลิกเปิดได้เลย |
 | `dashboard-folder.html` | แดชบอร์ดแบบแฟ้มเอกสาร (ร่าง) ดับเบิลคลิกเปิดได้เลย มีข้อมูลตัวอย่างฝังอยู่ |
 | `demo/statement-2026-11.example.csv` | statement สมมติ 1 เดือนสำหรับลองรอบการทำงาน |
@@ -53,7 +54,8 @@ python3 agent/cli.py --dir /tmp/try --today 2026-11-12 alerts --days 7
 
 ## เปิดแดชบอร์ด
 
-- Mac: ดับเบิลคลิก `open-dashboard.command` แล้วปล่อย Terminal เปิดไว้
+- Mac: ดับเบิลคลิก `open-dashboard.command` จะสร้าง `my-dashboard.html` จาก `database.csv` แล้วเปิดให้ ไม่ต้องเปิด server
+- ทุกเครื่อง: `python3 agent/cli.py dashboard --open` หรือพิมพ์ "ขอดูสรุป" ในแชทของ Codex
 - เครื่องอื่น: รัน `python3 -m http.server 8765` ในโฟลเดอร์นี้ แล้วเปิด `http://127.0.0.1:8765/dashboard.html`
 - Demo: ดาวน์โหลด `demo/try-finance.html` แล้วดับเบิลคลิกเปิดในเบราว์เซอร์ได้เลย ข้อมูลตัวอย่างฝังอยู่ในไฟล์แล้ว
 

@@ -47,6 +47,7 @@ This folder holds two pillars of the team's finance agent. Each one has a skill 
 
 - `income-expense` (Pillar 1): read slips and statements, classify with a confidence score, ask only when unsure. Use it for every slip, receipt, statement or typed transaction instead of editing `database.csv` by hand.
 - `subscription` (Pillar 5): find recurring charges and warn before a renewal or a due date. Run it after every statement and when the user types `/subscription`.
+- `dashboard`: when the user asks to see the dashboard or a summary (`/dashboard`, "ขอดูสรุป"), run `python3 agent/cli.py dashboard --open`. It writes `my-dashboard.html` with the user's data inside and opens it. Never commit or share that file.
 
 `agent/cli.py` is the System-1 side. It runs on the user's machine with plain Python and no network. It writes `agent_state.json`, the one file the dashboard, the main finance agent and the other pillars (tax, investment, price check) read from this pillar.
 
@@ -64,5 +65,5 @@ Keep these columns in this exact order:
 
 - The dashboard is read-only. Update `database.csv` to add or correct transactions, then reload the page.
 - It provides year and month filters, monthly income and expense trends, investment buy and sell trends, expense categories, and recent transactions.
-- On macOS, open `open-dashboard.command`. It serves this folder on `127.0.0.1:8765` and opens the dashboard. Keep its Terminal window open while using the dashboard and press Control-C there to stop the server.
-- If the dashboard is opened directly with `file://`, choose `database.csv` in the file picker or use `open-dashboard.command` for automatic loading.
+- On macOS, double-click `open-dashboard.command`. It runs `python3 agent/cli.py dashboard --open`, which builds `my-dashboard.html` from `database.csv` and opens it. No server is needed. Run it again after new entries.
+- The older `dashboard.html` still works: open it with `file://` and choose `database.csv` in its file picker.

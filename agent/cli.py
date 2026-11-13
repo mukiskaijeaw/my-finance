@@ -7,6 +7,7 @@
   python3 agent/cli.py answer --file answers.csv
   python3 agent/cli.py alerts [--days 7]   renewals and due dates
   python3 agent/cli.py state               rebuild agent_state.json for the dashboard and other pillars
+  python3 agent/cli.py dashboard [--open]  write my-dashboard.html with your own data inside, and open it
 
 Options for every command: --dir <folder with database.csv> (default: current folder), --today YYYY-MM-DD
 """
@@ -281,6 +282,36 @@ def build_state(ws, today):
     return state
 
 
+def cmd_dashboard(ws, args):
+    """Write a single-file dashboard with the user's own data inside, so it opens by double-click."""
+    state = build_state(ws, args.today)
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    template = os.path.join(repo, "dashboard-journal.html")
+    if not os.path.exists(template):
+        sys.exit(f"Cannot find {template}")
+    html = open(template, encoding="utf-8").read()
+    data = json.dumps(state, ensure_ascii=False).replace("</", "<\\/")
+    with open(ws.ledger_path, encoding="utf-8") as f:
+        ledger = f.read().replace("</", "< /")
+    html = re.sub(r"/\*DEMO-STATE\*/.*?/\*END-DEMO-STATE\*/", lambda m: "/*DEMO-STATE*/" + data + "/*END-DEMO-STATE*/", html, flags=re.S)
+    html = re.sub(r"/\*DEMO-LEDGER\*/.*?/\*END-DEMO-LEDGER\*/", lambda m: "/*DEMO-LEDGER*/" + ledger + "/*END-DEMO-LEDGER*/", html, flags=re.S)
+    old = '"Showing example data (" + S.rows.length + " entries). Serve this folder on a local server to load your own database.csv."'
+    new = ('"Built from your database.csv (" + S.rows.length + " entries) on ' + args.today.isoformat()
+           + '. Ask the agent for the dashboard again to refresh it."')
+    html = html.replace(old, new).replace("<title>The Money Journal</title>", "<title>My Money Journal</title>")
+    out = os.path.join(ws.dir, "my-dashboard.html")
+    with open(out, "w", encoding="utf-8") as f:
+        f.write(html)
+    r = state["routing"]
+    print(json.dumps({"dashboard": out, "entries": state["ledger"]["rows"], "from": state["ledger"]["from"], "to": state["ledger"]["to"],
+                      "waiting_for_user": r["waiting_for_user"], "waiting_for_codex": r["waiting_for_codex"],
+                      "marked_to_check": sum((x.get("data_quality_flag") or "").startswith("needs_review") for x in ws.ledger),
+                      "alerts": [a["message"] for a in state["alerts"] if a["level"] != "upcoming"]}, ensure_ascii=False, indent=2))
+    if args.open:
+        import webbrowser
+        webbrowser.open("file://" + os.path.abspath(out))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dir", default=".")
@@ -294,9 +325,10 @@ def main():
     s.add_argument("--file")
     s = sub.add_parser("alerts"); s.add_argument("--days", type=int, default=7)
     sub.add_parser("state")
+    s = sub.add_parser("dashboard"); s.add_argument("--open", action="store_true", help="open it in the browser")
     args = ap.parse_args()
     ws = Workspace(args.dir)
-    {"ingest": cmd_ingest, "review": cmd_review, "answer": cmd_answer, "alerts": cmd_alerts,
+    {"ingest": cmd_ingest, "review": cmd_review, "answer": cmd_answer, "alerts": cmd_alerts, "dashboard": cmd_dashboard,
      "state": lambda w, a: print(f"Wrote {build_state(w, a.today) and w.state_path}")}[args.cmd](ws, args)
 
 
