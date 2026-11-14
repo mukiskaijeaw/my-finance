@@ -1,0 +1,14 @@
+<!doctype html><html lang="th"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>:root{color-scheme:light dark;font-family:Tahoma,system-ui,sans-serif}body{margin:0;padding:20px}button{font:inherit;border-radius:12px;padding:14px 20px;cursor:pointer}p{font-size:13px}</style>
+<p>SHOPPING AGENT · MCP APPS POC · ข้อมูลจำลองเท่านั้น</p>
+<button id="test" disabled>ทดสอบคลิกหนึ่งครั้ง</button><p id="status" role="status">รอ MCP Apps host</p>
+<script>
+(()=>{'use strict';let id=0;const pending=new Map(),button=document.getElementById('test'),status=document.getElementById('status');
+function request(method,params){return new Promise((resolve,reject)=>{const key=++id;const timer=setTimeout(()=>{pending.delete(key);reject(new Error('MCP Apps host timeout'))},8000);pending.set(key,{resolve,reject,timer});window.parent.postMessage({jsonrpc:'2.0',id:key,method,params},'*')})}
+window.addEventListener('message',event=>{if(event.source!==window.parent)return;const m=event.data;if(!m||m.jsonrpc!=='2.0')return;const p=pending.get(m.id);if(p){clearTimeout(p.timer);pending.delete(m.id);m.error?p.reject(new Error(m.error.message)):p.resolve(m.result)}});
+button.addEventListener('click',async()=>{button.disabled=true;try{const r=await request('tools/call',{name:'shopping_demo_click',arguments:{}});status.textContent='รับคลิกแล้ว '+r.structuredContent.clicks+' ครั้ง · '+r.structuredContent.context;
+try{await request('ui/message',{role:'user',content:[{type:'text',text:'ทดสอบ Shopping MCP Apps: คลิกปุ่มแล้ว (ข้อมูลจำลองเท่านั้น)'}]});status.textContent+=' · ส่ง follow-up แล้ว'}catch(error){status.textContent+=' · ส่ง follow-up ไม่สำเร็จ: '+error.message}
+}catch(error){status.textContent=error.message}finally{button.disabled=false}});
+if(window.parent!==window){request('ui/initialize',{appInfo:{name:'shopping-ui-poc',version:'0.1.0'},appCapabilities:{},protocolVersion:'2026-01-26'}).then(()=>{window.parent.postMessage({jsonrpc:'2.0',method:'ui/notifications/initialized',params:{}},'*');button.disabled=false;status.textContent='พร้อมทดสอบคลิก'}).catch(error=>status.textContent=error.message)}
+})();
+</script></html>

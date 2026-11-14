@@ -1,0 +1,37 @@
+<div id="shopping-monthly-overview">
+  <style>
+    #shopping-monthly-overview{color-scheme:light dark;--bg:light-dark(#fff,#202329);--text:light-dark(#292b2e,#f0f2f4);--muted:light-dark(#73777c,#b5bac2);--line:light-dark(#eceef0,#3b4047);--green:light-dark(#009d65,#56d5ac);font-family:Tahoma,"Leelawadee UI",system-ui,sans-serif;color:var(--text);width:100%}
+    #shopping-monthly-overview *{box-sizing:border-box}
+    #shopping-monthly-overview section{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:20px}
+    #shopping-monthly-overview .eyebrow{font-size:12px;color:var(--muted);margin:0 90px 17px 0}
+    #shopping-monthly-overview .caption{font-size:13px;color:var(--muted);line-height:1.8}
+    #shopping-monthly-overview .hero{font-size:38px;font-weight:700;color:var(--green);margin:12px 0;font-variant-numeric:tabular-nums}
+    #shopping-monthly-overview .date{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+    #shopping-monthly-overview hr{border:0;border-top:1px solid var(--line);margin:23px 0}
+    #shopping-monthly-overview dl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:17px;font-size:13px;margin:0}
+    #shopping-monthly-overview dt{color:var(--muted)}
+    #shopping-monthly-overview dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums}
+    #shopping-monthly-overview .allocation{display:flex;height:16px;overflow:hidden;border-radius:99px;margin:12px 0}
+    #shopping-monthly-overview .allocation span{min-width:0}
+    #shopping-monthly-overview .legend{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;color:var(--muted)}
+    #shopping-monthly-overview .foot{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    #shopping-monthly-overview .number{font-size:27px;font-weight:700;margin-top:8px;font-variant-numeric:tabular-nums}
+    #shopping-monthly-overview .note{font-size:11px;line-height:1.9;color:var(--muted);margin:18px 0 0}
+    @media(max-width:430px){#shopping-monthly-overview section{padding:16px}#shopping-monthly-overview .legend,#shopping-monthly-overview .foot{grid-template-columns:1fr}}
+  </style>
+  <section aria-label="สรุปการเงินรายเดือน ข้อมูลจำลอง">
+    <p class="eyebrow">MONTHLY FINANCIAL OVERVIEW · __MODE__</p>
+    <div class="caption">เงินใช้เพิ่มได้ ณ วันที่ __CURRENT_DATE__</div>
+    <div class="hero">__SPENDABLE__</div>
+    <div class="date"><i data-lucide="calendar-days" aria-hidden="true"></i>เหลืออีก __DAYS__ วันถึงสิ้นเดือน (ไม่นับวันนี้)</div>
+    <hr>
+    <dl><dt>รายได้สุทธิต่อเดือน</dt><dd>__INCOME__</dd><dt>ค่าใช้ชีวิตที่ยังต้องกันไว้</dt><dd>−__ESSENTIAL__</dd><dt>เงินออมและลงทุนที่กันไว้</dt><dd>−__SAVING__</dd><dt>เงินเผื่อเพิ่มเติม</dt><dd>−__BUFFER__</dd><dt>รายจ่ายที่จ่ายแล้วในสถานการณ์นี้</dt><dd>__PAID__</dd></dl>
+    <hr>
+    <div class="caption">สัดส่วนการจัดสรรเงินเดือนจำลอง</div>
+    <div class="allocation" role="img" aria-label="__ALLOCATION_LABEL__"><span style="width:__ESSENTIAL_PCT__%;background:light-dark(#64748b,#8a9db9)"></span><span style="width:__SAVING_PCT__%;background:light-dark(#dda03e,#eab65f)"></span><span style="width:__BUFFER_PCT__%;background:light-dark(#98a6b8,#a5b4c8)"></span><span style="width:__SPENDABLE_PCT__%;background:light-dark(#0d978c,#54c9bf)"></span></div>
+    <div class="legend"><span>● ค่าใช้ชีวิต __ESSENTIAL_PCT__%</span><span>● ออม / ลงทุน __SAVING_PCT__%</span><span>● เงินเผื่อ __BUFFER_PCT__%</span><span>● ใช้เพิ่มได้ __SPENDABLE_PCT__%</span></div>
+    <hr>
+    <div class="foot"><div><div class="caption">เงินเหลือตามแผนรายเดือน ก่อนเงินเผื่อ</div><div class="number">__SURPLUS__</div></div><div><div class="caption">เงินฉุกเฉินแยกไว้ ไม่แตะ</div><div class="number">__EMERGENCY__</div></div></div>
+    <p class="note">__ASSUMPTIONS__</p>
+  </section>
+</div>

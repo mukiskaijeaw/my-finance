@@ -1,0 +1,94 @@
+<div id="financial-companion">
+  <style>
+    #financial-companion{color-scheme:light dark;--fc-bg:light-dark(#fff,#202329);--fc-text:light-dark(#282f35,#f1f3f5);--fc-muted:light-dark(#737b83,#b3bdc7);--fc-line:light-dark(#e8edf0,#3d454f);--fc-track:light-dark(#edf2f0,#344139);--fc-teal:light-dark(#0a8b78,#65cdb3);--fc-amber:light-dark(#a16a0b,#e7b759);--fc-red:light-dark(#bf4343,#f38b8b);font-family:Tahoma,"Leelawadee UI",system-ui,sans-serif;color:var(--fc-text);width:100%}
+    #financial-companion *{box-sizing:border-box}
+    #financial-companion .fc-shell{padding:22px;background:var(--fc-bg);border:1px solid var(--fc-line);border-radius:18px}
+    #financial-companion .fc-eyebrow{font-size:12px;color:var(--fc-muted);margin:0 90px 12px 0;line-height:1.8}
+    #financial-companion h2{font-size:23px;line-height:1.6;margin:0 0 10px}
+    #financial-companion h3{font-size:16px;line-height:1.7;margin:17px 0 9px}
+    #financial-companion .fc-muted{font-size:12px;color:var(--fc-muted);line-height:1.9}
+    #financial-companion .fc-hero{font-size:38px;line-height:1.6;font-weight:700;color:var(--fc-teal);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+    #financial-companion .fc-value{font-size:23px;line-height:1.7;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+    #financial-companion .fc-metrics{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:15px 0}
+    #financial-companion hr{border:0;border-top:1px solid var(--fc-line);margin:19px 0}
+    #financial-companion .fc-track{height:10px;background:var(--fc-track);border-radius:99px;overflow:hidden;margin:10px 0 6px;display:flex}
+    #financial-companion .fc-fill{height:100%;background:var(--fc-teal)}
+    #financial-companion .fc-track span{height:100%}
+    #financial-companion label{font-size:13px;line-height:1.9;display:flex;flex-direction:column;gap:6px;margin-top:13px}
+    #financial-companion input[type=range]{width:100%;min-height:30px;accent-color:var(--fc-teal)}
+    #financial-companion select{font:inherit;font-size:16px;min-width:0;width:100%;padding:10px;color:var(--fc-text);background:var(--fc-bg);border:1px solid var(--fc-line);border-radius:10px}
+    #financial-companion .fc-check{flex-direction:row;align-items:center}
+    #financial-companion .fc-check input{width:19px;height:19px;accent-color:var(--fc-teal)}
+    #financial-companion button{font:inherit;font-size:13px;min-height:44px;padding:10px 14px;border:1px solid var(--fc-line);border-radius:10px;background:var(--fc-bg);color:var(--fc-text)}
+    #financial-companion .fc-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+    #financial-companion .fc-status{font-size:14px;line-height:1.9;margin-top:12px}
+    #financial-companion .fc-category{margin:15px 0}
+    #financial-companion .fc-category-head{display:flex;justify-content:space-between;gap:15px;font-size:13px;line-height:1.8}
+    #financial-companion .fc-feedback{font-size:12px;line-height:1.9;margin-top:12px}
+    @media(max-width:430px){#financial-companion .fc-shell{padding:16px}#financial-companion .fc-metrics{grid-template-columns:1fr}#financial-companion .fc-hero{font-size:33px}}
+  </style>
+  <section class="fc-shell">
+    <div class="fc-eyebrow" data-role="mode"></div>
+    <div data-role="view"></div>
+    <div data-role="feedback" class="fc-feedback" role="status" aria-live="polite"></div>
+  </section>
+  <script type="application/json" id="financial-companion-data">__COMPANION_DATA__</script>
+  <script>
+    (()=>{
+      const root=document.getElementById('financial-companion'),data=JSON.parse(document.getElementById('financial-companion-data').textContent);
+      const get=role=>root.querySelector('[data-role="'+role+'"]');const view=get('view');
+      const el=(tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node;};
+      const money=value=>value===null||value===undefined?'ยังประเมินไม่ได้':'฿'+Number(value).toLocaleString('th-TH',{maximumFractionDigits:2});
+      get('mode').textContent='FINANCIAL COMPANION · '+(data.synthetic?'DEMO · ':'')+data.current_date;
+      let busy=false,restoring=false;
+      const sliders=[];const identity=data.kind+':'+data.current_date+':'+data.revision+':'+data.synthetic;
+      function remember(){if(restoring)return;window.openai?.setWidgetState?.({modelContent:{view:data.kind,demo:data.synthetic},privateContent:{identity,values:sliders.map(n=>n.type==='checkbox'?n.checked:n.value)}})?.catch(()=>{});}
+      function register(input,event){sliders.push(input);input.addEventListener(event,remember);}
+      function restore(state){const saved=state?.privateContent;if(saved?.identity!==identity||!Array.isArray(saved.values))return;restoring=true;sliders.forEach((input,i)=>{const v=saved.values[i];if(input.type==='checkbox'){if(typeof v==='boolean')input.checked=v;}else if(Number.isInteger(Number(v))&&Number(v)>=0&&Number(v)<=Number(input.max))input.value=String(v);input.dispatchEvent(new Event(input.type==='checkbox'?'change':'input'));});restoring=false;}
+      async function send(prompt){if(busy)return;if(!window.openai?.sendFollowUpMessage){get('feedback').textContent='พิมพ์ในแชท: '+prompt;return;}busy=true;try{await window.openai.sendFollowUpMessage({prompt,title:'ตรวจแผนก่อนเปลี่ยนข้อมูล'});get('feedback').textContent='ส่งคำขอแล้ว ยังไม่ได้บันทึกหรือโอนเงิน';}catch(e){get('feedback').textContent='ส่งไม่สำเร็จ กรุณาลองอีกครั้ง';}finally{busy=false;}}
+      const metric=(parent,label,value)=>{const box=el('div');box.append(el('div','fc-muted',label),el('div','fc-value',money(value)));parent.append(box);};
+      const tone=status=>status==='INSUFFICIENT_DATA'||status==='NEED_MORE_INFO'?'var(--fc-muted)':status==='INSUFFICIENT_FUNDS'||status==='NOT_FEASIBLE'||status==='NOT_AFFORDABLE'?'var(--fc-red)':status==='CAUTION'||status==='SAVE_FIRST'?'var(--fc-amber)':'var(--fc-teal)';
+      const track=()=>{const bar=el('div','fc-track');const fill=el('div','fc-fill');bar.append(fill);return {bar,fill};};
+      function daily(){
+        const r=data.report;view.append(el('h2','','วันนี้ยังใช้เงินได้เท่าไหร่'));
+        const hero=el('div','fc-hero'),info=el('div','fc-muted'),{bar,fill}=track(),metrics=el('div','fc-metrics'),message=el('div','fc-status');bar.setAttribute('role','progressbar');bar.setAttribute('aria-label','สัดส่วนงบวันนี้ที่ใช้ไป');bar.setAttribute('aria-valuemin','0');bar.setAttribute('aria-valuemax','100');view.append(hero,info,bar,metrics,message);
+        function render(s){hero.textContent=money(s.today_remaining);hero.style.color=tone(s.status);info.textContent='เหลือ '+s.days_remaining+' วันถึงสิ้นเดือน · รวมวันนี้ '+s.saving_days+' วัน';metrics.replaceChildren();metric(metrics,'ใช้ไปวันนี้',s.today_recorded);metric(metrics,'งบวันนี้ก่อนใช้จ่าย',s.today_budget);metric(metrics,'เงินพร้อมใช้เดือนนี้หลังจำลอง',s.available_month);metric(metrics,'งบเฉลี่ยวันถัดไป',s.tomorrow_daily);metric(metrics,'กันให้เป้าหมายที่มีอยู่',s.active_goal_allocations);fill.style.width=(s.spending_progress??0)+'%';fill.style.background=tone(s.status);bar.hidden=s.spending_progress===null;bar.setAttribute('aria-valuenow',s.spending_progress??0);message.textContent=s.message||'ขอยืนยันยอดเงินและรายการที่รวมในยอดบัญชีก่อนครับ';message.style.color=tone(s.status);}
+        render(r.initial);
+        if(r.states.length){const label=el('label','','ทดลองว่าวันนี้จะใช้เงินเพิ่มเท่าไหร่ · What-if เท่านั้น');const output=el('output','fc-value',money('0'));const slider=el('input');slider.type='range';slider.min='0';slider.max=String(r.states.length-1);slider.step='1';slider.value='0';slider.setAttribute('aria-label','เงินใช้เพิ่มวันนี้');slider.addEventListener('input',()=>{const s=r.states[Number(slider.value)];render(s);output.textContent=money(s.simulated_extra);});register(slider,'input');label.append(output,slider);view.append(el('hr'),label);}
+        view.append(el('p','fc-muted','ยอดบัญชีรวมรายจ่ายวันนี้แล้ว จึงไม่หักซ้ำ Slider ไม่บันทึกธุรกรรม รายรับอนาคตยังไม่ใช่เงินใช้วันนี้'));
+        const actions=el('div','fc-actions');const goal=el('button','cursor-interaction','ดูเป้าหมายของฉัน');goal.addEventListener('click',()=>send('ดูเป้าหมายของฉัน'));actions.append(goal);view.append(actions);
+      }
+      function leaks(){
+        const {analysis,simulation}=data.report;view.append(el('h2','','รายจ่ายที่น่าลองลด'));
+        if(!analysis.categories.length&&!analysis.subscriptions.length){view.append(el('p','fc-muted','ยังไม่มีข้อมูลรายจ่ายให้วิเคราะห์ครับ ผมจะไม่สมมติหมวดหรือบริการที่คุณอาจไม่ได้ใช้ และยังไม่แสดงยอดที่อาจประหยัดได้'));const add=el('button','cursor-interaction','แจ้งข้อมูลรายจ่าย');add.addEventListener('click',()=>send('ช่วยรับข้อมูลรายจ่ายที่ฉันมีจริงเพื่อวิเคราะห์ โดยถามชื่อหมวด ยอดรวมและช่วงเวลาที่จำเป็น ไม่สมมติหมวดหรือรอบบริการ'));view.append(add);return;}
+        analysis.categories.forEach(item=>{const box=el('div','fc-category'),head=el('div','fc-category-head');head.append(el('span','',item.name+' · '+item.count+' รายการ'),el('strong','',money(item.amount)));const {bar,fill}=track();fill.style.width=item.bar_percent+'%';box.append(head,bar);view.append(box);});
+        if(analysis.duplicate_candidates.length)view.append(el('p','fc-muted','พบรายการที่อาจซ้ำ '+analysis.duplicate_candidates.length+' กลุ่ม ต้องตรวจหลักฐาน ไม่ลบหรือคืนเงินให้เอง'));
+        if(analysis.recurring_candidates?.length)view.append(el('p','fc-muted','พบคำอธิบายรายการซ้ำข้ามเดือน '+analysis.recurring_candidates.length+' รายการ ยังไม่ถือว่าเป็น Subscription โดยอัตโนมัติ'));
+        if(analysis.unusual_candidates?.length)view.append(el('p','fc-muted','พบยอดมากกว่า 2 เท่าของค่าเฉลี่ยหมวดเดียวกันก่อนหน้า (อย่างน้อย 3 รายการ) '+analysis.unusual_candidates.length+' รายการ เป็นจุดให้ตรวจ ไม่ใช่ข้อสรุปว่าฟุ่มเฟือย'));
+        if(analysis.issues?.length)view.append(el('p','fc-muted','ข้อมูลต้องตรวจ: '+analysis.issues.join(', ')));
+        view.append(el('h3','','มาลองอุดรูรั่วกันครับ'));
+        const controls=[];let chosen={monthly:'0',annual:'0'};const metrics=el('div','fc-metrics');
+        function update(){const key=controls.map(node=>node.type==='checkbox'?(node.checked?'1':'0'):node.value).join(',');chosen=simulation.states[key]||{monthly:'0',annual:'0'};metrics.replaceChildren();metric(metrics,'ประหยัดได้ต่อเดือน · ถ้าทำได้จริง',chosen.monthly);metric(metrics,'ประหยัดได้ต่อปี · ประมาณการ',chosen.annual);}
+        simulation.controls.forEach(control=>{const label=el('label',control.type==='checkbox'?'fc-check':'',control.label);const input=el('input');input.type=control.type;input.value='0';if(control.type==='range'){input.min='0';input.max=String(control.values.length-1);input.step='1';const output=el('output','','0 ครั้ง');input.addEventListener('input',()=>{output.textContent=input.value+' ครั้ง';update();});label.append(output);}else input.addEventListener('change',update);controls.push(input);label.append(input);view.append(label);});
+        analysis.subscriptions.filter(s=>s.monthly===null).forEach(s=>view.append(el('p','fc-muted',s.name+' '+money(s.amount)+' · รอบเรียกเก็บยังไม่ยืนยัน จึงไม่นับเป็นเงินประหยัดรายเดือน')));
+        view.append(metrics,el('p','fc-muted',simulation.notice),el('p','fc-muted','ธุรกรรมบอกว่าจ่ายอะไร ไม่ได้บอกว่าใช้คุ้มหรือไม่ครับ'));
+        const label=el('label','','เลือกเป้าหมายที่จะลองวางแผนเติมเงิน');const select=el('select');const empty=el('option','','เลือกเป้าหมาย');empty.value='';select.append(empty);data.goals.forEach(g=>{const option=el('option','',g.goal_name);option.value=g.goal_id;select.append(option);});label.append(select);view.append(label);
+        const button=el('button','cursor-interaction','เอาเงินส่วนนี้ไปเติมเป้าหมาย');button.addEventListener('click',()=>{if(!select.value){get('feedback').textContent='เลือกหรือสร้างเป้าหมายก่อนครับ';return;}send('สร้าง draft จาก potential savings '+JSON.stringify({action:'potential_goal',goal_id:select.value,potential_monthly:chosen.monthly})+' ยังไม่เพิ่มเงินสดหรือยอดออมจริง ขอยืนยันก่อนแก้แผน');});view.append(button);update();
+        const create=el('button','cursor-interaction','สร้างเป้าหมายใหม่จากแผนลดรายจ่าย');create.addEventListener('click',()=>send('อยากสร้างเป้าหมายใหม่ โดยมี potential savings '+chosen.monthly+' บาทต่อเดือน'+(data.synthetic?' ใช้ข้อมูลจำลอง':'')+' ยังไม่ใช่เงินสดหรือยอดออมจริง ถามชื่อเป้าหมาย ยอดเป้าหมาย วันที่ และยอดออมจริงเฉพาะที่ยังไม่ทราบ แล้วแสดง draft ก่อนยืนยัน'));view.append(create);
+      }
+      function travel(){
+        const r=data.report;const trip=r.initial.trip;view.append(el('h2','','วางแผนเที่ยว · '+trip.destination),el('div','fc-muted',trip.departure+' → '+trip.destination+' · '+trip.days+' วัน '+trip.nights+' คืน · '+trip.travelers+' คน'));
+        const hero=el('div','fc-hero'),status=el('div','fc-status'),metrics=el('div','fc-metrics'),bar=el('div','fc-track');view.append(hero,el('div','fc-muted','งบรวมทั้งกลุ่ม · '+r.initial.price_type),bar,status,metrics);
+        const controls=[];let chosen=r.initial;
+        function update(){const key=controls.map(node=>node.value).join(',');chosen=r.states[key];if(!chosen)return;hero.textContent=money(chosen.total);status.textContent='Financial Fit: '+chosen.financial_fit+' · แผนเก็บ: '+chosen.goal_status;status.style.color=tone(chosen.financial_fit);bar.replaceChildren();chosen.distribution.forEach((width,index)=>{const mark=el('span');mark.style.width=width+'%';mark.style.background='var(--fc-teal)';mark.style.opacity=String([1,.8,.6,.45,.3][index]);bar.append(mark);});metrics.replaceChildren();metric(metrics,'ยังต้องหาเงินเพิ่มจากงบปัจจุบัน',chosen.required_savings);metric(metrics,'เก็บต่อวันเพื่อทริปนี้',chosen.daily_saving);metric(metrics,'งบใช้ต่อวันหลังจัดสรร',chosen.daily_spending);}
+        r.controls.forEach(control=>{const label=el('label','',control.label+' · งบรวมหมวดนี้');const output=el('output','fc-value');const input=el('input');input.type='range';input.min='0';input.max=String(control.values.length-1);input.step='1';input.value=String(control.initial);output.textContent=money(control.values[control.initial]);input.addEventListener('input',()=>{output.textContent=money(control.values[Number(input.value)]);update();});controls.push(input);label.append(output,input);view.append(label);});
+        view.append(el('p','fc-muted',r.initial.notice),el('p','fc-muted','ข้ามเดือนใช้รายรับและภาระที่ยืนยันเท่านั้น หากยังไม่มี forecast ที่ครบ จะไม่สรุปว่าแผนออมทำได้'));
+        const button=el('button','cursor-interaction','สร้างเป้าหมายสำหรับทริปนี้');button.addEventListener('click',()=>send('ช่วยตรวจและสร้างเป้าหมายทริปนี้ '+JSON.stringify({goal_name:trip.destination,goal_category:'travel',target_amount:chosen.total,target_date:trip.travel_date,funding_source:'free_cash',trip})+' เป็นประมาณการ ยังไม่จองหรือเพิ่มเงินสด ขอยืนยันยอดออมจริงและผลกระทบก่อนบันทึก'));view.append(button);update();
+      }
+      if(data.kind==='daily')daily();else if(data.kind==='travel')travel();else if(['leaks','subscriptions'].includes(data.kind))leaks();else{view.append(el('h2','','แผนเติมเงินเป้าหมาย · Draft'),el('p','fc-muted',data.report.notice||'ยังไม่มีการเปลี่ยนเงินจริง'));
+        const metrics=el('div','fc-metrics');metric(metrics,'อาจประหยัดต่อเดือน',data.report.potential_monthly);view.append(metrics);}
+      view.querySelectorAll('input').forEach(input=>{if(!sliders.includes(input))register(input,input.type==='checkbox'?'change':'input');});
+      restore(window.openai?.widgetState);window.addEventListener('openai:set_globals',event=>restore(event.detail?.globals?.widgetState));
+    })();
+  </script>
+</div>

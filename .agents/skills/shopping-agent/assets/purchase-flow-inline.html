@@ -1,0 +1,146 @@
+<div id="shopping-purchase-flow">
+  <style>
+    #shopping-purchase-flow{color-scheme:light dark;--pf-bg:light-dark(#fff,#202329);--pf-text:light-dark(#272d32,#f1f3f5);--pf-muted:light-dark(#70777e,#b4bdc6);--pf-line:light-dark(#e7ecef,#3c444d);--pf-soft:light-dark(#f3f7f5,#293932);--pf-accent:light-dark(#087c62,#67d7b3);font-family:Tahoma,"Leelawadee UI",system-ui,sans-serif;color:var(--pf-text);width:100%}
+    #shopping-purchase-flow *{box-sizing:border-box}
+    #shopping-purchase-flow .pf-shell{padding:22px;background:var(--pf-bg);border:1px solid var(--pf-line);border-radius:18px}
+    #shopping-purchase-flow .pf-eyebrow{font-size:12px;line-height:1.8;color:var(--pf-muted);margin:0 90px 14px 0}
+    #shopping-purchase-flow h2{font-size:23px;line-height:1.6;margin:0 0 9px}
+    #shopping-purchase-flow h3{font-size:17px;line-height:1.7;margin:0;overflow-wrap:anywhere}
+    #shopping-purchase-flow .pf-muted{font-size:12px;line-height:1.9;color:var(--pf-muted)}
+    #shopping-purchase-flow .pf-candidate{padding:16px 0;border-top:1px solid var(--pf-line);margin-top:15px}
+    #shopping-purchase-flow .pf-candidate[aria-selected="true"]{background:var(--pf-soft);border-radius:12px;padding:16px}
+    #shopping-purchase-flow .pf-heading{display:flex;gap:14px;align-items:center}
+    #shopping-purchase-flow .pf-image{width:75px;height:75px;object-fit:contain;border-radius:12px;flex-shrink:0}
+    #shopping-purchase-flow .pf-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+    #shopping-purchase-flow button{font:inherit;font-size:13px;min-height:44px;padding:10px 14px;border:1px solid var(--pf-line);border-radius:11px;background:var(--pf-bg);color:var(--pf-text)}
+    #shopping-purchase-flow button:disabled{opacity:.55}
+    #shopping-purchase-flow label{display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.8;margin-top:13px}
+    #shopping-purchase-flow input{font:inherit;font-size:16px;padding:12px;border:1px solid var(--pf-line);border-radius:11px;background:var(--pf-bg);color:var(--pf-text);width:100%;min-width:0}
+    #shopping-purchase-flow .pf-price{font-size:32px;font-weight:700;line-height:1.6;font-variant-numeric:tabular-nums}
+    #shopping-purchase-flow .pf-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}
+    #shopping-purchase-flow .pf-value{font-size:24px;font-weight:700;line-height:1.5;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+    #shopping-purchase-flow .pf-status{font-size:15px;font-weight:700;line-height:1.8;margin-top:15px}
+    #shopping-purchase-flow hr{border:0;border-top:1px solid var(--pf-line);margin:18px 0}
+    #shopping-purchase-flow a{color:var(--pf-accent);font-size:12px;line-height:1.8}
+    #shopping-purchase-flow .pf-feedback{font-size:13px;line-height:1.8;margin-top:12px}
+    #shopping-purchase-flow .pf-progress{height:10px;background:var(--pf-soft);border-radius:99px;overflow:hidden;margin:12px 0 6px}
+    #shopping-purchase-flow .pf-progress-fill{height:100%;background:var(--pf-accent)}
+    @media(max-width:430px){#shopping-purchase-flow .pf-shell{padding:16px}#shopping-purchase-flow .pf-metrics{grid-template-columns:1fr}}
+  </style>
+  <section class="pf-shell">
+    <div class="pf-eyebrow" data-role="mode">SHOPPING AGENT</div>
+    <div data-role="content"></div>
+    <div class="pf-feedback" data-role="feedback" role="status" aria-live="polite"></div>
+  </section>
+  <script type="application/json" id="shopping-purchase-data">__PURCHASE_PAYLOAD__</script>
+  <script>
+    (()=>{
+      const root=document.getElementById('shopping-purchase-flow');
+      const data=JSON.parse(document.getElementById('shopping-purchase-data').textContent);
+      const content=root.querySelector('[data-role="content"]'),feedback=root.querySelector('[data-role="feedback"]');
+      const state=data.session;let busy=false;
+      const make=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;};
+      const money=value=>value===null||value===undefined?'ยังไม่ยืนยัน':'฿'+Number(value).toLocaleString('th-TH',{maximumFractionDigits:2});
+      root.querySelector('[data-role="mode"]').textContent='SHOPPING AGENT'+(data.demo?' · DEMO':'');
+      async function send(action,extra={}){
+        if(busy)return;
+        const prompt='Shopping purchase flow: '+JSON.stringify({action,session:state,...extra})+' ใช้ฟังก์ชันในเครื่อง ตรวจข้อมูลและขอยืนยันก่อนบันทึกเป้าหมาย ไม่ซื้อหรือโอนเงิน';
+        if(!window.openai?.sendFollowUpMessage){feedback.textContent='พิมพ์ในแชท: '+prompt;return;}
+        busy=true;
+        try{await window.openai.sendFollowUpMessage({prompt,title:'ช่วยดูให้หน่อยว่าควรซื้อไหม'});feedback.textContent='ส่งคำขอแล้ว ยังไม่มีการซื้อหรือบันทึกเป้าหมาย';}
+        catch(e){feedback.textContent='ส่งไม่สำเร็จ กรุณาลองอีกครั้ง';}
+        finally{busy=false;}
+      }
+      const button=(parent,label,action,extra={})=>{const b=make('button','cursor-interaction',label);b.type='button';b.addEventListener('click',()=>send(action,extra));parent.append(b);return b;};
+      const saveSelection=()=>{
+        const host=window.openai;if(!host?.setWidgetState)return;
+        const snapshot={version:state.version,stage:state.stage,intent:state.intent,candidates:state.selected_product?[state.selected_product]:[],selected_product:state.selected_product,selection_confirmed:state.selection_confirmed};
+        // Keep the host snapshot small; the full current action still carries session evidence.
+        if(JSON.stringify(snapshot).length>7000){snapshot.candidates=[];snapshot.selected_product=state.selected_product?{id:state.selected_product.id,name:state.selected_product.name,source:state.selected_product.source}:null;}
+        host.setWidgetState({modelContent:{purchaseSession:snapshot},privateContent:null}).catch(()=>{});
+      };
+      const restore=saved=>{
+        const selected=saved?.modelContent?.purchaseSession?.selected_product;
+        if(selected&&state.candidates.some(p=>p.id===selected.id)&&!data.report){
+          state.selected_product=state.candidates.find(p=>p.id===selected.id);state.selection_confirmed=true;
+          content.querySelectorAll?.('[data-product-id]').forEach(el=>el.setAttribute('aria-selected',String(el.dataset.productId===selected.id)));
+        }
+      };
+      function productHeader(parent,p){
+        const heading=make('div','pf-heading');const fallback=make('i');fallback.setAttribute('data-lucide','shopping-bag');fallback.setAttribute('aria-hidden','true');heading.append(fallback);
+        if(p.image_url){const img=make('img','pf-image');img.alt=p.name;img.referrerPolicy='no-referrer';img.src=p.image_url;img.addEventListener('error',()=>{img.hidden=true;fallback.hidden=false;});img.addEventListener('load',()=>{fallback.hidden=true;});heading.append(img);}
+        const name=make('div');name.append(make('h3','',p.name),make('div','pf-muted',[p.model,p.variant].filter(Boolean).join(' · ')||'ตัวเลือกยังไม่ยืนยัน'));heading.append(name);parent.append(heading);
+        const link=make('a','','ดูสินค้าจากแหล่งข้อมูล');link.href=p.source;link.target='_blank';link.rel='noreferrer noopener';parent.append(link);
+      }
+      function entry(){
+        content.append(make('h2','','วันนี้อยากได้อะไรครับ?'));
+        const form=make('form');const label=make('label','','ชื่อสินค้า / รุ่น / ลิงก์');const name=make('input');name.name='product';name.required=true;name.value=state.intent?.product||'';label.append(name);form.append(label);
+        const bl=make('label','','งบที่อยากตั้งไว้ · ไม่บังคับ');const budget=make('input');budget.type='number';budget.min='0';budget.step='.01';budget.value=state.intent?.budget||'';bl.append(budget);form.append(bl);
+        form.append(make('p','pf-muted','มีรูปสินค้า? แนบในช่องแชทหลักได้เลย ไม่ต้องอัปโหลดผ่านฟอร์มนี้'));
+        const submit=make('button','cursor-interaction','ช่วยดูให้หน่อยว่าควรซื้อไหม');submit.type='submit';form.append(submit);
+        form.addEventListener('submit',event=>{event.preventDefault();send('identify',{intent:{product:name.value,budget:budget.value||null}});});content.append(form);
+      }
+      function confirmation(){
+        content.append(make('h2','','ใช่รุ่นนี้ไหม เดี๋ยวเก็บเงินผิดตัวอีก'));
+        state.candidates.forEach(p=>{
+          const card=make('article','pf-candidate');card.dataset.productId=p.id;card.setAttribute('aria-selected',String(state.selected_product?.id===p.id));productHeader(card,p);
+          card.append(make('div','pf-price',money(p.quote.effective??p.quote.estimate)),make('div','pf-muted',p.quote.effective===null?'ราคาประมาณ · ยังไม่ยืนยันยอดจ่ายจริง':'ราคาสุทธิที่ตรวจแล้ว'),make('div','pf-muted',p.details||'รายละเอียดเพิ่มเติมยังไม่ยืนยัน'));
+          const select=make('button','cursor-interaction','ใช่ รุ่นนี้แหละ');select.type='button';select.addEventListener('click',()=>{
+            state.selected_product=p;state.selection_confirmed=true;state.stage='DECISION';saveSelection();
+            content.querySelectorAll('[data-product-id]').forEach(el=>el.setAttribute('aria-selected',String(el.dataset.productId===p.id)));
+            send('select_and_evaluate',{product_id:p.id,confirmed:true});
+          });card.append(select);content.append(card);
+        });
+        const actions=make('div','pf-actions');
+        ['ไม่ใช่สักรุ่น','ค้นหาใหม่'].forEach((text,index)=>{const b=button(actions,text,index?'search_again':'reject');b.addEventListener('click',()=>{state.selected_product=null;state.selection_confirmed=false;saveSelection();});});content.append(actions);
+      }
+      function decision(){
+        const r=data.report;productHeader(content,r.product);
+        content.append(make('div','pf-price',money(r.quote.effective??r.quote.estimate)));
+        if(r.quote.effective===null)content.append(make('div','pf-muted','ราคาสินค้า / ประมาณการ ยังไม่ใช่ยอดรวมที่ยืนยันแล้ว'));
+        content.append(make('div','pf-status',r.decision.recommendation+' · '+r.decision.label),make('div','pf-muted','Financial Fit: '+r.financial.status));
+        if(data.price_simulation){
+          const sim=data.price_simulation,box=make('section'),label=make('label','','จำลองยอดจ่ายรวม'),slider=make('input');slider.type='range';slider.min='0';slider.max=String(sim.states.length-1);slider.step='1';slider.value=String(sim.initial);label.append(slider);
+          const value=make('div','pf-value'),detail=make('div','pf-muted'),track=make('div','pf-progress'),fill=make('div','pf-progress-fill');track.append(fill);track.setAttribute('aria-label','สัดส่วนเงินพร้อมใช้ที่จ่าย');track.setAttribute('role','progressbar');track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax','100');detail.setAttribute('aria-live','polite');
+          function update(){const state=sim.states[Number(slider.value)];value.textContent=money(state.price);detail.textContent='เหลือ '+money(state.remaining)+' · ใช้ต่อวัน '+money(state.daily_spending)+' · '+state.status;fill.style.width=state.used_percent+'%';track.setAttribute('aria-valuenow',state.used_percent);}
+          slider.addEventListener('input',update);update();box.append(label,value,track,detail,make('p','pf-muted',sim.notice));content.append(box);
+        }
+        const metrics=make('div','pf-metrics');
+        [['เงินพร้อมใช้หลังกันเป้าหมายเดิม',r.available_spending],['เงินเหลือหากซื้อวันนี้',r.remaining_after_purchase],['ภาระเป้าหมายเดิมที่กันเพิ่ม',r.existing_goal_commitments],['ต้องเก็บต่อวันในแผนใหม่',r.daily_saving],['งบใช้ต่อวันหลังเริ่มแผน',r.daily_spending]].forEach(([label,value])=>{const cell=make('div');cell.append(make('div','pf-muted',label),make('div','pf-value',money(value)));metrics.append(cell);});content.append(metrics);
+        content.append(make('div','pf-muted','วันที่ซื้อที่แผนรองรับ: '+(r.suggested_purchase_date||'ยังประเมินไม่ได้')));
+        content.append(make('div','pf-muted','แผนเก็บตามวันที่เลือก: '+(r.goal_status||'ยังประเมินไม่ได้')));
+        if(r.goal_issues?.includes('complete_future_cashflow_required'))content.append(make('div','pf-muted','ต้องยืนยันรายรับและภาระอนาคตจนถึงวันเป้าหมายก่อน'));
+        if(r.savings_progress!==null&&r.savings_progress!==undefined){
+          const progress=make('div','pf-progress');progress.setAttribute('role','progressbar');progress.setAttribute('aria-label','ความคืบหน้าของแผนเก็บเงิน');progress.setAttribute('aria-valuemin','0');progress.setAttribute('aria-valuemax','100');progress.setAttribute('aria-valuenow',r.savings_progress);
+          const fill=make('div','pf-progress-fill');fill.style.width=r.savings_progress+'%';progress.append(fill);content.append(progress,make('div','pf-muted','ความคืบหน้าแผน '+r.savings_progress+'%'));
+        }
+        (r.decision.reasons||[]).forEach(reason=>content.append(make('p','pf-muted',reason)));
+        const details=r.product.listing;
+        content.append(make('hr'),make('div','pf-muted','ตัวเลือกสินค้า: '+(r.product.variant||'ยังไม่ยืนยัน')),make('div','pf-muted','ส่วนลดเพิ่มเติม: '+(details.discount_verified&&details.eligible?money(details.discount):'ยังไม่ยืนยัน / ไม่ใช้คูปองเพิ่ม')),make('div','pf-muted','ค่าจัดส่ง: '+(details.shipping_verified?money(details.shipping):'ยังไม่ยืนยัน')));
+        const dl=make('label','','เปลี่ยนวันซื้อ');const input=make('input');input.type='date';input.value=r.target_date;input.min=r.current_date;dl.append(input);content.append(dl);
+        const actions=make('div','pf-actions');
+        const dateButton=make('button','cursor-interaction','คำนวณวันใหม่');dateButton.type='button';dateButton.addEventListener('click',()=>{
+          if(!input.checkValidity())return;
+          if(data.date_reports?.[input.value]){data.report={...data.report,...data.date_reports[input.value]};content.replaceChildren();decision();feedback.textContent='อัปเดตจากผลคำนวณในเครื่อง ไม่ค้นสินค้าหรือส่งข้อความใหม่';}
+          else send('change_date',{target_date:input.value});
+        });actions.append(dateButton);
+        if(r.goal_confirmation_required){
+          const savedLabel=make('label','','เก็บเงินสำหรับสินค้านี้ไว้แล้วจริงเท่าไหร่ (ถ้าไม่มีให้กรอก 0)');const saved=make('input');saved.type='number';saved.min='0';saved.step='.01';saved.required=true;saved.value=r.reviewed_purchase_saved_amount??'';savedLabel.append(saved);content.append(savedLabel);
+          const confirm=make('button','cursor-interaction','ยืนยันใช้เงินพร้อมใช้และเริ่มแผน');confirm.type='button';confirm.addEventListener('click',()=>{
+            if(!saved.value||!saved.checkValidity()){saved.reportValidity();return;}
+            if(String(saved.value)!==String(r.reviewed_purchase_saved_amount)){send('start_goal',{target_date:r.target_date,purchase_saved_amount:saved.value});return;}
+            const operation=globalThis.crypto?.randomUUID?.();
+            send('confirm_goal',{target_date:r.target_date,purchase_saved_amount:saved.value,funding_source_confirmed:true,expected_revision:data.revision,operation_id:operation||null,review_token:r.review_token});
+          });actions.append(confirm);
+        }else if(r.quote.effective!==null&&r.goal_status!=='NOT_REQUIRED')button(actions,'วางแผนซื้อของชิ้นนี้','start_goal',{target_date:r.target_date});
+        const leaks=make('button','cursor-interaction','ช่วยหาเงินเพิ่มจากรายจ่ายที่ลดได้');leaks.type='button';leaks.addEventListener('click',()=>{if(window.openai?.sendFollowUpMessage)window.openai.sendFollowUpMessage({prompt:'จับโป๊ะรายจ่าย เพื่อช่วยวางแผนซื้อ '+r.product.name+(data.demo?' ใช้ข้อมูลจำลอง':'')});else feedback.textContent='พิมพ์ในแชท: จับโป๊ะรายจ่าย';});actions.append(leaks);
+        const installments=make('button','cursor-interaction','เปรียบเทียบซื้อสดกับผ่อน');installments.type='button';installments.addEventListener('click',()=>{if(window.openai?.sendFollowUpMessage)window.openai.sendFollowUpMessage({prompt:'เปรียบเทียบซื้อสดกับผ่อนสำหรับ '+r.product.name+' โดยขอเงื่อนไขดอกเบี้ยและค่าธรรมเนียมที่ยังไม่ทราบก่อน'});else feedback.textContent='พิมพ์ในแชท: เปรียบเทียบซื้อสดกับผ่อน';});actions.append(installments);
+        button(actions,'อยากซื้อวันนี้เลย','buy_today');button(actions,'หาราคาที่ถูกกว่า','cheaper');button(actions,'เปลี่ยนสินค้า','change_product');button(actions,'ยังไม่ซื้อ','skip');content.append(actions);
+        content.append(make('p','pf-muted',r.new_plan_zero_assumption?'ตัวอย่างแผนเริ่มใหม่จากศูนย์ ยังไม่ใช่ยอดออมจริง ก่อนบันทึกต้องยืนยันเงินที่เก็บแล้วและแหล่งเงิน':'การสร้างแผนเป็นการจัดสรรเสมือน ไม่ได้ซื้อหรือโอนเงินจริง'));
+      }
+      if(data.report)decision();else if(state.stage==='CONFIRM')confirmation();else if(state.stage==='SKIPPED')content.append(make('h2','','เก็บเงินไว้ก่อนครับ ยังไม่มีการซื้อ'));else if(state.stage==='SEARCH_REQUIRED')content.append(make('h2','','รับข้อมูลสินค้าแล้ว กำลังรอหลักฐานเพื่อยืนยันรุ่น'));else if(state.stage==='CLARIFY_PRODUCT')content.append(make('h2','','ยังไม่เจอรุ่นที่ใช่ บอกลักษณะหรือแนบรูปเพิ่มในแชทได้ครับ'));else entry();
+      restore(window.openai?.widgetState);window.addEventListener('openai:set_globals',event=>restore(event.detail?.globals?.widgetState));
+      if(globalThis.lucide)lucide.createIcons({attrs:{width:22,height:22}});
+    })();
+  </script>
+</div>

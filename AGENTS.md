@@ -43,11 +43,13 @@ The user may send e-slips: the image a Thai banking app saves after a transfer o
 
 ## Skills and System-1
 
-This folder holds three pillars of the team's finance agent. Each one has a skill in `.agents/skills/`:
+This folder holds all five pillars of the team's finance agent. Each one has a skill in `.agents/skills/`:
 
 - `income-expense` (Pillar 1): read slips and statements, classify with a confidence score, ask only when unsure. Use it for every slip, receipt, statement or typed transaction instead of editing `database.csv` by hand.
 - `subscription` (Pillar 5): find recurring charges and warn before a renewal or a due date. Run it after every statement and when the user types `/subscription`.
 - `tax` (Pillar 3, from a teammate): payslips, 50 bis certificates and receipts that may count for Thai income tax go into `tax_preparation.csv`; `python3 agent/cli.py tax` lists what still needs a document or an answer. Code and guides are in `tax/`.
+- `investment` (Pillar 2, from a teammate): the Proactive Wealth Coach. Reads broker statements into `Port_db.csv` (10 columns, private), finds the user's investing style and checks concentration risk. It explains and simulates; it never places orders or tells the user to buy or sell. Notes in `investment/README.md`.
+- `shopping-agent` (Pillar 4, from a teammate): price comparison for the same model across Thai shops, "can I afford it", installments and savings goals. Its Python scripts do all money maths. It may read `database.csv` (pass this folder as `--finance-dir`) but never writes transactions: purchases the user makes are recorded with `income-expense`. Its own demo page runs with `python3 shopping/dashboard/server.py --open` (127.0.0.1 only). Notes in `shopping/README.md` and `shopping/AGENTS.md`.
 - `dashboard`: when the user asks to see the dashboard or a summary (`/dashboard`, "ขอดูสรุป"), run `python3 agent/cli.py dashboard --open`. It writes `my-dashboard.html` with the user's data inside and opens it. Never commit or share that file.
 
 `agent/cli.py` is the System-1 side. It runs on the user's machine with plain Python and no network. It writes `agent_state.json`, the one file the dashboard, the main finance agent and the other pillars (tax, investment, price check) read from this pillar.

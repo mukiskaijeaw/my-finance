@@ -1,0 +1,123 @@
+<div id="dynamic-goal-planner">
+  <style>
+    #dynamic-goal-planner{color-scheme:light dark;--gp-bg:light-dark(#fff,#202329);--gp-text:light-dark(#292e33,#f2f4f6);--gp-muted:light-dark(#70777e,#b5bdc7);--gp-line:light-dark(#e7ecef,#3d444e);--gp-track:light-dark(#edf2f0,#34423d);--gp-accent:light-dark(#078469,#62d3b0);color:var(--gp-text);font-family:Tahoma,"Leelawadee UI",system-ui,sans-serif;width:100%}
+    #dynamic-goal-planner *{box-sizing:border-box}
+    #dynamic-goal-planner .gp-shell{padding:20px;background:var(--gp-bg);border:1px solid var(--gp-line);border-radius:18px}
+    #dynamic-goal-planner h2{font-size:23px;line-height:1.5;margin:0 90px 8px 0}
+    #dynamic-goal-planner h3{font-size:17px;line-height:1.6;margin:0;overflow-wrap:anywhere}
+    #dynamic-goal-planner .gp-muted{font-size:12px;color:var(--gp-muted);line-height:1.9}
+    #dynamic-goal-planner .gp-goal{border-top:1px solid var(--gp-line);padding-top:18px;margin-top:18px}
+    #dynamic-goal-planner .gp-heading{display:flex;gap:10px;align-items:center}
+    #dynamic-goal-planner .gp-big{font-size:32px;font-weight:700;line-height:1.6;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+    #dynamic-goal-planner .gp-metrics{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:12px}
+    #dynamic-goal-planner .gp-value{font-size:23px;font-weight:700;font-variant-numeric:tabular-nums}
+    #dynamic-goal-planner .gp-track{background:var(--gp-track);height:10px;border-radius:99px;overflow:hidden;margin:12px 0 6px}
+    #dynamic-goal-planner .gp-fill{height:100%;background:var(--gp-accent)}
+    #dynamic-goal-planner .gp-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+    #dynamic-goal-planner label{font-size:12px;line-height:1.8;display:flex;flex-direction:column;gap:5px}
+    #dynamic-goal-planner input,#dynamic-goal-planner select{font:inherit;font-size:16px;min-width:0;width:100%;padding:10px;border:1px solid var(--gp-line);border-radius:10px;color:var(--gp-text);background:var(--gp-bg)}
+    #dynamic-goal-planner button{font:inherit;font-size:13px;padding:10px 14px;min-height:44px;border:1px solid var(--gp-line);border-radius:10px;color:var(--gp-text);background:var(--gp-bg)}
+    #dynamic-goal-planner button:disabled{opacity:.6}
+    #dynamic-goal-planner .gp-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    #dynamic-goal-planner .gp-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:10px}
+    #dynamic-goal-planner .gp-day{padding:9px 2px;text-align:center;font-size:12px;border-radius:8px;background:var(--gp-track)}
+    #dynamic-goal-planner .gp-recorded{background:var(--gp-accent);color:var(--gp-bg)}
+    #dynamic-goal-planner .gp-inactive{opacity:.4}
+    #dynamic-goal-planner .gp-feedback{font-size:13px;line-height:1.8;margin-top:12px}
+    @media(max-width:450px){#dynamic-goal-planner .gp-fields,#dynamic-goal-planner .gp-metrics{grid-template-columns:1fr}#dynamic-goal-planner .gp-shell{padding:16px}}
+  </style>
+  <section class="gp-shell">
+    <h2>เป้าหมายของคุณ</h2>
+    <div class="gp-muted" data-role="mode"></div>
+    <div data-role="overview" class="gp-muted"></div>
+    <div data-role="goals"></div>
+    <details data-role="creation"><summary class="cursor-interaction">สร้างเป้าหมายใหม่</summary>
+      <form data-role="form">
+        <div class="gp-fields">
+          <label>ชื่อเป้าหมาย<input name="goal_name" required maxlength="200"></label>
+          <label>ประเภท<select name="goal_category"><option value="purchase">ซื้อสินค้า</option><option value="travel">ท่องเที่ยว</option><option value="general">เก็บเงินทั่วไป</option><option value="education">ค่าเรียน</option><option value="future_expense">รายจ่ายอนาคต</option></select></label>
+          <label>ยอดเป้าหมาย (บาท)<input name="target_amount" type="number" min="0.01" step="0.01" required></label>
+          <label>เก็บแล้วจริง (บาท)<input name="saved_amount" type="number" min="0" step="0.01" required></label>
+          <label>วันที่ต้องการ / สิ้นเดือน / สิ้นปี<input name="target_date" required></label>
+          <label>แหล่งเงิน<select name="funding_source"><option value="free_cash">เงินใช้เพิ่ม หลังกันภาระแล้ว</option></select></label>
+          <label>ลิงก์ภาพ (ไม่บังคับ)<input name="image_url" type="url"></label>
+          <label>ความสำคัญ<select name="priority"><option value="">ยังไม่ระบุ</option><option value="low">ต่ำ</option><option value="normal">ปกติ</option><option value="high">สูง</option></select></label>
+        </div>
+        <button type="submit" class="cursor-interaction">ตรวจแผนก่อนบันทึก</button>
+      </form>
+    </details>
+    <div class="gp-feedback" role="status" aria-live="polite" data-role="feedback"></div>
+  </section>
+  <script type="application/json" id="dynamic-goal-data">__GOAL_PAYLOAD__</script>
+  <script>
+    (()=>{
+      const root=document.getElementById('dynamic-goal-planner');
+      const data=JSON.parse(document.getElementById('dynamic-goal-data').textContent);
+      const get=role=>root.querySelector('[data-role="'+role+'"]');
+      const make=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;};
+      const money=value=>value===null||value===undefined?'ยังประเมินไม่ได้':'฿'+Number(value).toLocaleString('th-TH',{maximumFractionDigits:2});
+      const icons={purchase:'shopping-bag',travel:'plane',general:'piggy-bank',education:'graduation-cap',future_expense:'calendar-days'};
+      get('mode').textContent=data.demo?'DEMO · แยกจากเงินจริง':'ผลคำนวณจากข้อมูลที่ระบุ · ตรวจยืนยันก่อนบันทึก';
+      get('overview').textContent=data.summary;
+      if(!(data.goals||[]).length){get('overview').textContent='ยังไม่มีเป้าหมายเลยครับ อยากเก็บเงินซื้ออะไร เดี๋ยวช่วยวางแผนให้';get('creation').open=true;}
+      let busy=false;
+      async function send(prompt){
+        if(busy)return;
+        if(!window.openai?.sendFollowUpMessage){get('feedback').textContent='พิมพ์ในแชท: '+prompt;return;}
+        busy=true;
+        try{await window.openai.sendFollowUpMessage({prompt,title:'ตรวจและยืนยันแผนเป้าหมาย'});get('feedback').textContent='ส่งคำขอแล้ว ยังไม่ถือว่าบันทึกสำเร็จจนได้รับผลจากเครื่องมือ';}
+        catch(e){get('feedback').textContent='ยังส่งไม่สำเร็จ พิมพ์ในแชท: '+prompt;}
+        finally{busy=false;}
+      }
+      (data.goals||[]).forEach(goal=>{
+        const card=make('article','gp-goal');
+        const heading=make('div','gp-heading');const icon=make('i');icon.setAttribute('data-lucide',icons[goal.goal_category]||'target');icon.setAttribute('aria-hidden','true');heading.append(icon,make('h3','',goal.goal_name));card.append(heading);
+        card.append(make('div','gp-big',money(goal.target_amount)),make('div','gp-muted','ยังต้องเก็บ '+money(goal.remaining_target_amount)),make('div','gp-muted','วันที่เป้าหมาย '+goal.target_date+' · '+goal.countdown_text));
+        const track=make('div','gp-track');track.setAttribute('role','progressbar');track.setAttribute('aria-label','ความคืบหน้า '+goal.goal_name);track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax','100');track.setAttribute('aria-valuenow',goal.progress);
+        const fill=make('div','gp-fill');fill.style.width=goal.progress+'%';track.append(fill);card.append(track,make('div','gp-muted',money(goal.saved_amount)+' / '+money(goal.target_amount)+' · '+goal.progress+'%'));
+        const metrics=make('div','gp-metrics');
+        [['ต้องเก็บต่อวัน',goal.daily_saving],['งบใช้ต่อวันหลังจัดสรรทุกเป้าหมาย',data.daily_spending]].forEach(([label,value])=>{const cell=make('div');cell.append(make('div','gp-muted',label),make('div','gp-value',money(value)));metrics.append(cell);});card.append(metrics,make('p','gp-muted',goal.message));
+        if(goal.image_url){const link=make('a','gp-muted','ดูภาพเป้าหมายที่ระบุ');link.href=goal.image_url;link.target='_blank';link.rel='noreferrer noopener';card.append(link);}
+        const actions=make('div','gp-actions');
+        const action=(label,verb)=>{const b=make('button','cursor-interaction',label);b.type='button';b.addEventListener('click',()=>send('ขอ'+verb+'เป้าหมาย '+goal.goal_name+' รหัส '+goal.goal_id+' กรุณาแสดงผลกระทบและขอยืนยันก่อนบันทึก'));actions.append(b);};
+        if(goal.goal_id&&goal.goal_id!=='preview'){
+          action('แก้ไข / เปลี่ยนวัน','แก้ไข');action(goal.status==='PAUSED'?'เริ่มต่อ':'พักแผน',goal.status==='PAUSED'?'เริ่มต่อ':'พัก');action('ลบเป้าหมาย','ลบ');
+          if(goal.plan_status==='ACTIVE'){
+            const field=make('label','','ยอดออมวันนี้ (บาท)');const input=make('input');input.type='number';input.min='0.01';input.step='0.01';field.append(input);card.append(field);
+            const record=make('button','cursor-interaction','ขอบันทึกเงินออมวันนี้');record.type='button';record.addEventListener('click',()=>{if(!input.value||!input.checkValidity()){input.reportValidity();return;}send('ขอบันทึกเงินออมเป้าหมาย '+goal.goal_name+' รหัส '+goal.goal_id+' วันที่ '+data.current_date+' จำนวน '+input.value+' บาท ตรวจรายการเดิมและขอยืนยันก่อนบันทึก');});actions.append(record);
+          }else action('เริ่มแผน','เริ่ม');
+        }else{
+          const begin=make('button','cursor-interaction','ขอเริ่มแผนนี้');begin.type='button';
+          begin.addEventListener('click',()=>{
+            const fields={};['goal_name','goal_category','target_amount','saved_amount','target_date','image_url','priority','funding_source'].forEach(key=>{fields[key]=goal[key]??null;});
+            send('ขอสร้างและเริ่มเป้าหมายนี้ '+JSON.stringify(fields)+' ตรวจผลกระทบและขอยืนยันก่อนบันทึก');
+          });actions.append(begin);
+        }
+        card.append(actions);
+        const days=(data.calendar||{})[goal.goal_id]||[];
+        if(days.length){
+          const box=make('details');box.append(make('summary','cursor-interaction','ปฏิทินการเก็บเงิน'));
+          const months=[...new Set(days.map(d=>d.date.slice(0,7)))],label=make('label','','เดือน / ปี'),select=make('select');
+          months.forEach(month=>{const option=make('option','',month);option.value=month;select.append(option);});label.append(select);box.append(label);
+          const count=make('div','gp-muted'),grid=make('div','gp-calendar');box.append(count,grid);const simulated=new Set();
+          function calendar(){
+            grid.replaceChildren();count.textContent='บันทึกสำเร็จ '+days.filter(d=>d.state==='recorded').length+' วัน'+(simulated.size?' · จำลอง '+simulated.size+' วัน (ไม่บันทึก)':'');
+            const scenario=goal.demo_progress?.[simulated.size];if(scenario){fill.style.width=scenario.progress+'%';track.setAttribute('aria-valuenow',scenario.progress);track.setAttribute('aria-label',simulated.size?'ความคืบหน้าจำลอง ไม่ใช่ยอดออมจริง':'ความคืบหน้า '+goal.goal_name);if(simulated.size)count.textContent+=' · ความคืบหน้าจำลอง '+scenario.progress+'%';}
+            ['จ','อ','พ','พฤ','ศ','ส','อา'].forEach(text=>grid.append(make('div','gp-day',text)));
+            const monthDays=days.filter(d=>d.date.startsWith(select.value));
+            for(let i=0;i<(monthDays[0]?.weekday||0);i++)grid.append(make('div'));
+            monthDays.forEach(d=>{
+              const recorded=d.state==='recorded'||simulated.has(d.date),cell=make(data.demo&&d.state==='upcoming'?'button':'div','gp-day'+(recorded?' gp-recorded':'')+(d.state==='inactive'?' gp-inactive':''),d.date.slice(-2)+(recorded?' ✓':'')+(d.target?' ⚑':''));
+              cell.setAttribute('aria-label',d.date+' '+(d.saved_amount?money(d.saved_amount):d.state)+(d.target?' วันเป้าหมาย':''));
+              if(cell.tagName==='BUTTON'){cell.type='button';cell.addEventListener('click',()=>{simulated.has(d.date)?simulated.delete(d.date):simulated.add(d.date);calendar();get('feedback').textContent='จำลองวันเก็บสำเร็จเท่านั้น ยอดออมจริงและแผนไม่เปลี่ยน';});}grid.append(cell);
+            });
+          }
+          select.value=months.includes(data.current_date.slice(0,7))?data.current_date.slice(0,7):months[0];select.addEventListener('change',calendar);calendar();card.append(box);
+        }
+        get('goals').append(card);
+      });
+      get('form').addEventListener('submit',event=>{event.preventDefault();const form=Object.fromEntries(new FormData(event.target));if(!form.image_url)form.image_url=null;if(!form.priority)form.priority=null;send('ช่วยตรวจแผนเป้าหมายนี้ก่อน ยังไม่บันทึก: '+JSON.stringify(form));});
+      if(globalThis.lucide)lucide.createIcons({attrs:{width:20,height:20}});
+    })();
+  </script>
+</div>

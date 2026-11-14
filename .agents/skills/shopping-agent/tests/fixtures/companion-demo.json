@@ -1,0 +1,16 @@
+{
+  "synthetic": true,
+  "profile": {"income":"30000","essential":"17000","debt":"0","saving":"5000","cash":"77000","emergency":"60000","reserved":"10500","future_extra":[],"income_kind":"stable","complete":true,"future_complete":true},
+  "budget": {"cycle_complete":true,"minimum_remaining":"0"},
+  "spending_account_balance":"12000",
+  "upcoming_expenses":"5500",
+  "savings_transferred":"5000",
+  "transaction_groups":[
+    {"category":"Coffee","description":"กาแฟจำลอง","count":15,"amount":"90"},
+    {"category":"Delivery Fees","description":"ค่าจัดส่งอาหารจำลอง แยกจากค่าอาหาร","count":11,"amount":"50"},
+    {"category":"Subscriptions","description":"บริการสมาชิกจำลอง","count":1,"amount":"359"},
+    {"category":"Essentials","description":"ค่าใช้ชีวิตจำลองที่จ่ายแล้ว","count":1,"amount":"10741"}
+  ],
+  "subscriptions":[{"name":"บริการสมาชิกจำลอง","amount":"359","period":"monthly"}],
+  "notes":"Actual mock expenses total 13000, which exceeds the 11500 planned paid portion by 1500. Spending balance 30000-13000-5000=12000; total cash includes protected savings and separate emergency. Planned monthly surplus is 8000 but current available is 6500. No default active goals."
+}

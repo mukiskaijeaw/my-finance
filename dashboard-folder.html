@@ -445,7 +445,7 @@
 
   <script type="application/json" id="demo-state">/*DEMO-STATE*/{
  "schema": "pillar1-state/1",
- "generated_at": "2026-11-14T07:51:56",
+ "generated_at": "2026-11-14T14:41:55",
  "today": "2026-11-12",
  "ledger": {
   "rows": 217,
@@ -1593,6 +1593,74 @@
    }
   ],
   "open_tasks": 9
+ },
+ "invest": {
+  "available": true,
+  "holdings": [
+   {
+    "ticker": "VOO",
+    "asset_class": "ETF",
+    "shares": 0.8421,
+    "value": 432.32,
+    "pnl": 28.1,
+    "dividend_yield": 1.3,
+    "avg_cost": 480.0,
+    "dividends": 2.4,
+    "broker": "Dime",
+    "currency": "USD"
+   },
+   {
+    "ticker": "SCHD",
+    "asset_class": "ETF",
+    "shares": 6.25,
+    "value": 171.81,
+    "pnl": 6.81,
+    "dividend_yield": 3.6,
+    "avg_cost": 26.4,
+    "dividends": 4.1,
+    "broker": "Dime",
+    "currency": "USD"
+   },
+   {
+    "ticker": "O",
+    "asset_class": "REIT",
+    "shares": 2.0,
+    "value": 113.42,
+    "pnl": 3.22,
+    "dividend_yield": 5.6,
+    "avg_cost": 55.1,
+    "dividends": 1.58,
+    "broker": "Dime",
+    "currency": "USD"
+   },
+   {
+    "ticker": "IAU",
+    "asset_class": "Gold",
+    "shares": 1.5,
+    "value": 87.45,
+    "pnl": 9.45,
+    "dividend_yield": 0.0,
+    "avg_cost": 52.0,
+    "dividends": 0.0,
+    "broker": "Dime",
+    "currency": "USD"
+   }
+  ],
+  "warnings": [
+   "VOO is 54% of the USD portfolio"
+  ],
+  "by_currency": {
+   "USD": {
+    "value": 805.0,
+    "pnl": 47.58,
+    "dividends": 8.08,
+    "by_class": {
+     "ETF": 604.13,
+     "REIT": 113.42,
+     "Gold": 87.45
+    }
+   }
+  }
  }
 }/*END-DEMO-STATE*/</script>
   <script type="text/plain" id="demo-ledger">/*DEMO-LEDGER*/transaction_id,date,transaction_type,description,amount_thb,category,action,year_month,source,source_reference,data_quality_flag

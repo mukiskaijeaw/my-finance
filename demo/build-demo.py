@@ -18,13 +18,15 @@ a = ap.parse_args()
 work = a.keep or tempfile.mkdtemp()
 os.makedirs(work, exist_ok=True)
 for f in ("database.csv", "review_queue.csv", "decisions.csv", "rules.csv", "agent_state.json",
-          "tax_preparation.csv", "finance_evidence.json", "finance_review.json"):
+          "tax_preparation.csv", "finance_evidence.json", "finance_review.json", "Port_db.csv"):
     if os.path.exists(os.path.join(work, f)):
         os.remove(os.path.join(work, f))
 shutil.copy(os.path.join(root, "demo", "database.example.csv"), os.path.join(work, "database.csv"))
 # synthetic Tax pillar records (Pillar 3)
 shutil.copy(os.path.join(root, "demo", "tax_preparation.example.csv"), os.path.join(work, "tax_preparation.csv"))
 shutil.copy(os.path.join(root, "demo", "finance_evidence.example.json"), os.path.join(work, "finance_evidence.json"))
+# synthetic portfolio for the Investment pillar (Pillar 2)
+shutil.copy(os.path.join(root, "demo", "Port_db.example.csv"), os.path.join(work, "Port_db.csv"))
 subprocess.run([sys.executable, os.path.join(root, "agent", "cli.py"), "--dir", work, "--today", a.today, "ingest",
                 os.path.join(root, "demo", "statement-2026-11.example.csv")], check=True, stdout=subprocess.DEVNULL)
 

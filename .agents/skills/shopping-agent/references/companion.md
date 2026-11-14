@@ -1,0 +1,14 @@
+# Shared companion workflows
+
+Five welcome menus only; ครับ. Latest MVP supersedes older welcome/personality/demo defaults. Reuse templates; no website/server.
+
+CLI: `python <skill-dir>/scripts/shopping.py companion --finance-dir <provider> --format inline --output <new-file>`; JSON through stdin. Existing purchase/goals commands retained. synthetic:true loads final fixture and separate demo goal store, never real provider. No default active goals. Demo available 6,500; planned surplus 8,000. Actual fixture expenses reconcile the spending balance independently of planned expenses.
+
+- Daily: action daily, profile, budget, balance_includes_today_expenses:true. Provider supplies current-month transactions if omitted. Coverage flag requires confirmation that current cash already reflects those payments. Snapshot protects active goals once. Today spending reconstructs pre-spend daily allocation, never subtracts twice. Slider is extra hypothetical spending only.
+- Leaks: action leaks, optional transactions, subscriptions [{name,amount,period:monthly|annual}]. Unknown cycle excluded from monthly saving. Group categories dynamically; duplicates and recurring are candidates, not proof of waste. Delivery fees must be explicit, not inferred from total meals. MVP sliders cover up to two observed small-frequent categories plus three subscriptions. Annual fees preserve exact annual value. Potential saving is not cash.
+- Potential goal: action potential_goal, goal_id, potential_monthly returns HYPOTHETICAL_DRAFT for an active goal, no writes. For new goals collect missing name/category/target/date/actual saved/source; preview through goals then confirm. Potential reductions do not make an unfunded plan feasible. Existing plan edits use confirmed goal workflow after actual funding is established.
+- Travel: action travel, profile, budget, trip {departure,destination,travel_date,days,nights,travelers,costs:[{name,amount,unit,certainty,source}]}. Units group_total/per_person/per_person_day/group_night/per_person_night; certainty estimated|verified and source required. Up to five categories; sliders use 0/50/100/150/200% of each supplied cost. Bounded what-if, not booking quotes. No image search/loading. Goal engine and known complete cashflows only; confirmation before actual goal creation.
+
+Each new turn reloads latest local state. Calendar full month, Monday–Sunday; before activation and after target inactive. Real saving rejects future/duplicate days. Demo future-day clicks only simulate successful days in memory, never saved amounts. Actual saving uses confirmed mutation. No UI action silently writes finances.
+
+Host follow-up bridge requests a new turn; it is not a backend write. Missing bridge shows text fallback. View kind/demo flag may enter modelContent; slider indices privateContent only. No financial payload to external servers. DOM tests are simulated interaction evidence, not actual host-click certification.

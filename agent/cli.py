@@ -286,6 +286,7 @@ def build_state(ws, today):
         "profile": json.load(open(os.path.join(ws.dir, "profile.json"), encoding="utf-8")) if os.path.exists(os.path.join(ws.dir, "profile.json")) else {},
     }
     state["tax"] = tax_summary(ws)
+    state["invest"] = invest_summary(ws)
     with open(ws.state_path, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=1)
     return state
@@ -307,6 +308,41 @@ def tax_summary(ws):
     return {"available": True, "records": rows, "totals": review.get("tax_totals", {}),
             "tasks": [{k: t.get(k) for k in ("id", "kind", "title", "question", "status", "transaction_ids", "facts")} for t in tasks],
             "open_tasks": sum(t["status"] == "open" for t in tasks)}
+
+
+PORT_COLS = ["Ticker", "Asset_Class", "Shares", "Dividend_Yield", "Avg_Cost", "Current_PnL",
+             "Accumulated_Dividend", "Broker", "Current_Value", "Trade_Currency"]
+
+
+def invest_summary(ws):
+    """Read the Investment pillar's Port_db.csv (made by its skill). Read only; no prices are fetched."""
+    path = os.path.join(ws.dir, "Port_db.csv")
+    if not os.path.exists(path):
+        return {"available": False}
+    rows = read_csv(path)
+    if rows and list(rows[0].keys()) != PORT_COLS:
+        return {"available": True, "error": "Port_db.csv does not have the 10 expected columns"}
+    num = lambda v: float(v) if (v or "").strip() not in ("", "-") else 0.0  # noqa: E731
+    holdings, by_ccy = [], defaultdict(lambda: {"value": 0.0, "pnl": 0.0, "dividends": 0.0, "by_class": defaultdict(float)})
+    for r in rows:
+        try:
+            h = {"ticker": r["Ticker"], "asset_class": r["Asset_Class"], "shares": num(r["Shares"]), "value": num(r["Current_Value"]),
+                 "pnl": num(r["Current_PnL"]), "dividend_yield": num(r["Dividend_Yield"]), "avg_cost": num(r["Avg_Cost"]),
+                 "dividends": num(r["Accumulated_Dividend"]), "broker": r["Broker"], "currency": r["Trade_Currency"] or "THB"}
+        except ValueError:
+            return {"available": True, "error": f"Port_db.csv has a value that is not a number ({r.get('Ticker')})"}
+        holdings.append(h)
+        c = by_ccy[h["currency"]]
+        c["value"] += h["value"]; c["pnl"] += h["pnl"]; c["dividends"] += h["dividends"]; c["by_class"][h["asset_class"]] += h["value"]
+    warnings = []
+    for ccy, c in by_ccy.items():   # the pillar's risk radar: one asset above 50% of the portfolio
+        for h in holdings:
+            if h["currency"] == ccy and c["value"] and h["value"] / c["value"] > 0.5:
+                warnings.append(f"{h['ticker']} is {h['value'] / c['value']:.0%} of the {ccy} portfolio")
+    return {"available": True, "holdings": sorted(holdings, key=lambda h: -h["value"]), "warnings": warnings,
+            "by_currency": {k: {"value": round(v["value"], 2), "pnl": round(v["pnl"], 2), "dividends": round(v["dividends"], 2),
+                                "by_class": {a: round(x, 2) for a, x in sorted(v["by_class"].items(), key=lambda i: -i[1])}}
+                            for k, v in by_ccy.items()}}
 
 
 def cmd_tax(ws, args):

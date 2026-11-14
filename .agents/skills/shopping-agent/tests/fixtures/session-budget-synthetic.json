@@ -1,0 +1,7 @@
+{
+  "synthetic": true,
+  "source": "User-approved simulation in this chat, emergency money removed; never a production default",
+  "profile": {"income":"30000","essential":"14500","debt":"0","saving":"3000","cash":"30000","emergency":"0","reserved":"8000","future_extra":[],"income_kind":"stable","complete":true,"future_complete":true},
+  "budget": {"cycle_complete":true,"minimum_remaining":"1500"},
+  "unpaid_living":"14500"
+}

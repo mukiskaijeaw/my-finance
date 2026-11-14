@@ -1,0 +1,31 @@
+{
+  "synthetic": true,
+  "profile": {
+    "income": "30000",
+    "essential": "17000",
+    "debt": "0",
+    "saving": "5000",
+    "cash": "77000",
+    "emergency": "60000",
+    "reserved": "10500",
+    "future_extra": [],
+    "income_kind": "stable",
+    "complete": true,
+    "future_complete": true,
+    "safety_buffer": "1500"
+  },
+  "product": {
+    "productName": "สินค้าจำลอง",
+    "productPrice": "3200"
+  },
+  "slider": {
+    "minimum": 1000,
+    "maximum": 12000,
+    "step": 100
+  },
+  "assumptions": [
+    "ข้อมูลจำลองสำหรับการทดสอบเท่านั้น ไม่อ่านหรือแก้ ledger จริง",
+    "เงินสดรวมเงินฉุกเฉินแยกบัญชีและออมโอนแล้ว กัน reserved ครั้งเดียว",
+    "ค่าใช้จ่ายและเป้าออมรายเดือนเป็นกระแสเงิน ไม่หักซ้ำจากเงินสด"
+  ]
+}

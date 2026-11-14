@@ -1,0 +1,6 @@
+interface:
+  display_name: "Shopping Agent"
+  short_description: "ค้นสินค้าไทย เทียบราคา และวางแผนซื้อผ่านแชท"
+  default_prompt: "ใช้ $shopping-agent ช่วยค้นสินค้า เปรียบเทียบราคา หรือประเมินว่าฉันซื้อไหวไหม"
+policy:
+  allow_implicit_invocation: true

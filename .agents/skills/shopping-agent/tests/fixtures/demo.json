@@ -1,0 +1,24 @@
+{
+  "synthetic": true,
+  "include_financial": true,
+  "profile": {
+    "income": "30000", "essential": "18000", "debt": "2000", "saving": "8000",
+    "cash": "20200", "emergency": "15000", "reserved": "5000", "earmarked": "200",
+    "as_of": "2026-11-12", "complete": true, "future_complete": true,
+    "future_extra": [], "income_kind": "stable"
+  },
+  "listings": [
+    {
+      "name": "ปังเนยหนึบห่อเล็ก (จำลอง)", "store": "ร้านจำลอง ไม่ใช่ข้อเสนอจริง",
+      "price": "49", "shipping": "40", "discount": "0",
+      "verified": true, "shipping_verified": true, "checked": "2026-11-12",
+      "url": "https://example.invalid/demo/small", "stock": "available", "stock_verified": true
+    },
+    {
+      "name": "ปังเนยหนึบแพ็กใหญ่ (จำลอง)", "store": "ร้านจำลอง ไม่ใช่ข้อเสนอจริง",
+      "price": "239", "shipping": "40", "discount": "0",
+      "verified": true, "shipping_verified": true, "checked": "2026-11-12",
+      "url": "https://example.invalid/demo/large", "stock": "available", "stock_verified": true
+    }
+  ]
+}

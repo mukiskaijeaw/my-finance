@@ -51,9 +51,26 @@ python3 agent/cli.py --dir /tmp/try --today 2026-11-12 alerts --days 7
 - รายการลดหย่อนเป็น `needs_review` จนกว่าจะมีเอกสารและตรวจกฎของปีนั้นแล้ว คู่มือคัดกรองอยู่ที่ `tax/THAI_TAX_GUIDE.md` แหล่งทางการอยู่ที่ `tax/TAX_RESEARCH.md` วิธีใช้ละเอียดอยู่ที่ `tax/WORKFLOW.md`
 - เทสต์: `cd tax && python3 -m unittest tests/test_workflow.py`
 
+## ลงทุน (Pillar 2) จากเพื่อนในทีม
+
+skill `.agents/skills/investment` (Proactive Wealth Coach) มาจาก [Chinnakrit-jun/AI-Agent-for-invest](https://github.com/Chinnakrit-jun/AI-Agent-for-invest) รายละเอียดอยู่ที่ `investment/README.md`
+
+- ส่งรูป statement จากแอปโบรกเกอร์ (Dime, InnovestX, Streaming) แล้ว agent บันทึกพอร์ตลง `Port_db.csv` (10 คอลัมน์ อยู่ในเครื่อง ไม่ขึ้น Git)
+- มือใหม่: ถาม 4 ข้อเพื่อหาสไตล์การลงทุน แล้วจำลอง DCA เทียบเงินฝาก ไม่ส่งคำสั่งซื้อขายจริง
+- หน้า Investment ในแดชบอร์ดอ่าน `Port_db.csv` แสดงมูลค่า กำไรขาดทุน สัดส่วน และเตือนเมื่อสินทรัพย์ตัวเดียวเกินครึ่งพอร์ต
+
+## ช้อปปิ้งและเปรียบเทียบราคา (Pillar 4) จากเพื่อนในทีม
+
+มาจาก [natanonlee/shopping-agent](https://github.com/natanonlee/shopping-agent) skill อยู่ที่ `.agents/skills/shopping-agent` หน้าแดชบอร์ดของตัวเองอยู่ที่ `shopping/`
+
+- เรียกด้วย `$shopping-agent` เปรียบเทียบรุ่นเดียวกันจากหลายร้าน เช็กว่าซื้อไหวไหม ผ่อน และวางแผนเก็บเงิน
+- อ่าน `database.csv` ของเราได้ (11 คอลัมน์) แต่ไม่เขียนรายการลงบัญชี
+- เปิดหน้าทดลอง: `python3 shopping/dashboard/server.py --open` (Windows ดับเบิลคลิก `shopping/start-dashboard.bat`) เปิดที่ `http://127.0.0.1:8877` ใช้ข้อมูลตัวอย่างเท่านั้น
+- เทสต์: `python3 -m unittest discover -s .agents/skills/shopping-agent/tests -p "test_*.py"` และ `python3 -m unittest discover -s shopping/dashboard -p "test_*.py"`
+
 ### สิ่งที่ pillar อื่นอ่านได้
 
-ทุกคำสั่งเขียน `agent_state.json` (schema `pillar1-state/1`) ใหม่ทุกครั้ง: `monthly` (รายรับ รายจ่าย เงินคืน เงินลงทุน แยกหมวดรายเดือน), `recurring`, `alerts`, `fixed_costs`, `review_queue`, `routing`, `tax` (รายการภาษี ยอดแยกสถานะ และงานที่ต้องตรวจ) Main agent, Tax, Investment อ่านไฟล์นี้ไฟล์เดียวโดยไม่ต้องแตะ `database.csv` เงินคืน (`Refund`) แยกออกจากรายได้แล้ว
+ทุกคำสั่งเขียน `agent_state.json` (schema `pillar1-state/1`) ใหม่ทุกครั้ง: `monthly` (รายรับ รายจ่าย เงินคืน เงินลงทุน แยกหมวดรายเดือน), `recurring`, `alerts`, `fixed_costs`, `review_queue`, `routing`, `tax` (รายการภาษี ยอดแยกสถานะ และงานที่ต้องตรวจ), `invest` (พอร์ตจาก `Port_db.csv`) Main agent, Tax, Investment อ่านไฟล์นี้ไฟล์เดียวโดยไม่ต้องแตะ `database.csv` เงินคืน (`Refund`) แยกออกจากรายได้แล้ว
 
 ## เริ่มใช้กับ Codex หรือ Claude
 

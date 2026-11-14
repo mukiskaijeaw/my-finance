@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src https://static.nike.com; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Shopping Agent · Demo Simulation</title>
+<style>
+:root{color-scheme:light dark;--page:#f7f7f8;--card:#fff;--ink:#202123;--muted:#73767b;--border:#e5e7eb;--track:#e9ebee;--green:#168373;--orange:#b97710;--red:#c74b4b;--tone:var(--green);font-family:Tahoma,"Leelawadee UI",system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;padding:32px 18px;background:var(--page);color:var(--ink)}.card{max-width:720px;margin:auto;padding:30px;border:1px solid var(--border);border-radius:16px;background:var(--card)}
+.eyebrow{font-size:12px;letter-spacing:.09em;color:var(--muted);margin:0 0 28px}.product{display:flex;align-items:center;gap:24px}.photo{flex:0 0 100px;width:100px;height:100px;border-radius:12px;background:var(--page);display:grid;place-items:center;overflow:hidden;font-size:12px;color:var(--muted)}.photo img{width:100px;height:100px;object-fit:contain}.photo[hidden],img[hidden]{display:none}h1{font-size:21px;margin:0 0 8px;line-height:1.4}.sub{font-size:13px;color:var(--muted);margin:0 0 5px}.price{font-size:34px;font-weight:700;line-height:1.5;font-variant-numeric:tabular-nums}.section{margin-top:26px;padding-top:24px;border-top:1px solid var(--border)}label{font-size:15px;font-weight:600}.slider-value{display:block;margin:10px 0 18px;font-size:25px;font-weight:700;font-variant-numeric:tabular-nums}input[type=range]{display:block;width:100%;height:24px;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;touch-action:pan-y}input[type=range]::-webkit-slider-runnable-track{height:7px;border-radius:99px;background:linear-gradient(to right,var(--ink) var(--slider-position,20%),var(--track) var(--slider-position,20%))}input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:20px;height:20px;margin-top:-6.5px;border-radius:50%;background:var(--card);border:2px solid var(--ink);box-shadow:0 1px 3px #0002}input[type=range]::-moz-range-track{height:7px;border-radius:99px;background:var(--track)}input[type=range]::-moz-range-progress{height:7px;border-radius:99px;background:var(--ink)}input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:var(--card);border:2px solid var(--ink)}input:focus-visible{outline:2px solid var(--green);outline-offset:6px;border-radius:6px}.ends{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:20px}.metric-label{font-size:14px;color:var(--muted);margin-bottom:10px}.number{font-size:34px;font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums}.remaining{color:var(--tone)}.spend-label{margin:24px 0 12px;font-size:13px;color:var(--muted)}.bar{height:9px;background:var(--track);border-radius:99px;overflow:hidden}.bar-fill{height:100%;width:0;background:var(--tone);border-radius:99px}.recommendation{display:flex;align-items:flex-start;gap:12px;margin-top:26px}.status-icon{width:24px;height:24px;flex:0 0 24px;border:1.5px solid var(--tone);color:var(--tone);display:grid;place-items:center;border-radius:50%;font-size:14px;font-weight:bold}.rec-title{font-size:17px;font-weight:700;margin:0 0 8px;color:var(--tone)}.rec-detail{font-size:13px;line-height:1.8;color:var(--muted);margin:0}.footer{margin:27px 0 0;font-size:11px;line-height:1.85;color:var(--muted)}.limit{font-size:11px;color:var(--muted);line-height:1.8;margin:10px 0 0}.source{font-size:11px;color:var(--muted);text-decoration:underline}.source[hidden]{display:none}
+@media(prefers-color-scheme:dark){:root{--page:#16181c;--card:#202329;--ink:#f1f2f4;--muted:#a5abb4;--border:#363b44;--track:#3a3f48;--green:#64cfb8;--orange:#e3ae50;--red:#f18383}}
+@media(max-width:480px){body{padding:14px 10px}.card{padding:22px 18px}.product{gap:15px}h1{font-size:17px}.price,.number{font-size:28px}.metrics{gap:12px}.metric-label{font-size:12px}.eyebrow{font-size:10px}.section{margin-top:22px;padding-top:22px}}
+</style></head><body>
+<main class="card" id="simulator" data-status="">
+<p class="eyebrow">SHOPPING AGENT · DEMO SIMULATION</p>
+<div class="product"><div class="photo"><span id="placeholder">ไม่มีรูปสินค้า</span><img id="product-image" hidden alt="" referrerpolicy="no-referrer"></div><div><h1 id="product-name"></h1><p class="sub">ราคาจำลองสำหรับทดสอบ</p><div class="price" id="product-price"></div><a class="source" id="image-source" hidden target="_blank" rel="noreferrer noopener">แหล่งภาพสินค้า</a></div></div>
+<section class="section"><label for="price-slider">ทดลองเปลี่ยนราคาสินค้า</label><output class="slider-value" id="slider-price" for="price-slider"></output><input type="range" id="price-slider" aria-label="ทดลองเปลี่ยนราคาสินค้า"><div class="ends"><span id="min-label"></span><span id="max-label"></span></div></section>
+<section class="section"><div class="metrics"><div><div class="metric-label">เงินพร้อมใช้ก่อนซื้อ</div><div class="number" id="available"></div></div><div><div class="metric-label">เงินเหลือหลังซื้อ</div><div class="number remaining" id="remaining"></div></div></div>
+<p class="spend-label" id="spending-label"></p><div class="bar" role="progressbar" aria-label="สัดส่วนเงินพร้อมใช้ที่ใช้ซื้อ" aria-valuemin="0" aria-valuemax="100" id="spending-bar"><div class="bar-fill" id="bar-fill"></div></div>
+<div class="recommendation" role="status" aria-live="polite" aria-atomic="true"><span class="status-icon" id="status-icon" aria-hidden="true"></span><div><p class="rec-title" id="recommendation"></p><p class="rec-detail" id="explanation"></p></div></div>
+<p class="footer" id="buffer-note"></p><p class="limit">สถานะจำลองนี้เป็น Financial Fit เบื้องต้น ไม่ใช่ข้อสรุปความจำเป็นหรือความคุ้มค่าทั้งหมด · ไม่มีการซื้อหรือบันทึกรายจ่าย</p></section></main>
+<script type="application/json" id="simulation-data">__SIMULATOR_PAYLOAD__</script>
+<script>
+(()=>{'use strict';const data=JSON.parse(document.getElementById('simulation-data').textContent),get=id=>document.getElementById(id),slider=get('price-slider');
+if(data.demoMode!==true)throw new Error('Preview accepts synthetic demo data only');
+get('product-name').textContent=data.productName;slider.min=data.slider.minimum;slider.max=data.slider.maximum;slider.step=data.slider.step;slider.value=data.productPrice;
+const displayMoney=v=>'฿'+new Intl.NumberFormat('th-TH',{maximumFractionDigits:2}).format(v);
+get('min-label').textContent=displayMoney(slider.min);get('max-label').textContent=displayMoney(slider.max);
+get('buffer-note').textContent='เกณฑ์เงินเหลือ '+new Intl.NumberFormat('th-TH').format(data.safetyBuffer)+' บาทเป็นสมมติฐานสำหรับ Demo เท่านั้น ยังไม่ใช่เกณฑ์ที่ผ่านการทดสอบหรือเหมาะกับผู้ใช้ทุกคน';
+if(data.productImageUrl){const img=get('product-image');img.alt=data.productName;img.onload=()=>{img.hidden=false;get('placeholder').hidden=true};img.onerror=()=>{img.hidden=true;get('placeholder').textContent='โหลดรูปไม่ได้'};img.src=data.productImageUrl;get('image-source').href=data.imageSource;get('image-source').hidden=false;}
+function render(){const state=data.states[slider.value];if(!state)throw new Error('No engine-computed state for this slider value');
+get('simulator').dataset.status=state.demoFinancialStatus;get('product-price').textContent=state.priceText;get('slider-price').textContent=state.priceText;slider.setAttribute('aria-valuetext',state.priceText);
+get('available').textContent=state.availableText||'ยังประเมินไม่ได้';get('remaining').textContent=state.remainingText||'ยังประเมินไม่ได้';
+get('spending-label').textContent=state.spendingPercentage===null?'ยังคำนวณสัดส่วนไม่ได้':'ใช้เงินพร้อมใช้ '+state.spendingPercentage+'%';
+get('bar-fill').style.width=(state.progressBarWidth||'0')+'%';get('spending-bar').setAttribute('aria-valuenow',state.progressBarWidth||'0');
+get('spending-bar').hidden=state.progressBarWidth===null;
+const colors={AFFORDABLE:'var(--green)',BUY_WITH_CAUTION:'var(--orange)',WAIT_AND_SAVE:'var(--red)',INSUFFICIENT_DATA:'var(--muted)'};
+get('simulator').style.setProperty('--tone',colors[state.demoFinancialStatus]);get('status-icon').textContent=state.demoFinancialStatus==='AFFORDABLE'?'✓':state.demoFinancialStatus==='BUY_WITH_CAUTION'?'!':'!';
+get('recommendation').textContent=state.title;get('explanation').textContent=state.explanation;
+// Slider-position percentage is purely visual geometry, not a financial formula.
+slider.style.setProperty('--slider-position',((Number(slider.value)-Number(slider.min))/(Number(slider.max)-Number(slider.min))*100)+'%');}
+slider.addEventListener('input',render);render();
+// The same precomputed resource can be mounted by a future MCP Apps host.
+// Preview mode has no parent bridge, outgoing fetch or LLM calls.
+if(typeof window!=='undefined'&&window.parent!==window){
+const initId='shopping-simulator-init';
+window.addEventListener('message',event=>{if(event.source!==window.parent)return;const m=event.data;if(m&&m.jsonrpc==='2.0'&&m.id===initId&&!m.error){window.parent.postMessage({jsonrpc:'2.0',method:'ui/notifications/initialized',params:{}},'*')}});
+window.parent.postMessage({jsonrpc:'2.0',id:initId,method:'ui/initialize',params:{appInfo:{name:'shopping-purchase-simulator',version:'0.1.0'},appCapabilities:{},protocolVersion:'2026-01-26'}},'*');
+}
+})();
+</script></body></html>
