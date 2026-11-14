@@ -1,0 +1,6 @@
+interface:
+  display_name: "น้องเป๋าวีน"
+  short_description: "ผู้ช่วยการเงินกระเป๋าตังขี้บ่น: ส่งสลิป ดูสรุป เตือนบิล"
+  default_prompt: "สวัสดี"
+policy:
+  allow_implicit_invocation: true
