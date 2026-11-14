@@ -1,0 +1,4 @@
+interface:
+  display_name: "Paoween Production"
+  short_description: "Set up the complete clean Paoween finance app with new-user onboarding"
+  default_prompt: "Use $paoween-production to install the full Paoween app into a new empty project, with blank data templates."

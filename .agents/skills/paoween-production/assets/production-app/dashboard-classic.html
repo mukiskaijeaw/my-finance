@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>การเงินของฉัน · Finance Copilot</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topline">
+      <div><p class="eyebrow" id="page-eyebrow">YOUR MONEY, CLEARLY</p><h1 id="page-title">ภาพรวมการเงิน</h1><p class="subtitle" id="page-description">ทุกเรื่องเงิน อยู่ในที่เดียว</p></div>
+      <button type="button" class="secondary-button" data-ask="ช่วยสรุปการเงินตามช่วงที่เลือก พร้อมสิ่งที่ควรตรวจ 3 เรื่องแรก">ถาม Codex เกี่ยวกับหน้านี้ <span aria-hidden="true">↗</span></button>
+    </header>
+    <div id="status" class="data-status" role="status" aria-live="polite">กำลังอ่านข้อมูล…</div>
+    <div id="dashboard-view">
+    <section class="filters" aria-label="ตัวกรองข้อมูล">
+      <label for="year-filter">ปี
+        <select id="year-filter" disabled><option>กำลังโหลด…</option></select>
+      </label>
+      <label for="month-filter">เดือน
+        <select id="month-filter" disabled>
+          <option value="all">ทุกเดือน</option>
+          <option value="01">มกราคม</option><option value="02">กุมภาพันธ์</option><option value="03">มีนาคม</option>
+          <option value="04">เมษายน</option><option value="05">พฤษภาคม</option><option value="06">มิถุนายน</option>
+          <option value="07">กรกฎาคม</option><option value="08">สิงหาคม</option><option value="09">กันยายน</option>
+          <option value="10">ตุลาคม</option><option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+        </select>
+      </label>
+      <button id="reload-button" class="button" type="button">อัปเดตข้อมูล</button>
+      <label id="file-picker" class="file-picker" for="csv-file" hidden>เลือก database.csv และ tax_preparation.csv
+        <input id="csv-file" type="file" accept=".csv,text/csv" multiple>
+      </label>
+    </section>
+
+    <div id="error-message" class="error" role="alert" hidden></div>
+
+    <section class="summary" aria-label="ยอดรวมตามตัวกรอง">
+      <article class="metric"><div class="metric-label">รายรับ</div><div id="total-income" class="metric-value income-value">—</div></article>
+      <article class="metric"><div class="metric-label">รายจ่าย</div><div id="total-expense" class="metric-value expense-value">—</div></article>
+      <article class="metric"><div class="metric-label">ซื้อการลงทุน</div><div id="total-buy" class="metric-value buy-value">—</div></article>
+      <article class="metric"><div class="metric-label">ขายการลงทุน</div><div id="total-sell" class="metric-value sell-value">—</div></article>
+    </section>
+
+    <section class="section" id="trends-section" aria-labelledby="trend-heading">
+      <div class="section-heading">
+        <h2 id="trend-heading">แนวโน้มรายเดือน</h2>
+          <span class="section-note">เลือกจุดบนกราฟหรือใช้ตัวกรองเดือน</span>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-block">
+          <h3 class="chart-title">รายรับและรายจ่าย</h3>
+          <div class="chart-legend" aria-hidden="true"><span class="legend-item legend-income"><i class="legend-dot"></i>รายรับ</span><span class="legend-item legend-expense"><i class="legend-dot"></i>รายจ่าย</span></div>
+          <svg id="flow-chart" class="chart" role="group" aria-label="กราฟรายรับและรายจ่ายรายเดือน เลือกจุดข้อมูลเพื่อกรองเดือน"></svg>
+        </div>
+        <div class="chart-block">
+          <h3 class="chart-title">การลงทุน</h3>
+          <div class="chart-legend" aria-hidden="true"><span class="legend-item legend-buy"><i class="legend-dot"></i>ซื้อ</span><span class="legend-item legend-sell"><i class="legend-dot"></i>ขาย</span></div>
+          <svg id="investment-chart" class="chart" role="group" aria-label="กราฟซื้อและขายการลงทุนรายเดือน เลือกจุดข้อมูลเพื่อกรองเดือน"></svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="section content-grid" id="overview-details">
+      <div>
+        <div class="section-heading"><h2>รายจ่ายตามหมวด</h2><span id="category-count" class="section-note"></span></div>
+        <div id="category-list" class="category-list"></div>
+        <div id="category-empty" class="empty-state" hidden>ไม่มีรายการรายจ่ายในช่วงนี้</div>
+      </div>
+      <div>
+        <div class="section-heading"><h2>รายการล่าสุด</h2><a href="#transactions" class="text-link">ดูทั้งหมด →</a></div><span id="transaction-count" class="section-note"></span>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>วันที่</th><th>ประเภท</th><th>รายละเอียด</th><th>หมวด</th><th>รายการ</th><th style="text-align:right">จำนวนเงิน</th></tr></thead>
+            <tbody id="transaction-rows"></tbody>
+          </table>
+          <div id="table-empty" class="empty-state" hidden>ไม่มีรายการในช่วงนี้</div>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="tax-page" aria-labelledby="tax-heading">
+      <div class="section-heading">
+        <h2 id="tax-heading">เตรียมภาษี</h2>
+        <span class="section-note">รายการจาก tax_preparation.csv</span>
+      </div>
+      <div class="tax-controls">
+        <label for="tax-year-filter">ปีภาษี (พ.ศ.)
+          <select id="tax-year-filter" disabled><option>กำลังโหลด…</option></select>
+        </label>
+        <label for="tax-status-filter">แสดงรายการ
+          <select id="tax-status-filter"><option value="all">ทั้งหมด</option><option value="review">รอตรวจสอบ</option><option value="missing">ยังไม่มีหลักฐาน</option><option value="snapshot">ข้อมูลจากชีตเดิม</option></select>
+        </label>
+      </div>
+      <p class="tax-source-note">ปีภาษีคือปีที่ได้รับเงินได้ · โดยทั่วไปยื่นแบบรายปีในปีถัดไป · บางประเภทเงินได้อาจต้องยื่นครึ่งปี</p>
+      <section class="summary tax-summary" aria-label="สรุปข้อมูลภาษีตามปีที่เลือก">
+        <article class="metric"><div class="metric-label">รายการเงินเดือนในฐานธุรกรรม</div><div id="tax-income-total" class="metric-value income-value">—</div></article>
+        <article class="metric"><div class="metric-label">รายการลดหย่อนที่บันทึก*</div><div id="tax-deduction-total" class="metric-value">—</div></article>
+        <article class="metric"><div class="metric-label">ภาษีที่ชำระที่บันทึก</div><div id="tax-paid-total" class="metric-value">—</div></article>
+        <article class="metric"><div class="metric-label">รอตรวจสอบ</div><div id="tax-review-count" class="metric-value">—</div></article>
+      </section>
+      <p class="tax-source-note">* ยอดรายรายการรวมรายการที่ยังรอตรวจสอบ จึงยังไม่ใช่ยอดสิทธิลดหย่อนที่ยืนยันแล้ว · ไม่รวมยอดรวมจากชีต · ข้อมูลส่วนนี้ไม่ได้คำนวณภาษีใหม่</p>
+      <h3 class="chart-title">รายการรายรับและการลงทุนจากฐานธุรกรรม</h3>
+      <p class="tax-source-note">แสดงตามวันที่ใน database.csv เพื่อช่วยค้นรายการที่อาจเกี่ยวข้องกับภาษี ยอดนี้ยังไม่ใช่เงินได้พึงประเมินหรือสิทธิลดหย่อน และแสดงแยกจากยอดในข้อมูลภาษีด้านบน</p>
+      <div class="table-wrap">
+        <table><thead><tr><th>ปีภาษี</th><th>ประเภท</th><th>หมวด</th><th>จำนวนรายการ</th><th style="text-align:right">ยอดธุรกรรม</th></tr></thead><tbody id="tax-transactions"></tbody></table>
+        <div id="tax-transactions-empty" class="empty-state" hidden>ไม่มีรายการรายรับหรือการลงทุนในปีที่เลือก</div>
+      </div>
+      <h3 class="chart-title" style="margin-top: 24px">รายการที่บันทึกสำหรับเตรียมภาษี</h3>
+      <p id="tax-source-note" class="tax-source-note" hidden></p>
+      <div class="table-wrap">
+        <table class="tax-table">
+          <thead><tr><th>วันที่</th><th>ปีภาษี</th><th>ประเภทรายการ</th><th>หมวดภาษี</th><th style="text-align:right">จำนวนเงิน</th><th>Transaction ID</th><th>หลักฐาน</th><th>สถานะ</th><th>แหล่งข้อมูล</th><th>หมายเหตุ</th></tr></thead>
+          <tbody id="tax-rows"></tbody>
+        </table>
+        <div id="tax-empty" class="empty-state" hidden>ไม่มีรายการภาษีที่ตรงกับตัวกรอง</div>
+      </div>
+    </section>
+    </div>
+    <section id="finance-copilot" class="section" aria-labelledby="copilot-heading" hidden>
+      <div class="section-heading"><h2 id="copilot-heading">แชทกับ Finance Copilot</h2><span id="copilot-status" class="copilot-status" role="status">กำลังเชื่อมต่อ…</span></div>
+      <div class="chat-shell">
+        <aside class="chat-sidebar" aria-label="เลือกงานการเงิน">
+          <p class="eyebrow">เรื่องที่อยากคุย</p>
+          <div id="pillar-buttons" class="pillar-buttons">
+            <button type="button" data-pillar="overview" aria-pressed="true">ภาพรวม</button>
+            <button type="button" data-pillar="spending" aria-pressed="false">รายรับรายจ่าย</button>
+            <button type="button" data-pillar="investment" aria-pressed="false">การลงทุน</button>
+            <button type="button" data-pillar="tax" aria-pressed="false">ภาษีไทย</button>
+            <button type="button" data-pillar="comparison" aria-pressed="false">เทียบราคา</button>
+            <button type="button" data-pillar="subscription" aria-pressed="false">Subscription</button>
+          </div>
+          <label for="chat-year">ปีข้อมูล <select id="chat-year"><option value="all">ทุกปี</option></select></label>
+          <label for="chat-month">เดือน <select id="chat-month"><option value="all">ทุกเดือน</option></select></label>
+          <details class="chat-hint"><summary>ข้อมูลที่ผู้ช่วยใช้</summary><p>รายการและงานรอตรวจตามช่วงที่เลือกจะส่งไปประมวลผลกับ Codex การเปลี่ยนบัญชีต้องยืนยันแผนก่อนบันทึก</p></details>
+          <button id="chat-reset" class="chat-secondary" type="button">เริ่มแชทใหม่</button>
+        </aside>
+        <div class="chat-main">
+          <div id="chat-log" class="chat-log" role="log" aria-label="บทสนทนาการเงิน" aria-live="polite">
+            <div id="chat-welcome" class="chat-welcome"><span class="welcome-mark" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z"/></svg></span><h2>เรื่องเงิน ถามได้เลย</h2><p>อ่านจากบัญชีของคุณ พร้อมหลักฐานให้ย้อนดู</p></div>
+          </div>
+          <div id="chat-suggestions" class="chat-suggestions"></div>
+          <div id="chat-progress" class="chat-progress" role="status" hidden></div>
+          <div id="chat-proposal" class="chat-proposal" hidden></div>
+          <form id="chat-form" class="chat-composer">
+            <label for="chat-input">ข้อความถึง Codex</label>
+            <textarea id="chat-input" rows="3" maxlength="4000" required placeholder="เช่น เดือนนี้จ่ายอะไรเยอะ และควรตรวจรายการไหนก่อน?"></textarea>
+            <div class="chat-composer-footer"><span>Codex อาจคลาดเคลื่อนได้ · ตรวจแผนก่อนบันทึก</span><button id="chat-send" class="button" type="submit">ส่งข้อความ</button></div>
+          </form>
+        </div>
+      </div>
+    </section>
+    <p class="footnote" id="dashboard-footnote">ข้อมูลจากบัญชีในเครื่อง · ยอดซื้อและขายการลงทุนแสดงแยกกัน</p>
+  </main>
+
+  <script>
+    (function () {
+      const byId = function (id) { return document.getElementById(id); };
+      const palette = { income: "#287459", expense: "#a9503b", buy: "#85651e", sell: "#526f66" };
+      const state = { rows: [], taxRows: [], selectedYear: "all", selectedMonth: "all", selectedTaxYear: "all" };
+      const monthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+      const requiredColumns = ["transaction_id", "date", "transaction_type", "amount_thb", "category"];
+      const requiredTaxColumns = ["tax_year", "record_type", "tax_category", "amount_thb", "source_reference", "document_status", "review_status"];
+
+      function parseCsv(text) {
+        const result = [];
+        let row = [], field = "", quoted = false;
+        for (let i = 0; i < text.length; i += 1) {
+          const ch = text[i];
+          if (quoted) {
+            if (ch === '"' && text[i + 1] === '"') { field += '"'; i += 1; }
+            else if (ch === '"') quoted = false;
+            else field += ch;
+          } else if (ch === '"') quoted = true;
+          else if (ch === ",") { row.push(field); field = ""; }
+          else if (ch === "\n") { row.push(field); result.push(row); row = []; field = ""; }
+          else if (ch !== "\r") field += ch;
+        }
+        if (field.length || row.length) { row.push(field); result.push(row); }
+        if (!result.length) return [];
+        const headers = result.shift().map(function (h, i) { return i === 0 ? h.replace(/^\uFEFF/, "").trim() : h.trim(); });
+        return result.filter(function (r) { return r.some(function (v) { return String(v).trim() !== ""; }); }).map(function (r) {
+          const obj = {};
+          headers.forEach(function (h, i) { obj[h] = (r[i] || "").trim(); });
+          return obj;
+        });
+      }
+
+      function parseAmount(value) {
+        const n = Number(String(value || "0").replace(/[฿,\s]/g, ""));
+        return Number.isFinite(n) ? n : 0;
+      }
+      function money(value) {
+        return "฿" + new Intl.NumberFormat("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value || 0);
+      }
+      function actionableQualityFlag(value) {
+        return Boolean(value && value !== "missing_description");
+      }
+      function compact(value) {
+        if (value >= 1000000) return "฿" + (value / 1000000).toFixed(1).replace(/\.0$/, "") + "m";
+        if (value >= 1000) return "฿" + (value / 1000).toFixed(value >= 10000 ? 0 : 1).replace(/\.0$/, "") + "k";
+        return "฿" + Math.round(value || 0);
+      }
+      function monthLabel(key, includeYear) {
+        const bits = key.split("-");
+        const month = monthNames[Number(bits[1]) - 1] || key;
+        return includeYear ? month + " '" + String(bits[0]).slice(-2) : month;
+      }
+      function svgEl(name, attrs, text) {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+        Object.keys(attrs || {}).forEach(function (key) { el.setAttribute(key, attrs[key]); });
+        if (text !== undefined) el.textContent = text;
+        return el;
+      }
+      function allMonthsBetween(first, last) {
+        if (!first || !last) return [];
+        const a = first.split("-").map(Number), b = last.split("-").map(Number);
+        const out = [];
+        let year = a[0], month = a[1];
+        while (year < b[0] || (year === b[0] && month <= b[1])) {
+          out.push(year + "-" + String(month).padStart(2, "0"));
+          month += 1;
+          if (month > 12) { month = 1; year += 1; }
+        }
+        return out;
+      }
+      function rowsForYear() {
+        return state.selectedYear === "all" ? state.rows.slice() : state.rows.filter(function (r) { return r.date.slice(0, 4) === state.selectedYear; });
+      }
+      function filteredRows() {
+        return rowsForYear().filter(function (r) { return state.selectedMonth === "all" || r.date.slice(5, 7) === state.selectedMonth; });
+      }
+      function aggregateMonths(rows) {
+        const keys = rows.map(function (r) { return r.year_month || r.date.slice(0, 7); }).filter(Boolean).sort();
+        if (!keys.length) return [];
+        const months = allMonthsBetween(keys[0], keys[keys.length - 1]);
+        const map = {};
+        months.forEach(function (m) { map[m] = { month: m, income: 0, expense: 0, buy: 0, sell: 0 }; });
+        rows.forEach(function (r) {
+          const m = r.year_month || r.date.slice(0, 7), value = r._amount;
+          if (!map[m]) return;
+          if (r.transaction_type === "income") map[m].income += value;
+          else if (r.transaction_type === "expense") map[m].expense += value;
+          else if (r.transaction_type === "investment" && String(r.action).toLowerCase() === "buy") map[m].buy += value;
+          else if (r.transaction_type === "investment" && String(r.action).toLowerCase() === "sell") map[m].sell += value;
+        });
+        return months.map(function (m) { return map[m]; });
+      }
+      function niceMax(value) {
+        if (!value || value <= 0) return 1;
+        const raw = value / 4;
+        const power = Math.pow(10, Math.floor(Math.log10(raw)));
+        const fraction = raw / power;
+        const step = (fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10) * power;
+        return step * 4;
+      }
+      function drawLineChart(id, data, series, selectedMonth) {
+        const svg = byId(id);
+        svg.replaceChildren();
+        const width = Math.max(290, Math.floor(svg.parentElement.clientWidth));
+        const height = 236;
+        const margin = { left: 65, right: 18, top: 14, bottom: 45 };
+        const plotW = Math.max(100, width - margin.left - margin.right);
+        const plotH = height - margin.top - margin.bottom;
+        svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+        const title = series.map(function (s) { return s.label; }).join(" and ");
+        svg.appendChild(svgEl("title", {}, title + " ตามเดือน"));
+        svg.appendChild(svgEl("desc", {}, "เลือกจุดข้อมูลด้วยการคลิก หรือกด Enter หรือ Space เพื่อกรองตามเดือน"));
+        if (!data.length) {
+          svg.appendChild(svgEl("text", { x: 8, y: 80, fill: "#526158", "font-size": 13 }, "ไม่มีข้อมูลในช่วงนี้"));
+          return;
+        }
+        const largest = Math.max.apply(null, data.map(function (d) { return Math.max.apply(null, series.map(function (s) { return d[s.key]; })); }));
+        const max = niceMax(largest);
+        const xAt = function (i) { return margin.left + (data.length <= 1 ? plotW / 2 : plotW * i / (data.length - 1)); };
+        const yAt = function (value) { return margin.top + plotH - (value / max) * plotH; };
+        for (let i = 0; i <= 4; i += 1) {
+          const value = max * i / 4, y = yAt(value);
+          svg.appendChild(svgEl("line", { x1: margin.left, y1: y, x2: margin.left + plotW, y2: y, stroke: "#dce5de", "stroke-width": 1 }));
+          svg.appendChild(svgEl("text", { x: margin.left - 8, y: y + 4, "text-anchor": "end", fill: "#526158", "font-size": 11 }, compact(value)));
+        }
+        const tickCount = Math.min(5, data.length);
+        const tickIndexes = Array.from(new Set(Array.from({ length: tickCount }, function (_, i) { return tickCount === 1 ? 0 : Math.round(i * (data.length - 1) / (tickCount - 1)); })));
+        tickIndexes.forEach(function (i) {
+          const x = xAt(i);
+          svg.appendChild(svgEl("text", { x: x, y: height - 18, "text-anchor": i === 0 ? "start" : i === data.length - 1 ? "end" : "middle", fill: "#526158", "font-size": 11 }, monthLabel(data[i].month, data.length > 12)));
+        });
+        series.forEach(function (s) {
+          const points = data.map(function (d, i) { return xAt(i) + "," + yAt(d[s.key]); }).join(" ");
+          svg.appendChild(svgEl("polyline", { points: points, fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" }));
+          data.forEach(function (d, i) {
+            const isSelected = selectedMonth !== "all" && d.month.slice(5, 7) === selectedMonth;
+            const circle = svgEl("circle", {
+              cx: xAt(i), cy: yAt(d[s.key]), r: isSelected ? 4.5 : 3,
+              fill: isSelected ? s.color : "#ffffff", stroke: s.color, "stroke-width": isSelected ? 2 : 1.7,
+              "data-month": d.month, "data-key": s.key, "data-value": d[s.key],
+              "aria-label": monthLabel(d.month, true) + " " + s.label + " " + money(d[s.key]) + " · กด Enter หรือ Space เพื่อกรองเดือนนี้",
+              role: "button", tabindex: "0", focusable: "true"
+            });
+            circle.style.cursor = "pointer";
+            circle.appendChild(svgEl("title", {}, monthLabel(d.month, true) + " · " + s.label + " · " + money(d[s.key]) + " — กด Enter หรือ Space เพื่อกรองเดือนนี้"));
+            circle.addEventListener("click", function () { selectMonth(d.month); });
+            circle.addEventListener("keydown", function (event) {
+              if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectMonth(d.month); }
+            });
+            svg.appendChild(circle);
+          });
+        });
+        svg.appendChild(svgEl("text", { x: 10, y: margin.top + plotH / 2, "text-anchor": "middle", fill: "#78827c", "font-size": 10, transform: "rotate(-90 10 " + (margin.top + plotH / 2) + ")" }, "บาท"));
+      }
+      function drawCategories(rows) {
+        const totals = {};
+        rows.forEach(function (r) {
+          if (r.transaction_type !== "expense") return;
+          const category = r.category || "ไม่ระบุหมวด";
+          totals[category] = (totals[category] || 0) + r._amount;
+        });
+        const all = Object.keys(totals).map(function (category) { return { category: category, amount: totals[category] }; }).sort(function (a, b) { return b.amount - a.amount; });
+        const top = all.slice(0, 7);
+        if (all.length > 7) top.push({ category: "หมวดอื่น ๆ", amount: all.slice(7).reduce(function (sum, item) { return sum + item.amount; }, 0) });
+        const list = byId("category-list");
+        list.replaceChildren();
+        byId("category-empty").hidden = top.length > 0;
+        byId("category-count").textContent = all.length ? all.length + " หมวด" : "";
+        const max = Math.max.apply(null, top.map(function (item) { return item.amount; }).concat([1]));
+        top.forEach(function (item) {
+          const row = document.createElement("div"); row.className = "category-row";
+          const name = document.createElement("span"); name.className = "category-name"; name.textContent = item.category;
+          const track = document.createElement("div"); track.className = "category-track";
+          const bar = document.createElement("div"); bar.className = "category-bar"; bar.style.width = (item.amount / max * 100) + "%"; track.appendChild(bar);
+          const amount = document.createElement("span"); amount.className = "category-amount"; amount.textContent = money(item.amount);
+          row.append(name, track, amount); list.appendChild(row);
+        });
+      }
+      function typeLabel(type) {
+        return type === "income" ? "รายรับ" : type === "expense" ? "รายจ่าย" : type === "investment" ? "ลงทุน" : type;
+      }
+      function actionLabel(action) {
+        const value = String(action || "").toLowerCase();
+        return value === "buy" ? "ซื้อ" : value === "sell" ? "ขาย" : action || "—";
+      }
+      function renderTable(rows) {
+        const body = byId("transaction-rows");
+        body.replaceChildren();
+        const recent = rows.slice().sort(function (a, b) {
+          if (a.date !== b.date) return b.date.localeCompare(a.date);
+          return b.transaction_id.localeCompare(a.transaction_id);
+        }).slice(0, 12);
+        byId("table-empty").hidden = recent.length !== 0;
+        byId("transaction-count").textContent = rows.length ? "แสดง " + Math.min(rows.length, 12) + " จาก " + rows.length.toLocaleString("th-TH") + " รายการ" : "";
+        recent.forEach(function (r) {
+          const tr = document.createElement("tr");
+          const hasActionableFlag = actionableQualityFlag(r.data_quality_flag);
+          if (hasActionableFlag) tr.className = "needs-review";
+          const values = [
+            { value: r.date, cls: "date" },
+            { value: typeLabel(r.transaction_type), cls: "type type-" + r.transaction_type },
+            { value: r.description || "(ไม่มีรายละเอียด)", cls: "description" },
+            { value: r.category || "—", cls: "" },
+            { value: actionLabel(r.action), cls: "action" },
+            { value: money(r._amount), cls: "money" }
+          ];
+          values.forEach(function (cell) { const td = document.createElement("td"); td.className = cell.cls; td.textContent = cell.value; tr.appendChild(td); });
+          body.appendChild(tr);
+          if (hasActionableFlag) {
+            const flagRow = document.createElement("tr"); flagRow.className = "needs-review";
+            const td = document.createElement("td"); td.colSpan = 6; td.className = "quality-flag";
+            td.textContent = r.transaction_id + " · " + r.data_quality_flag; flagRow.appendChild(td); body.appendChild(flagRow);
+          }
+        });
+      }
+      function taxTypeLabel(type) {
+        const labels = { income: "รายรับ", income_total: "รายรับรวมตามชีต", deduction: "รายการลดหย่อน", deduction_total: "ยอดลดหย่อนรวมตามชีต", tax_paid: "ภาษีที่ชำระ", taxable_income: "รายการคำนวณฐานภาษี", tax_estimate: "ประมาณการจากชีต", tax_saving: "ผลต่างจากชีต" };
+        return labels[type] || type || "—";
+      }
+      function taxStatusLabel(status) {
+        const labels = { source_snapshot: "snapshot จากชีต", needs_review: "รอตรวจสอบ", confirmed: "ตรวจแล้ว", excluded: "ไม่นำมาคำนวณ" };
+        return labels[status] || status || "—";
+      }
+      function taxDocumentLabel(status) {
+        const labels = { source_sheet: "ชีตเดิม", received: "มีหลักฐาน", missing: "ยังไม่มีหลักฐาน", not_applicable: "ไม่เกี่ยวข้อง" };
+        return labels[status] || status || "—";
+      }
+      function renderTaxPrep() {
+        const rows = (state.selectedTaxYear === "all" ? state.taxRows.slice() : state.taxRows.filter(function (r) { return r.tax_year === state.selectedTaxYear; })).sort(function (a, b) {
+          const dateA = a._date || "9999-99-99", dateB = b._date || "9999-99-99";
+          return dateA.localeCompare(dateB) || a.tax_year.localeCompare(b.tax_year) || a.record_type.localeCompare(b.record_type);
+        });
+        const groups = new Map();
+        state.rows.forEach(function (r) {
+          if (r.transaction_type !== "income" && r.transaction_type !== "investment") return;
+          const taxYear = String(Number(r.date.slice(0, 4)) + 543);
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(r.date) || (state.selectedTaxYear !== "all" && taxYear !== state.selectedTaxYear)) return;
+          const type = r.transaction_type === "income" ? "รายรับ" : "ลงทุน " + (r.action || "ไม่ระบุรายการ");
+          const category = r.category || "ไม่ระบุหมวด";
+          const key = JSON.stringify([taxYear, type, category]);
+          const group = groups.get(key) || { year: taxYear, type: type, category: category, count: 0, amount: 0 };
+          group.count += 1; group.amount += r._amount; groups.set(key, group);
+        });
+        const transactionBody = byId("tax-transactions");
+        transactionBody.replaceChildren();
+        const transactionGroups = Array.from(groups.values()).sort(function (a, b) { return b.year.localeCompare(a.year) || a.type.localeCompare(b.type) || a.category.localeCompare(b.category); });
+        byId("tax-transactions-empty").hidden = transactionGroups.length !== 0;
+        transactionGroups.forEach(function (group) {
+          const tr = document.createElement("tr");
+          [group.year, group.type, group.category, group.count.toLocaleString("th-TH"), money(group.amount)].forEach(function (value, index) {
+            const td = document.createElement("td"); td.textContent = value;
+            if (index === 4) td.className = "money";
+            tr.appendChild(td);
+          });
+          transactionBody.appendChild(tr);
+        });
+        let income = 0, deductions = 0, paid = 0, reviewCount = 0, incomeCount = 0, deductionCount = 0, paidCount = 0;
+        state.rows.forEach(function (r) {
+          const taxYear = String(Number((r.date || "").slice(0, 4)) + 543);
+          if (r.transaction_type === "income" && r.category === "Salary" && /^\d{4}-\d{2}-\d{2}$/.test(r.date || "") && (state.selectedTaxYear === "all" || taxYear === state.selectedTaxYear)) { income += r._amount; incomeCount += 1; }
+        });
+        rows.forEach(function (r) {
+          if (r.review_status !== "excluded" && r.record_type === "deduction") { deductions += r._amount; deductionCount += 1; }
+          if (r.review_status !== "excluded" && r.record_type === "tax_paid") { paid += r._amount; paidCount += 1; }
+          if (r.review_status === "needs_review") reviewCount += 1;
+        });
+        byId("tax-income-total").textContent = incomeCount ? money(income) : "—";
+        byId("tax-deduction-total").textContent = deductionCount ? money(deductions) : "—";
+        byId("tax-paid-total").textContent = paidCount ? money(paid) : "—";
+        byId("tax-review-count").textContent = reviewCount.toLocaleString("th-TH");
+
+        const snapshot = rows.filter(function (r) { return r.review_status === "source_snapshot"; });
+        const snapshotYears = Array.from(new Set(snapshot.map(function (r) { return r.tax_year; }))).sort();
+        const note = byId("tax-source-note");
+        note.hidden = snapshot.length === 0;
+        note.textContent = snapshot.length
+          ? snapshotYears.map(function (year) {
+            const yearRows = snapshot.filter(function (r) { return r.tax_year === year; });
+            const beforePlan = yearRows.find(function (r) { return r.record_type === "tax_estimate" && r.tax_category.toLowerCase() === "before tax planning"; });
+            const afterPlan = yearRows.find(function (r) { return r.record_type === "tax_estimate" && r.tax_category.toLowerCase() === "after tax planning"; });
+            const taxSaving = yearRows.find(function (r) { return r.record_type === "tax_saving"; });
+            const incomeTotal = yearRows.find(function (r) { return r.record_type === "income_total"; });
+            const deductionTotal = yearRows.find(function (r) { return r.record_type === "deduction_total"; });
+            return "ปี " + year + " snapshot จากชีตเดิม" + (incomeTotal ? " · รายรับรวมตามชีต " + money(incomeTotal._amount) : "") + (deductionTotal ? " · ค่าลดหย่อนรวมตามชีต " + money(deductionTotal._amount) : "") + (beforePlan ? " · ก่อนวางแผน " + money(beforePlan._amount) : "") + (afterPlan ? " · หลังวางแผน " + money(afterPlan._amount) : "") + (taxSaving ? " · ผลต่างตามชีต " + money(taxSaving._amount) : "");
+          }).join(" · ") + " · ไม่ได้คำนวณใหม่"
+          : "";
+
+        const body = byId("tax-rows");
+        body.replaceChildren();
+        const statusFilter = byId("tax-status-filter").value;
+        const visibleRows = rows.filter(function (r) {
+          if (statusFilter === "review") return r.review_status === "needs_review";
+          if (statusFilter === "missing") return r.document_status === "missing";
+          if (statusFilter === "snapshot") return r.review_status === "source_snapshot";
+          return true;
+        });
+        byId("tax-empty").hidden = visibleRows.length !== 0;
+        visibleRows.forEach(function (r) {
+          const tr = document.createElement("tr");
+          if (r.review_status === "needs_review" || r.document_status === "missing") tr.className = "needs-review";
+          const values = [r._date || "—", r.tax_year, taxTypeLabel(r.record_type), r.tax_category || "—", r.amount_thb ? money(r._amount) : "—", r.transaction_id || "—", taxDocumentLabel(r.document_status), taxStatusLabel(r.review_status), r.source_reference || "—", r.notes || "—"];
+          values.forEach(function (value, index) {
+            const td = document.createElement("td");
+            td.textContent = value;
+            if (index === 3) td.className = "money";
+            tr.appendChild(td);
+          });
+          body.appendChild(tr);
+        });
+      }
+      function setTaxRows(rows) {
+        const missing = rows.length ? requiredTaxColumns.filter(function (name) { return !(name in rows[0]); }) : [];
+        if (missing.length) throw new Error("ไม่พบคอลัมน์ใน tax_preparation.csv: " + missing.join(", "));
+        const transactionDates = new Map(state.rows.map(function (r) { return [r.transaction_id, r.date]; }));
+        state.taxRows = rows.map(function (r) {
+          return Object.assign({}, r, { tax_year: String(r.tax_year || ""), record_type: String(r.record_type || "").toLowerCase(), tax_category: String(r.tax_category || ""), _amount: parseAmount(r.amount_thb), _date: transactionDates.get(r.transaction_id) || "" });
+        }).filter(function (r) { return r.tax_year && r.record_type; });
+        const currentYear = String(Number(new Intl.DateTimeFormat("en-US", { year: "numeric", timeZone: "Asia/Bangkok" }).format(new Date())) + 543);
+        const transactionYears = state.rows.filter(function (r) { return /^\d{4}-\d{2}-\d{2}$/.test(r.date); }).map(function (r) { return String(Number(r.date.slice(0, 4)) + 543); });
+        const years = Array.from(new Set(state.taxRows.map(function (r) { return r.tax_year; }).concat(transactionYears, currentYear))).sort();
+        const select = byId("tax-year-filter"), previous = state.selectedTaxYear;
+        select.replaceChildren();
+        const all = document.createElement("option"); all.value = "all"; all.textContent = "ทุกปี"; select.appendChild(all);
+        years.forEach(function (year) { const option = document.createElement("option"); option.value = year; option.textContent = year; select.appendChild(option); });
+        state.selectedTaxYear = years.indexOf(previous) >= 0 ? previous : currentYear;
+        select.value = state.selectedTaxYear;
+        select.disabled = false;
+        renderTaxPrep();
+      }
+      function updateStatus(rows) {
+        if (!state.rows.length) {
+          byId("status").textContent = "ฐานข้อมูลยังว่าง · ส่งสลิปหรือพิมพ์รายการเพื่อเริ่มต้น";
+          return;
+        }
+        const period = [state.selectedMonth === "all" ? "ทุกเดือน" : byId("month-filter").selectedOptions[0].textContent, state.selectedYear === "all" ? "ทุกปี" : state.selectedYear].join(" ");
+        byId("status").textContent = "แสดง " + rows.length.toLocaleString("th-TH") + " รายการ · " + period;
+      }
+      function render() {
+        const rows = filteredRows();
+        const totals = { income: 0, expense: 0, buy: 0, sell: 0 };
+        rows.forEach(function (r) {
+          if (r.transaction_type === "income") totals.income += r._amount;
+          else if (r.transaction_type === "expense") totals.expense += r._amount;
+          else if (r.transaction_type === "investment" && String(r.action).toLowerCase() === "buy") totals.buy += r._amount;
+          else if (r.transaction_type === "investment" && String(r.action).toLowerCase() === "sell") totals.sell += r._amount;
+        });
+        byId("total-income").textContent = money(totals.income);
+        byId("total-expense").textContent = money(totals.expense);
+        byId("total-buy").textContent = money(totals.buy);
+        byId("total-sell").textContent = money(totals.sell);
+        const months = aggregateMonths(rowsForYear());
+        drawLineChart("flow-chart", months, [{ key: "income", label: "รายรับ", color: palette.income }, { key: "expense", label: "รายจ่าย", color: palette.expense }], state.selectedMonth);
+        drawLineChart("investment-chart", months, [{ key: "buy", label: "ซื้อ", color: palette.buy }, { key: "sell", label: "ขาย", color: palette.sell }], state.selectedMonth);
+        drawCategories(rows);
+        renderTable(rows);
+        updateStatus(rows);
+        renderTaxPrep();
+        window.dispatchEvent(new Event("finance:render"));
+      }
+      function selectMonth(key) {
+        state.selectedYear = key.slice(0, 4);
+        state.selectedMonth = key.slice(5, 7);
+        byId("year-filter").value = state.selectedYear;
+        byId("month-filter").value = state.selectedMonth;
+        render();
+      }
+      function setRows(rows, sourceLabel) {
+        const missing = rows.length ? requiredColumns.filter(function (name) { return !(name in rows[0]); }) : [];
+        if (missing.length) throw new Error("ไม่พบคอลัมน์ที่จำเป็น: " + missing.join(", "));
+        state.rows = rows.map(function (r) {
+          const date = r.date || "";
+          return Object.assign({}, r, { _amount: parseAmount(r.amount_thb), year_month: r.year_month || date.slice(0, 7), transaction_type: String(r.transaction_type || "").toLowerCase() });
+        }).filter(function (r) { return r.date && r.transaction_type; });
+        const years = Array.from(new Set(state.rows.map(function (r) { return r.date.slice(0, 4); }))).sort();
+        const select = byId("year-filter"), previous = state.selectedYear;
+        select.replaceChildren();
+        const all = document.createElement("option"); all.value = "all"; all.textContent = "ทุกปี"; select.appendChild(all);
+        years.forEach(function (year) { const option = document.createElement("option"); option.value = year; option.textContent = year; select.appendChild(option); });
+        state.selectedYear = years.indexOf(previous) >= 0 ? previous : (years.length ? years[years.length - 1] : "all");
+        select.value = state.selectedYear;
+        byId("month-filter").disabled = false;
+        select.disabled = false;
+        byId("error-message").hidden = true;
+        byId("file-picker").hidden = true;
+        byId("file-picker").classList.remove("visible");
+        byId("status").textContent = "โหลด " + state.rows.length.toLocaleString("th-TH") + " รายการจาก " + sourceLabel;
+        render();
+      }
+      async function loadLinkedCsv() {
+        byId("file-picker").hidden = true;
+        byId("file-picker").classList.remove("visible");
+        byId("status").textContent = "กำลังโหลดฐานข้อมูล…";
+        try {
+          const stamp = Date.now();
+          const responses = await Promise.all([
+            fetch("database.csv?refresh=" + stamp, { cache: "no-store" }),
+            fetch("tax_preparation.csv?refresh=" + stamp, { cache: "no-store" })
+          ]);
+          if (!responses[0].ok || !responses[1].ok) throw new Error("CSV file unavailable");
+          const contents = await Promise.all(responses.map(function (response) { return response.text(); }));
+          setRows(parseCsv(contents[0]), "database.csv");
+          setTaxRows(parseCsv(contents[1]));
+        } catch (err) {
+          byId("file-picker").hidden = false;
+          byId("file-picker").classList.add("visible");
+          byId("status").textContent = "ยังโหลดฐานข้อมูลอัตโนมัติไม่ได้";
+          byId("error-message").textContent = location.protocol === "file:"
+            ? "เปิด open-dashboard.command เพื่อเชื่อม CSV อัตโนมัติ หรือเลือก database.csv และ tax_preparation.csv ที่นี่"
+            : "ตรวจว่า database.csv และ tax_preparation.csv อยู่โฟลเดอร์เดียวกับ dashboard.html แล้วลองโหลดอีกครั้ง";
+          byId("error-message").hidden = false;
+        }
+      }
+
+      byId("year-filter").addEventListener("change", function (event) { state.selectedYear = event.target.value; render(); });
+      byId("month-filter").addEventListener("change", function (event) { state.selectedMonth = event.target.value; render(); });
+      byId("tax-year-filter").addEventListener("change", function (event) { state.selectedTaxYear = event.target.value; renderTaxPrep(); });
+      byId("tax-status-filter").addEventListener("change", renderTaxPrep);
+      byId("reload-button").addEventListener("click", loadLinkedCsv);
+      byId("csv-file").addEventListener("change", function (event) {
+        const files = Array.from(event.target.files || []);
+        const databaseFile = files.find(function (file) { return file.name.toLowerCase() === "database.csv"; });
+        const taxFile = files.find(function (file) { return file.name.toLowerCase() === "tax_preparation.csv"; });
+        if (!databaseFile) { byId("error-message").textContent = "เลือก database.csv เพื่อแสดงรายการการเงิน"; byId("error-message").hidden = false; return; }
+        function readText(file) {
+          return new Promise(function (resolve, reject) {
+            const reader = new FileReader();
+            reader.onload = function () { resolve(String(reader.result || "")); };
+            reader.onerror = function () { reject(new Error("อ่านไฟล์ CSV ไม่สำเร็จ")); };
+            reader.readAsText(file, "UTF-8");
+          });
+        }
+        Promise.all([readText(databaseFile), taxFile ? readText(taxFile) : Promise.resolve("")]).then(function (contents) {
+          setRows(parseCsv(contents[0]), databaseFile.name);
+          setTaxRows(parseCsv(contents[1]));
+        }).catch(function (err) {
+          byId("error-message").textContent = err.message || "อ่านไฟล์ CSV ไม่สำเร็จ";
+          byId("error-message").hidden = false;
+        });
+      });
+      window.financeDashboard = {
+        getRows: function () { return filteredRows().map(function (r) { return Object.assign({}, r); }); },
+        getScope: function () { return {year:state.selectedYear, month:state.selectedMonth}; }
+      };
+      let resizeTimer;
+      window.addEventListener("resize", function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { if (state.rows.length) render(); }, 120); });
+      if (location.protocol === "file:") {
+        byId("status").textContent = "กำลังเชื่อม Dashboard ในเครื่อง…";
+        const controller = new AbortController();
+        const timer = setTimeout(function () { controller.abort(); }, 3000);
+        fetch(new URL("dashboard.html", location.href).href, { mode: "no-cors", cache: "no-store", signal: controller.signal })
+          .then(function () { clearTimeout(timer); location.replace(new URL("dashboard.html", location.href).href); })
+          .catch(function () {
+            clearTimeout(timer);
+            byId("file-picker").hidden = false;
+            byId("file-picker").classList.add("visible");
+            byId("status").textContent = "ยังเชื่อม Dashboard ในเครื่องไม่ได้";
+            byId("error-message").textContent = "เปิด open-dashboard.command เพื่อเริ่มเซิร์ฟเวอร์ แล้วเปิด Dashboard อีกครั้ง หรือเลือกไฟล์ CSV ที่นี่";
+            byId("error-message").hidden = false;
+          });
+      } else loadLinkedCsv();
+    })();
+  </script>
+  <script src="app-shell.js"></script>
+  <script src="copilot.js"></script>
+</body>
+</html>

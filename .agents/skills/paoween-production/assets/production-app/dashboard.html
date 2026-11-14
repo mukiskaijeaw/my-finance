@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>น้องเป๋าวีน — เพื่อนคู่คิดเรื่องเงิน</title>
+<meta name="color-scheme" content="light"><link rel="stylesheet" href="paoween.css"><link rel="stylesheet" href="settings/new-user/dashboard-handoff.css">
+<script type="importmap">{"imports":{"three":"./assets/vendor/three.module.js"}}</script>
+</head>
+<body>
+<a class="skip" href="#command">ข้ามไปช่องคำสั่ง</a>
+<aside class="rail" aria-label="เมนูหลัก">
+<a class="brand" href="#overview" aria-label="น้องเป๋าวีน หน้าหลัก">ป<span>•</span></a>
+<div class="rail-line"></div>
+<nav id="navigation" aria-label="มุมมองข้อมูล"></nav>
+<div class="rail-bottom"><a href="dashboard-classic.html" class="rail-link" title="เปิดแดชบอร์ดรายละเอียด" aria-label="เปิดแดชบอร์ดรายละเอียด"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z"/></svg><span>ละเอียด</span></a></div>
+</aside>
+<div class="app">
+<header class="topbar">
+ <div><a class="wordmark" href="#overview">น้องเป๋าวีน<span class="wordmark-dot"></span></a><p>เพื่อนคู่คิด เรื่องเงินของคุณ</p></div>
+ <div class="top-actions"><span class="connection" id="connection" title="เก็บบัญชีในเครื่อง ส่งข้อมูลเฉพาะช่วงที่เลือกให้ Codex ประมวลผลเมื่อคุณส่งคำถาม"><i></i>กำลังเชื่อมต่อ</span><button type="button" id="language-toggle" class="language-toggle" aria-label="Switch dashboard language to English" title="Switch to English">English</button><button class="icon-button" id="refresh" title="อ่านข้อมูลล่าสุด" aria-label="อ่านข้อมูลล่าสุด"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6.1 7a7 7 0 0 1 11.55-1L20 9M4 15l2.35 3A7 7 0 0 0 18 17"/></svg></button></div>
+</header>
+<main>
+<section class="intro"><div><div class="eyebrow">A LITTLE CLARITY, EVERY DAY</div><h1>เรื่องเงิน ค่อย ๆ คิดไปด้วยกัน<span>.</span></h1></div><div class="scope"><span class="scope-title">ช่วงข้อมูลที่เป๋าวีนใช้</span><div><label class="sr" for="year">ปี</label><select id="year"><option value="all">ทุกปี</option></select><label class="sr" for="month">เดือน</label><select id="month"><option value="all">ทุกเดือน</option></select></div></div></section>
+<div class="workbench">
+ <section class="companion" aria-label="คุยกับน้องเป๋าวีน">
+  <div class="stage" id="stage"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="stage-note"><span class="tiny-star">✦</span> YOUR MONEY BUDDY</div><div class="model" id="model"><img src="assets/paoween/paoween-preview.png" alt="น้องเป๋าวีน กระเป๋าสตางค์สีน้ำตาลยิ้ม มีธนบัตรและบัตรด้านบน" id="model-fallback"></div><div class="ground"></div><button class="motion-toggle" id="motion" aria-label="หยุดภาพเคลื่อนไหว" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button><div class="character-status" id="character-status"><i></i><span>พร้อมช่วยคิด</span></div></div>
+  <div class="conversation" id="conversation"><div class="welcome" id="welcome"><span class="hello-label">เป๋าวีนเอง!</span><h2>วันนี้ให้ช่วยดูเรื่องไหนดี?</h2><p>ถามเรื่องรายจ่าย เปิดกราฟ หรือเตรียมรายการใหม่<br>เดี๋ยวเป๋าวีนช่วยไล่ให้ทีละเรื่อง</p></div><div id="chat-log" role="log" aria-label="บทสนทนากับเป๋าวีน" aria-live="polite" aria-relevant="additions"></div></div>
+ </section>
+ <section class="context" aria-labelledby="panel-title"><div class="context-top"><span class="section-label">บนโต๊ะของเรา</span><span class="scope-tag" id="scope-tag">ทุกช่วงเวลา</span></div><div class="panel-heading"><div><h2 id="panel-title">ภาพรวมที่บันทึกไว้</h2><p id="panel-description">อ่านจากบัญชีในเครื่องของคุณ</p></div><span class="panel-mark" id="panel-mark"></span></div><div id="panel" class="panel-content" aria-busy="true"><div class="loading">กำลังอ่านข้อมูลในเครื่อง…</div></div><div class="context-foot"><span class="local-dot"></span><span>ข้อมูลในเครื่อง · <span id="read-at">รอการอ่าน</span></span></div></section>
+</div>
+<section class="command-area" aria-label="ส่งคำสั่งให้เป๋าวีน">
+ <div class="job-row" id="job-row" hidden><div id="job-status" role="status" aria-live="polite"></div><button type="button" id="stop-job" class="text-link">หยุดงาน</button></div>
+ <div id="proposal" class="proposal" hidden></div>
+ <div class="suggestions" id="suggestions"><button data-prompt="สรุปการเงินช่วงที่เลือก และสิ่งที่ควรตรวจ 3 เรื่องแรก">ช่วยดูภาพรวมให้หน่อย<span>↗</span></button><button data-prompt="ขอดูกราฟรายจ่ายและหมวดที่ใช้มากที่สุด">เงินไปไหนบ้าง<span>↗</span></button><button data-prompt="มีหลักฐานภาษีอะไรที่ยังต้องเตรียมในปีที่เลือก">เตรียมภาษี<span>↗</span></button></div>
+ <div id="receipt-preview" class="receipt-preview" aria-live="polite" hidden><div class="receipt-preview-head"><strong id="receipt-count">แนบ 0 รูป</strong><span>เลือกได้สูงสุด 5 รูป · รูปละไม่เกิน 8 MB (รวม 25 MB)</span><button type="button" id="remove-receipt" class="secondary">ลบทั้งหมด</button></div><div id="receipt-items" class="receipt-items"></div><p class="receipt-hint">รูปทั้งหมดจะส่งให้ Codex อ่านพร้อมกันเมื่อกดส่ง · ถ้าจะเตรียมบันทึก ให้ส่งทีละสลิป · ยังไม่บันทึกบัญชี</p></div>
+ <p id="receipt-error" class="receipt-error" role="alert" hidden></p>
+ <form id="command-form"><label class="sr" for="command">บอกเป๋าวีนว่าต้องการให้ช่วยอะไร</label><div class="command-input"><span class="input-spark" aria-hidden="true">✦</span><textarea id="command" rows="1" placeholder="บอกเป๋าวีน เช่น “ขอดูรายจ่ายเดือนนี้”" maxlength="4000"></textarea><input type="file" id="receipt-file" accept="image/jpeg,image/png" multiple hidden><button type="button" id="attach-receipt" class="voice-button attach-button" aria-label="แนบรูปสลิปได้หลายรูป" title="แนบได้สูงสุด 5 รูป · ไม่เกิน 8 MB ต่อรูป และรวม 25 MB"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 12 6-6a3 3 0 0 1 4 4l-9 9a5 5 0 0 0-7-7l9-9m-5 11 9-9"/></svg></button><button type="button" id="voice" class="voice-button" aria-label="ใช้เสียงพิมพ์คำสั่ง" title="ใช้เสียงพิมพ์คำสั่ง"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg></button><button type="submit" id="send" class="send-button" aria-label="ส่งคำสั่ง"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div></form>
+ <div class="command-foot"><span id="input-help">Enter ส่ง · Shift + Enter ขึ้นบรรทัดใหม่</span><button type="button" id="reset">เริ่มบทสนทนาใหม่</button><span class="approval-note">ทุกการบันทึก ให้คุณตรวจและยืนยันก่อน</span></div>
+</section>
+</main>
+<footer>เป๋าวีนช่วยมองให้ชัดขึ้น คุณเป็นคนตัดสินใจ<span>LOCAL WORKSPACE · POWERED BY CODEX</span></footer>
+</div>
+<dialog id="voice-consent"><form method="dialog"><span class="hello-label">ใช้เสียงแทนการพิมพ์</span><h2>ให้เบราว์เซอร์ช่วยถอดเสียง?</h2><p>เสียงอาจถูกส่งไปยังผู้ให้บริการถอดเสียงของเบราว์เซอร์ ขึ้นอยู่กับเบราว์เซอร์และการตั้งค่า คำที่ถอดได้จะอยู่ในช่องข้อความให้คุณตรวจ แล้วกดส่งเอง</p><p>ถ้าไม่ต้องการส่งเสียง ใช้การพิมพ์ได้ตามปกติ</p><div class="dialog-actions"><button value="cancel" class="secondary">ใช้พิมพ์ต่อ</button><button value="allow" class="primary">ยอมรับและเปิดไมค์</button></div></form></dialog>
+<script src="settings/new-user/dashboard-handoff.js"></script><script type="module" src="paoween.js"></script>
+</body></html>

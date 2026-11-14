@@ -1,0 +1,9 @@
+{
+  "source": "paoween-onboarding.blend",
+  "model": "paoween-onboarding.glb",
+  "expressions": [
+    "SlipAngry",
+    "ReadyDetermined"
+  ],
+  "description": "Native Blender animation of brow and mouth meshes for the slip request and ready states."
+}

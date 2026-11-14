@@ -76,6 +76,19 @@ skill `.agents/skills/investment` (Proactive Wealth Coach) มาจาก [Chin
 
 agent พูดในเสียงของน้องเป๋าวีน (กระเป๋าตังขี้บ่น) ทักครั้งแรกจะแนะนำตัวและขึ้นปุ่มให้กดเลือก (ส่งสลิป, ส่ง statement, ขอดูสรุป, บิลใกล้ถึง, จดเอง/พูดเลย, ภาษี ลงทุน ช้อป) ถ้าแนบสลิปมาตั้งแต่แรกจะข้ามไปจดเลย พิมพ์หรือกดไมค์พูดก็ได้ ตัวเลขที่พูดเป็นคำอ่านได้ ถ้ากำกวมจะถามเป็นปุ่มก่อนจด กติกาอยู่ใน `AGENTS.md` ส่วน "น้องเป๋าวีน" และ skill `.agents/skills/pao-ween`
 
+### แอปน้องเป๋าวีนตัวเต็ม (Paoween Production)
+
+skill `.agents/skills/paoween-production` เป็นแอปเต็มของน้องเป๋าวีน มีตัวละคร 3D ขยับได้ หน้าต้อนรับผู้ใช้ใหม่ แดชบอร์ด และช่องแชทที่เรียก Codex CLI ในเครื่อง
+
+```sh
+python3 .agents/skills/paoween-production/scripts/install_app.py --destination ../paoween-app
+cd ../paoween-app
+python3 -m pip install -r requirements.txt   # Pillow สำหรับรูปสลิป
+python3 run_local.py                          # เปิดเบราว์เซอร์ให้เอง
+```
+
+ดูแดชบอร์ดกับหน้าต้อนรับได้โดยไม่ต้องมี Codex แต่ช่องแชทกับการอ่านสลิปต้องมี Codex CLI ที่ล็อกอินแล้ว แอปเก็บ `database.csv` ของตัวเองในโฟลเดอร์ที่ติดตั้ง
+
 ## เริ่มใช้กับ Codex หรือ Claude
 
 1. Clone repo นี้ไว้ในโฟลเดอร์ส่วนตัว

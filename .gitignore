@@ -51,3 +51,6 @@ local/
 
 # Investment pillar (Pillar 2) portfolio file is private (already covered by *.csv)
 Port_db.csv
+
+# Paoween app skill: keep its character images (header-only CSV templates are force-added)
+!.agents/skills/paoween-production/**/*.png

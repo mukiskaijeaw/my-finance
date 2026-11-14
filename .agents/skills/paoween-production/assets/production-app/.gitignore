@@ -1,0 +1,13 @@
+# Local financial records and receipts
+database.csv
+tax_preparation.csv
+codex_usage_log.csv
+.*_receipts/
+.copilot_backups/
+finance_review.json
+finance_review.md
+finance_evidence.json
+agent_preferences.json
+.development-backups/
+__pycache__/
+*.py[cod]
