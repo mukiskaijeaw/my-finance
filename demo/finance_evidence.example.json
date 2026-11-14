@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "salary_documents": [
+    {"id": "DEMO-PAY-2026-08", "tax_year": "2569", "source_reference": "demo-payslip-2026-08", "transaction_ids": ["TXN000001"],
+     "gross_income_thb": "22000.00", "withholding_thb": "0.00", "other_withheld_thb": "875.00"},
+    {"id": "DEMO-PAY-2026-09", "tax_year": "2569", "source_reference": "demo-payslip-2026-09", "transaction_ids": ["TXN000082"],
+     "gross_income_thb": "22000.00", "withholding_thb": "0.00", "other_withheld_thb": "875.00"}
+  ]
+}

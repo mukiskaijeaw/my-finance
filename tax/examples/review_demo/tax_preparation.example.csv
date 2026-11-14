@@ -1,0 +1,2 @@
+tax_year,transaction_id,record_type,tax_category,amount_thb,source_reference,document_status,review_status,notes
+2569,TXN000004,income,DEMO salary gross,30000.00,demo-payslip,available,needs_review,Synthetic only; requires tax-year rule verification

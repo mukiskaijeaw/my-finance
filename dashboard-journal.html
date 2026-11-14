@@ -381,7 +381,7 @@
         <h3><svg class="ico"><use href="#i-plan"/></svg>Money goals</h3>
         <button class="tab" type="button" data-go="plan"><svg class="ico"><use href="#i-plan"/></svg>Plan</button>
         <h3><svg class="ico"><use href="#i-chart"/></svg>Other pillars</h3>
-        <button class="tab" type="button" data-go="tax"><svg class="ico"><use href="#i-quote"/></svg>Tax<span class="demo-tag">Demo</span></button>
+        <button class="tab" type="button" data-go="tax"><svg class="ico"><use href="#i-quote"/></svg>Tax</button>
         <button class="tab" type="button" data-go="invest"><svg class="ico"><use href="#i-chart"/></svg>Investment<span class="demo-tag">Demo</span></button>
         <p class="side-note">Send a slip or a statement to the agent in chat. This page updates when you press Refresh.</p>
       </nav>
@@ -559,9 +559,9 @@
         <!-- ================= TAX (demo) ================= -->
         <section id="page-tax" hidden>
           <div class="block">
-            <div class="block-head"><svg class="ico"><use href="#i-quote"/></svg>Tax estimate<span class="demo-tag">Demo</span></div>
+            <div class="block-head"><svg class="ico"><use href="#i-quote"/></svg>Tax estimate</div>
             <div class="body">
-              <p class="page-lede">A first picture of your personal income tax for the year, built from the salary this journal already records. It is a demo of where the Tax pillar will sit. The Tax pillar will replace the numbers with the full rules and your documents.</p>
+              <p class="page-lede">A first picture of your personal income tax for the year, built from the salary this journal already records. Below it, the Tax pillar checks your tax records and documents (<code>tax_preparation.csv</code>) and lists what still needs proof.</p>
               <div class="card headline"><div><h4 id="tax-title">—</h4><p id="tax-sub"></p></div><div class="big" id="tax-big">—</div></div>
             </div>
           </div>
@@ -587,6 +587,16 @@
               <div class="body"><div class="card"><ul class="tips" id="tax-tips"></ul></div></div>
               <div class="block-head" style="margin-top:10px">From this journal</div>
               <div class="body"><div class="card"><dl class="calc" id="slot-tax2"></dl></div></div>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="block">
+              <div class="block-head">Tax records</div>
+              <div class="body"><div class="card"><p class="card-sub" id="taxrec-sub">From tax_preparation.csv. Only records marked confirmed count as checked.</p><dl class="calc" id="taxrec-totals"></dl><ul class="due-list" id="taxrec-list"></ul></div></div>
+            </div>
+            <div class="block">
+              <div class="block-head">Documents to check<span class="tag plain" id="taxtask-count" style="margin-left:6px"></span></div>
+              <div class="body"><div class="card"><p class="card-sub">The Tax pillar asks one question per item. Marking an item reviewed records your answer. It does not grant a deduction.</p><ul class="due-list" id="taxtask-list"></ul></div></div>
             </div>
           </div>
         </section>
@@ -632,7 +642,7 @@
               <p class="page-lede">This journal holds Pillar 1 (income and expenses) and Pillar 5 (bills and subscriptions). The cards below are empty places for the team's other pillars. Each one shows the numbers this journal already passes to it.</p>
               <div class="card verdict"><p class="kicker">Main finance agent · final answer</p><h4>"Start saving now" or "You are on track"</h4><p id="verdict-line"></p></div>
               <div class="grid-3">
-                <div class="slot"><p class="kicker">Pillar 3 · <button class="link-btn" type="button" data-go="tax">Open demo page</button></p><h4>Tax</h4><p>Estimated income tax for the year and how to use the allowances that are left.</p><dl id="slot-tax"></dl></div>
+                <div class="slot"><p class="kicker">Pillar 3 · <button class="link-btn" type="button" data-go="tax">Open tax page</button></p><h4>Tax</h4><p>Estimated income tax for the year and how to use the allowances that are left.</p><dl id="slot-tax"></dl></div>
                 <div class="slot"><p class="kicker">Pillar 2 · <button class="link-btn" type="button" data-go="invest">Open demo page</button></p><h4>Investment research</h4><p>Research notes on the stocks and funds you follow. No buy or sell advice.</p><dl id="slot-inv"></dl></div>
                 <div class="slot"><p class="kicker">Pillar 4</p><h4>Price check</h4><p>Compares the same model and specs across Thai shops before you buy.</p><dl id="slot-price"></dl></div>
               </div>
@@ -648,7 +658,7 @@
 
   <script type="application/json" id="demo-state">/*DEMO-STATE*/{
  "schema": "pillar1-state/1",
- "generated_at": "2026-11-12T14:55:16",
+ "generated_at": "2026-11-14T07:51:56",
  "today": "2026-11-12",
  "ledger": {
   "rows": 217,
@@ -1607,7 +1617,196 @@
   "debt_per_month": 1250.0
  },
  "rules_learned": 0,
- "profile": {}
+ "profile": {},
+ "tax": {
+  "available": true,
+  "records": [
+   {
+    "tax_year": "2569",
+    "transaction_id": "TXN000001",
+    "record_type": "income",
+    "tax_category": "Salary 40(1) gross - August",
+    "amount_thb": "22000.00",
+    "source_reference": "demo-payslip-2026-08",
+    "document_status": "available",
+    "review_status": "confirmed",
+    "notes": "Synthetic example; gross from payslip; cash received stays 21125.00 in database.csv"
+   },
+   {
+    "tax_year": "2569",
+    "transaction_id": "TXN000082",
+    "record_type": "income",
+    "tax_category": "Salary 40(1) gross - September",
+    "amount_thb": "22000.00",
+    "source_reference": "demo-payslip-2026-09",
+    "document_status": "available",
+    "review_status": "confirmed",
+    "notes": "Synthetic example; gross from payslip"
+   },
+   {
+    "tax_year": "2569",
+    "transaction_id": "",
+    "record_type": "deduction",
+    "tax_category": "Social security (Aug-Sep)",
+    "amount_thb": "1750.00",
+    "source_reference": "demo-payslip-2026-08",
+    "document_status": "available",
+    "review_status": "needs_review",
+    "notes": "Synthetic example; withheld from salary; count once only"
+   },
+   {
+    "tax_year": "2569",
+    "transaction_id": "",
+    "record_type": "deduction",
+    "tax_category": "Life insurance premium (candidate)",
+    "amount_thb": "12000.00",
+    "source_reference": "",
+    "document_status": "missing",
+    "review_status": "needs_review",
+    "notes": "Synthetic example; needs the insurer's certificate and this year's rules"
+   }
+  ],
+  "totals": {
+   "2569": {
+    "confirmed_income": "44000.00",
+    "needs_review_deduction": "13750.00"
+   }
+  },
+  "tasks": [
+   {
+    "id": "TASK-943bb6d3e69e6052",
+    "kind": "recurring_candidate",
+    "title": "อาจเป็นรายจ่ายประจำ",
+    "question": "เป็น subscription หรือรายจ่ายประจำจริงไหม และวันต่ออายุตามสัญญาคือวันใด?",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000029",
+     "TXN000106",
+     "TXN000191"
+    ],
+    "facts": {
+     "last_amount_thb": "449.00",
+     "amount_changed": true,
+     "note": "ยอดเปลี่ยนอาจเกิดจากราคา ภาษี หรืออัตราแลกเปลี่ยน; ยังไม่สร้างตารางเตือน"
+    }
+   },
+   {
+    "id": "TASK-a371167f73b4a795",
+    "kind": "recurring_candidate",
+    "title": "อาจเป็นรายจ่ายประจำ",
+    "question": "เป็น subscription หรือรายจ่ายประจำจริงไหม และวันต่ออายุตามสัญญาคือวันใด?",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000035",
+     "TXN000112",
+     "TXN000198"
+    ],
+    "facts": {
+     "last_amount_thb": "599.00",
+     "amount_changed": false,
+     "note": "ยอดเปลี่ยนอาจเกิดจากราคา ภาษี หรืออัตราแลกเปลี่ยน; ยังไม่สร้างตารางเตือน"
+    }
+   },
+   {
+    "id": "TASK-a56908615673f4d3",
+    "kind": "recurring_candidate",
+    "title": "อาจเป็นรายจ่ายประจำ",
+    "question": "เป็น subscription หรือรายจ่ายประจำจริงไหม และวันต่ออายุตามสัญญาคือวันใด?",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000010",
+     "TXN000089",
+     "TXN000172"
+    ],
+    "facts": {
+     "last_amount_thb": "6500.00",
+     "amount_changed": false,
+     "note": "ยอดเปลี่ยนอาจเกิดจากราคา ภาษี หรืออัตราแลกเปลี่ยน; ยังไม่สร้างตารางเตือน"
+    }
+   },
+   {
+    "id": "TASK-e264a74094260d6f",
+    "kind": "recurring_candidate",
+    "title": "อาจเป็นรายจ่ายประจำ",
+    "question": "เป็น subscription หรือรายจ่ายประจำจริงไหม และวันต่ออายุตามสัญญาคือวันใด?",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000047",
+     "TXN000126",
+     "TXN000212"
+    ],
+    "facts": {
+     "last_amount_thb": "149.00",
+     "amount_changed": false,
+     "note": "ยอดเปลี่ยนอาจเกิดจากราคา ภาษี หรืออัตราแลกเปลี่ยน; ยังไม่สร้างตารางเตือน"
+    }
+   },
+   {
+    "id": "TASK-050b0552126ae024",
+    "kind": "salary_document",
+    "title": "ยังไม่มีเอกสารเทียบเงินเดือน",
+    "question": "ขอข้อมูลจากสลิปเงินเดือนหรือ 50 ทวิที่ครอบคลุมรายการเหล่านี้ พร้อมรายการหักจริง",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000165"
+    ],
+    "facts": {
+     "tax_year": "2569"
+    }
+   },
+   {
+    "id": "TASK-8eda41d8761e90a1",
+    "kind": "tax_evidence",
+    "title": "ตรวจหลักฐานภาษี: Social security (Aug-Sep)",
+    "question": "มีเอกสารของปีนี้ ยอดจริง และแหล่งกฎทางการที่ตรวจแล้วหรือยัง?",
+    "status": "open",
+    "transaction_ids": [],
+    "facts": {
+     "tax_year": "2569",
+     "review_status": "needs_review",
+     "document_status": "available",
+     "amount_thb": "1750.00"
+    }
+   },
+   {
+    "id": "TASK-f13535be2e657473",
+    "kind": "tax_evidence",
+    "title": "ตรวจหลักฐานภาษี: Life insurance premium (candidate)",
+    "question": "มีเอกสารของปีนี้ ยอดจริง และแหล่งกฎทางการที่ตรวจแล้วหรือยัง?",
+    "status": "open",
+    "transaction_ids": [],
+    "facts": {
+     "tax_year": "2569",
+     "review_status": "needs_review",
+     "document_status": "missing",
+     "amount_thb": "12000.00"
+    }
+   },
+   {
+    "id": "TASK-9cd05a04d22c0edb",
+    "kind": "transaction_review",
+    "title": "ตรวจรายละเอียดรายการ",
+    "question": "needs_review: payment to individual - purpose unknown",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000135"
+    ],
+    "facts": {}
+   },
+   {
+    "id": "TASK-b6799f82325f7963",
+    "kind": "transaction_review",
+    "title": "ตรวจรายละเอียดรายการ",
+    "question": "needs_review: merchant type unclear",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000150"
+    ],
+    "facts": {}
+   }
+  ],
+  "open_tasks": 9
+ }
 }/*END-DEMO-STATE*/</script>
   <script type="text/plain" id="demo-ledger">/*DEMO-LEDGER*/transaction_id,date,transaction_type,description,amount_thb,category,action,year_month,source,source_reference,data_quality_flag
 TXN000001,2026-08-25,income,Salary - Example Co. Ltd. (net after social security) (Bank 01:10),21125.00,Salary,,2026-08,bank_statement,example_statement.pdf,
@@ -1836,7 +2035,7 @@ TXN000217,2026-11-11,expense,Noodle shop (Bank 12:20),70.00,Food/Beverage,,2026-
     var baht = function (n, dp) { return "฿" + Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: dp || 0, maximumFractionDigits: dp || 0 }); };
     var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     var monthName = function (ym) { return MONTHS[+ym.slice(5, 7) - 1] + " " + ym.slice(0, 4); };
-    var PAGES = { overview: "Dashboard", check: "To check", transactions: "Transactions", bills: "Bills & subscriptions", plan: "Plan", tax: "Tax (demo)", invest: "Investment (demo)" };
+    var PAGES = { overview: "Dashboard", check: "To check", transactions: "Transactions", bills: "Bills & subscriptions", plan: "Plan", tax: "Tax", invest: "Investment (demo)" };
     var KIND = { subscription: "Subscription", bill: "Bill", debt: "Debt", saving: "Saving plan", income: "Income" };
 
     var S = { rows: [], agent: null, source: "", month: "all", tab: "all", cat: "all", q: "", limit: 60, answers: [] };
@@ -2096,7 +2295,7 @@ TXN000217,2026-11-11,expense,Noodle shop (Bank 12:20),70.00,Food/Beverage,,2026-
       var salary = yr.filter(function (r) { return r.transaction_type === "income" && r.category === "Salary"; }).reduce(function (a, r) { return a + r.amount; }, 0);
       var other = yr.filter(function (r) { return r.transaction_type === "income" && r.category !== "Salary" && r.category !== "Refund"; }).reduce(function (a, r) { return a + r.amount; }, 0);
       var dl = function (pairs) { return pairs.map(function (p) { return "<dt>" + p[0] + "</dt><dd>" + p[1] + "</dd>"; }).join(""); };
-      $("slot-tax").innerHTML = dl([["Salary received in " + year, baht(salary)], ["Other income in " + year, baht(other)], ["Open questions about income", openQuestions().filter(function (q) { return q.direction === "in"; }).length]]);
+      $("slot-tax").innerHTML = dl([["Salary received in " + year, baht(salary)], ["Other income in " + year, baht(other)], ["Open questions about income", openQuestions().filter(function (q) { return q.direction === "in"; }).length], ["Tax documents to check", taxTasks().filter(function (t) { return t.status === "open"; }).length]]);
       $("slot-inv").innerHTML = dl([["Invested in " + year, baht(t.invested)], ["Saving plans found", A.recurring.filter(function (i) { return i.kind === "saving"; }).length]]);
       var months = Array.from(new Set(yr.map(function (r) { return r.year_month; }))).length || 1;
       $("slot-price").innerHTML = dl([["Shopping each month (average)", baht(yr.filter(function (r) { return r.category === "Shopping"; }).reduce(function (a, r) { return a + r.amount; }, 0) / months)]]);
@@ -2248,6 +2447,31 @@ TXN000217,2026-11-11,expense,Noodle shop (Bank 12:20),70.00,Food/Beverage,,2026-
       var sum = function (f) { return yr.filter(f).reduce(function (a, r) { return a + r.amount; }, 0); };
       $("slot-tax2").innerHTML = row("Salary received so far in " + year, baht(sum(function (r) { return r.category === "Salary"; }))) + row("Other income so far", baht(sum(function (r) { return r.category !== "Salary" && r.category !== "Refund"; }))) +
         row("Refunds (not income)", baht(sum(function (r) { return r.category === "Refund"; }))) + row("Income entries still unclear", openQuestions().filter(function (q) { return q.direction === "in"; }).length);
+      renderTaxRecords();
+    }
+    var TAX_KINDS = { salary_document: 1, salary_mismatch: 1, tax_evidence: 1, tax_year_mismatch: 1, missing_transaction: 1 };
+    function taxTasks() { var T = S.agent.tax || {}; return (T.tasks || []).filter(function (t) { return TAX_KINDS[t.kind]; }); }
+    function renderTaxRecords() {
+      var T = S.agent.tax || {}, beYear = String(+S.agent.today.slice(0, 4) + 543);
+      var row = function (a, b, cls) { return "<dt" + (cls ? ' class="' + cls + '"' : "") + ">" + a + "</dt><dd" + (cls ? ' class="' + cls + '"' : "") + ">" + b + "</dd>"; };
+      if (!T.available || T.error) {
+        $("taxrec-totals").innerHTML = ""; $("taxtask-count").textContent = "";
+        $("taxrec-list").innerHTML = '<li class="empty" style="display:block">' + (T.error ? "The tax check stopped: " + esc(T.error) : "The tax folder is not installed.") + "</li>";
+        $("taxtask-list").innerHTML = ""; return;
+      }
+      var tot = (T.totals || {})[beYear] || {}, label = { confirmed_income: "Income, confirmed", needs_review_income: "Income, to check", confirmed_deduction: "Deductions, confirmed", needs_review_deduction: "Deductions, to check", confirmed_tax_paid: "Tax already paid, confirmed", needs_review_tax_paid: "Tax already paid, to check" };
+      $("taxrec-totals").innerHTML = Object.keys(label).filter(function (k) { return tot[k] != null; }).map(function (k) { return row(label[k] + " (" + beYear + ")", baht(+tot[k])); }).join("");
+      var recs = (T.records || []).filter(function (r) { return r.review_status !== "excluded"; });
+      $("taxrec-list").innerHTML = recs.map(function (r) {
+        var ok = r.review_status === "confirmed", doc = r.document_status === "available";
+        return '<li class="due"><div class="due-date"><b>' + esc(r.tax_year) + '</b><small>BE</small></div><div><span class="due-name">' + esc(r.tax_category) + '</span><span class="tag' + (ok ? " plain" : " blue") + '">' + esc(r.record_type) + " · " + (ok ? "confirmed" : "to check") + '</span> <span class="tag plain">' + (doc ? "document ready" : "document " + esc(r.document_status || "missing")) + '</span></div><div class="due-amt">' + (r.amount_thb ? baht(+r.amount_thb) : "—") + "</div></li>";
+      }).join("") || '<li class="empty" style="display:block">No tax records yet. Send a payslip, a 50 bis certificate or a receipt that may count for tax, and the agent adds it to tax_preparation.csv.</li>';
+      var tasks = taxTasks(), open = tasks.filter(function (t) { return t.status === "open"; }).length;
+      $("taxtask-count").textContent = open ? open + " open" : "all answered";
+      $("taxtask-list").innerHTML = tasks.map(function (t) {
+        var f = t.facts || {}, extra = f.difference_thb ? " Difference: " + baht(+f.difference_thb) + "." : "";
+        return '<li style="padding:9px 0;border-bottom:1px solid var(--line)"><span class="due-name">' + esc(t.title) + '</span> <span class="tag' + (t.status === "open" ? " blue" : " plain") + '">' + esc(t.status) + '</span><p class="card-sub" style="margin:4px 0 0">' + esc(t.question) + extra + (t.transaction_ids && t.transaction_ids.length ? " (" + esc(t.transaction_ids.join(", ")) + ")" : "") + "</p></li>";
+      }).join("") || '<li class="empty" style="display:block">Nothing to check. Every tax record has its document.</li>';
     }
     function renderInvest() {
       var A = S.agent, year = A.today.slice(0, 4), yr = S.rows.filter(function (r) { return r.date.slice(0, 4) === year; }), t = totals(yr);

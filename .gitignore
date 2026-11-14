@@ -36,3 +36,9 @@ attachments/
 .DS_Store
 *.log
 *.session.jsonl
+
+# Tax pillar sidecars (private)
+finance_evidence.json
+finance_review.json
+finance_review.md
+.finance_review.lock

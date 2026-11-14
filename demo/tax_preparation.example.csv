@@ -1,0 +1,5 @@
+tax_year,transaction_id,record_type,tax_category,amount_thb,source_reference,document_status,review_status,notes
+2569,TXN000001,income,Salary 40(1) gross - August,22000.00,demo-payslip-2026-08,available,confirmed,Synthetic example; gross from payslip; cash received stays 21125.00 in database.csv
+2569,TXN000082,income,Salary 40(1) gross - September,22000.00,demo-payslip-2026-09,available,confirmed,Synthetic example; gross from payslip
+2569,,deduction,Social security (Aug-Sep),1750.00,demo-payslip-2026-08,available,needs_review,Synthetic example; withheld from salary; count once only
+2569,,deduction,Life insurance premium (candidate),12000.00,,missing,needs_review,Synthetic example; needs the insurer's certificate and this year's rules

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "salary_documents": [
+    {
+      "id": "DEMO-PAY-01",
+      "tax_year": "2569",
+      "source_reference": "demo-payslip",
+      "transaction_ids": [
+        "TXN000004"
+      ],
+      "gross_income_thb": "30000.00",
+      "withholding_thb": "1000.00",
+      "other_withheld_thb": "500.00"
+    }
+  ]
+}

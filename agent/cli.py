@@ -8,6 +8,7 @@
   python3 agent/cli.py alerts [--days 7]   renewals and due dates
   python3 agent/cli.py state               rebuild agent_state.json for the dashboard and other pillars
   python3 agent/cli.py dashboard [--open]  write my-dashboard.html with your own data inside, and open it
+  python3 agent/cli.py tax [--limit 20]    Tax pillar: check tax records and documents, print the report
 
 Options for every command: --dir <folder with database.csv> (default: current folder), --today YYYY-MM-DD
 """
@@ -25,6 +26,13 @@ from datetime import date, datetime, timedelta
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import recurring  # noqa: E402
 import system1    # noqa: E402
+
+# Tax pillar (Pillar 3) lives in tax/finance_core, made by a teammate.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tax"))
+try:
+    from finance_core import workflow as tax_core  # noqa: E402
+except ImportError:  # the tax folder is optional
+    tax_core = None
 
 LEDGER_COLS = ["transaction_id", "date", "transaction_type", "description", "amount_thb", "category",
                "action", "year_month", "source", "source_reference", "data_quality_flag"]
@@ -277,9 +285,39 @@ def build_state(ws, today):
         # optional profile.json: {"gross_monthly": 22000, "salary_months": 12, "social_security_monthly": 875}
         "profile": json.load(open(os.path.join(ws.dir, "profile.json"), encoding="utf-8")) if os.path.exists(os.path.join(ws.dir, "profile.json")) else {},
     }
+    state["tax"] = tax_summary(ws)
     with open(ws.state_path, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=1)
     return state
+
+
+def tax_summary(ws):
+    """Run the Tax pillar's checks and keep what the dashboard needs. It never writes database.csv."""
+    if tax_core is None:
+        return {"available": False}
+    from pathlib import Path
+    folder = Path(ws.dir).resolve()
+    try:
+        review = tax_core.scan(folder)   # writes finance_review.json next to database.csv
+    except (ValueError, OSError, KeyError, TypeError) as exc:
+        return {"available": True, "error": str(exc)}
+    rows = read_csv(os.path.join(ws.dir, "tax_preparation.csv"))
+    tasks = sorted((t for t in review["tasks"].values() if t["status"] != "resolved"),
+                   key=lambda t: (t["status"] != "open", t["kind"], t["id"]))
+    return {"available": True, "records": rows, "totals": review.get("tax_totals", {}),
+            "tasks": [{k: t.get(k) for k in ("id", "kind", "title", "question", "status", "transaction_ids", "facts")} for t in tasks],
+            "open_tasks": sum(t["status"] == "open" for t in tasks)}
+
+
+def cmd_tax(ws, args):
+    if tax_core is None:
+        sys.exit("The tax folder is missing (tax/finance_core).")
+    from pathlib import Path
+    try:
+        state = tax_core.scan(Path(ws.dir).resolve())
+    except (ValueError, OSError, KeyError, TypeError) as exc:
+        sys.exit(f"Tax check failed: {exc}")
+    print(tax_core.render_report(state, args.limit))
 
 
 def cmd_dashboard(ws, args):
@@ -326,9 +364,10 @@ def main():
     s = sub.add_parser("alerts"); s.add_argument("--days", type=int, default=7)
     sub.add_parser("state")
     s = sub.add_parser("dashboard"); s.add_argument("--open", action="store_true", help="open it in the browser")
+    s = sub.add_parser("tax"); s.add_argument("--limit", type=int, default=20)
     args = ap.parse_args()
     ws = Workspace(args.dir)
-    {"ingest": cmd_ingest, "review": cmd_review, "answer": cmd_answer, "alerts": cmd_alerts, "dashboard": cmd_dashboard,
+    {"ingest": cmd_ingest, "review": cmd_review, "answer": cmd_answer, "alerts": cmd_alerts, "dashboard": cmd_dashboard, "tax": cmd_tax,
      "state": lambda w, a: print(f"Wrote {build_state(w, a.today) and w.state_path}")}[args.cmd](ws, args)
 
 

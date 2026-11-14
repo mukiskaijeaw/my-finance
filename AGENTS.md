@@ -22,7 +22,7 @@ Use this folder as a local personal-finance workspace. `database.csv` is the sou
 - Assign the next unused ID in the `TXN000001` sequence. Keep the exact CSV schema below, preserve existing rows, and keep rows sorted by date. Use the attachment filename in `source_reference` for receipt images and `manual_entry` as the source for typed entries.
 - Do not store full account or card numbers, credentials, or QR contents. Store only details needed to understand and reconcile the transaction.
 - Keep receipts and financial data local to this folder. Do not upload, share, or send them to external services.
-- For tax questions, check current Thai rules and the user's specific supporting documents. Do not assume an expense is deductible or present an estimate as a final tax determination.
+- For tax questions, use the `tax` skill. Check current Thai rules and the user's specific supporting documents. Do not assume an expense is deductible or present an estimate as a final tax determination.
 
 ## Bank transfer slips (PNG or JPG)
 
@@ -43,10 +43,11 @@ The user may send e-slips: the image a Thai banking app saves after a transfer o
 
 ## Skills and System-1
 
-This folder holds two pillars of the team's finance agent. Each one has a skill in `.agents/skills/`:
+This folder holds three pillars of the team's finance agent. Each one has a skill in `.agents/skills/`:
 
 - `income-expense` (Pillar 1): read slips and statements, classify with a confidence score, ask only when unsure. Use it for every slip, receipt, statement or typed transaction instead of editing `database.csv` by hand.
 - `subscription` (Pillar 5): find recurring charges and warn before a renewal or a due date. Run it after every statement and when the user types `/subscription`.
+- `tax` (Pillar 3, from a teammate): payslips, 50 bis certificates and receipts that may count for Thai income tax go into `tax_preparation.csv`; `python3 agent/cli.py tax` lists what still needs a document or an answer. Code and guides are in `tax/`.
 - `dashboard`: when the user asks to see the dashboard or a summary (`/dashboard`, "ขอดูสรุป"), run `python3 agent/cli.py dashboard --open`. It writes `my-dashboard.html` with the user's data inside and opens it. Never commit or share that file.
 
 `agent/cli.py` is the System-1 side. It runs on the user's machine with plain Python and no network. It writes `agent_state.json`, the one file the dashboard, the main finance agent and the other pillars (tax, investment, price check) read from this pillar.
@@ -58,6 +59,20 @@ Any action that moves real money or sends data off this machine (a payment, a ca
 Keep these columns in this exact order:
 
 `transaction_id,date,transaction_type,description,amount_thb,category,action,year_month,source,source_reference,data_quality_flag`
+
+## Tax records
+
+`tax_preparation.csv` (create it from `tax_preparation.example.csv`; private, ignored by Git) has these columns:
+
+`tax_year,transaction_id,record_type,tax_category,amount_thb,source_reference,document_status,review_status,notes`
+
+- `tax_year` is the Buddhist Era year. Link `transaction_id` to `database.csv` when there is a matching row.
+- `record_type`: `income`, `income_total`, `deduction`, `deduction_total`, `tax_paid`, `taxable_income`, `tax_estimate`, `tax_saving`. Keep source rollups in the `*_total` rows and do not add them to detail rows.
+- `review_status`: `confirmed`, `needs_review`, `source_snapshot` or `excluded`. Candidate deductions stay `needs_review` until the document and that year's rules are checked.
+- `document_status`: `available` when the document is in hand, otherwise `missing` or a short reason.
+- Keep the salary deposit in `database.csv` as cash received. Use the gross salary from the payslip or 50 bis in `tax_preparation.csv`. Do not deduct a salary-withheld contribution twice.
+- Keep prior-year worksheet snapshots as `source_snapshot`; never treat a copied estimate as this year's calculation.
+- `finance_evidence.json` and `finance_review.json` are the tax check's sidecars. See `tax/WORKFLOW.md`.
 
 ## Dashboard
 

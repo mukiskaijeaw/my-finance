@@ -1,0 +1,5 @@
+transaction_id,date,transaction_type,description,amount_thb,category,action,year_month,source,source_reference,data_quality_flag,model,token_input,token_output
+TXN000001,2026-07-05,expense,DEMO Cloud service,199.00,AI,,2026-07,synthetic_demo,demo-receipt-1,,,,
+TXN000002,2026-08-05,expense,DEMO Cloud service,199.00,AI,,2026-08,synthetic_demo,demo-receipt-2,,,,
+TXN000003,2026-09-05,expense,DEMO Cloud service,229.00,AI,,2026-09,synthetic_demo,demo-receipt-3,,,,
+TXN000004,2026-09-25,income,DEMO salary,28000.00,Salary,,2026-09,synthetic_demo,demo-deposit,,,,

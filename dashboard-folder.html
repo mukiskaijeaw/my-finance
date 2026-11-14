@@ -445,7 +445,7 @@
 
   <script type="application/json" id="demo-state">/*DEMO-STATE*/{
  "schema": "pillar1-state/1",
- "generated_at": "2026-11-12T14:55:16",
+ "generated_at": "2026-11-14T07:51:56",
  "today": "2026-11-12",
  "ledger": {
   "rows": 217,
@@ -1404,7 +1404,196 @@
   "debt_per_month": 1250.0
  },
  "rules_learned": 0,
- "profile": {}
+ "profile": {},
+ "tax": {
+  "available": true,
+  "records": [
+   {
+    "tax_year": "2569",
+    "transaction_id": "TXN000001",
+    "record_type": "income",
+    "tax_category": "Salary 40(1) gross - August",
+    "amount_thb": "22000.00",
+    "source_reference": "demo-payslip-2026-08",
+    "document_status": "available",
+    "review_status": "confirmed",
+    "notes": "Synthetic example; gross from payslip; cash received stays 21125.00 in database.csv"
+   },
+   {
+    "tax_year": "2569",
+    "transaction_id": "TXN000082",
+    "record_type": "income",
+    "tax_category": "Salary 40(1) gross - September",
+    "amount_thb": "22000.00",
+    "source_reference": "demo-payslip-2026-09",
+    "document_status": "available",
+    "review_status": "confirmed",
+    "notes": "Synthetic example; gross from payslip"
+   },
+   {
+    "tax_year": "2569",
+    "transaction_id": "",
+    "record_type": "deduction",
+    "tax_category": "Social security (Aug-Sep)",
+    "amount_thb": "1750.00",
+    "source_reference": "demo-payslip-2026-08",
+    "document_status": "available",
+    "review_status": "needs_review",
+    "notes": "Synthetic example; withheld from salary; count once only"
+   },
+   {
+    "tax_year": "2569",
+    "transaction_id": "",
+    "record_type": "deduction",
+    "tax_category": "Life insurance premium (candidate)",
+    "amount_thb": "12000.00",
+    "source_reference": "",
+    "document_status": "missing",
+    "review_status": "needs_review",
+    "notes": "Synthetic example; needs the insurer's certificate and this year's rules"
+   }
+  ],
+  "totals": {
+   "2569": {
+    "confirmed_income": "44000.00",
+    "needs_review_deduction": "13750.00"
+   }
+  },
+  "tasks": [
+   {
+    "id": "TASK-943bb6d3e69e6052",
+    "kind": "recurring_candidate",
+    "title": "อาจเป็นรายจ่ายประจำ",
+    "question": "เป็น subscription หรือรายจ่ายประจำจริงไหม และวันต่ออายุตามสัญญาคือวันใด?",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000029",
+     "TXN000106",
+     "TXN000191"
+    ],
+    "facts": {
+     "last_amount_thb": "449.00",
+     "amount_changed": true,
+     "note": "ยอดเปลี่ยนอาจเกิดจากราคา ภาษี หรืออัตราแลกเปลี่ยน; ยังไม่สร้างตารางเตือน"
+    }
+   },
+   {
+    "id": "TASK-a371167f73b4a795",
+    "kind": "recurring_candidate",
+    "title": "อาจเป็นรายจ่ายประจำ",
+    "question": "เป็น subscription หรือรายจ่ายประจำจริงไหม และวันต่ออายุตามสัญญาคือวันใด?",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000035",
+     "TXN000112",
+     "TXN000198"
+    ],
+    "facts": {
+     "last_amount_thb": "599.00",
+     "amount_changed": false,
+     "note": "ยอดเปลี่ยนอาจเกิดจากราคา ภาษี หรืออัตราแลกเปลี่ยน; ยังไม่สร้างตารางเตือน"
+    }
+   },
+   {
+    "id": "TASK-a56908615673f4d3",
+    "kind": "recurring_candidate",
+    "title": "อาจเป็นรายจ่ายประจำ",
+    "question": "เป็น subscription หรือรายจ่ายประจำจริงไหม และวันต่ออายุตามสัญญาคือวันใด?",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000010",
+     "TXN000089",
+     "TXN000172"
+    ],
+    "facts": {
+     "last_amount_thb": "6500.00",
+     "amount_changed": false,
+     "note": "ยอดเปลี่ยนอาจเกิดจากราคา ภาษี หรืออัตราแลกเปลี่ยน; ยังไม่สร้างตารางเตือน"
+    }
+   },
+   {
+    "id": "TASK-e264a74094260d6f",
+    "kind": "recurring_candidate",
+    "title": "อาจเป็นรายจ่ายประจำ",
+    "question": "เป็น subscription หรือรายจ่ายประจำจริงไหม และวันต่ออายุตามสัญญาคือวันใด?",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000047",
+     "TXN000126",
+     "TXN000212"
+    ],
+    "facts": {
+     "last_amount_thb": "149.00",
+     "amount_changed": false,
+     "note": "ยอดเปลี่ยนอาจเกิดจากราคา ภาษี หรืออัตราแลกเปลี่ยน; ยังไม่สร้างตารางเตือน"
+    }
+   },
+   {
+    "id": "TASK-050b0552126ae024",
+    "kind": "salary_document",
+    "title": "ยังไม่มีเอกสารเทียบเงินเดือน",
+    "question": "ขอข้อมูลจากสลิปเงินเดือนหรือ 50 ทวิที่ครอบคลุมรายการเหล่านี้ พร้อมรายการหักจริง",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000165"
+    ],
+    "facts": {
+     "tax_year": "2569"
+    }
+   },
+   {
+    "id": "TASK-8eda41d8761e90a1",
+    "kind": "tax_evidence",
+    "title": "ตรวจหลักฐานภาษี: Social security (Aug-Sep)",
+    "question": "มีเอกสารของปีนี้ ยอดจริง และแหล่งกฎทางการที่ตรวจแล้วหรือยัง?",
+    "status": "open",
+    "transaction_ids": [],
+    "facts": {
+     "tax_year": "2569",
+     "review_status": "needs_review",
+     "document_status": "available",
+     "amount_thb": "1750.00"
+    }
+   },
+   {
+    "id": "TASK-f13535be2e657473",
+    "kind": "tax_evidence",
+    "title": "ตรวจหลักฐานภาษี: Life insurance premium (candidate)",
+    "question": "มีเอกสารของปีนี้ ยอดจริง และแหล่งกฎทางการที่ตรวจแล้วหรือยัง?",
+    "status": "open",
+    "transaction_ids": [],
+    "facts": {
+     "tax_year": "2569",
+     "review_status": "needs_review",
+     "document_status": "missing",
+     "amount_thb": "12000.00"
+    }
+   },
+   {
+    "id": "TASK-9cd05a04d22c0edb",
+    "kind": "transaction_review",
+    "title": "ตรวจรายละเอียดรายการ",
+    "question": "needs_review: payment to individual - purpose unknown",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000135"
+    ],
+    "facts": {}
+   },
+   {
+    "id": "TASK-b6799f82325f7963",
+    "kind": "transaction_review",
+    "title": "ตรวจรายละเอียดรายการ",
+    "question": "needs_review: merchant type unclear",
+    "status": "open",
+    "transaction_ids": [
+     "TXN000150"
+    ],
+    "facts": {}
+   }
+  ],
+  "open_tasks": 9
+ }
 }/*END-DEMO-STATE*/</script>
   <script type="text/plain" id="demo-ledger">/*DEMO-LEDGER*/transaction_id,date,transaction_type,description,amount_thb,category,action,year_month,source,source_reference,data_quality_flag
 TXN000001,2026-08-25,income,Salary - Example Co. Ltd. (net after social security) (Bank 01:10),21125.00,Salary,,2026-08,bank_statement,example_statement.pdf,

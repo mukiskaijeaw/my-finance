@@ -24,7 +24,7 @@ Agent มีสองส่วนทำงานคู่กัน
 | --- | --- |
 | `agent/system1.py` | ตัวตัดสินใจเร็วพร้อม confidence score |
 | `agent/recurring.py` | หารายจ่ายประจำ, subscription และสร้างการแจ้งเตือน |
-| `agent/cli.py` | คำสั่ง `ingest`, `review`, `answer`, `alerts`, `state`, `dashboard` |
+| `agent/cli.py` | คำสั่ง `ingest`, `review`, `answer`, `alerts`, `state`, `dashboard`, `tax` |
 | `.agents/skills/dashboard` | skill `/dashboard`: พิมพ์ "ขอดูสรุป" แล้ว agent สร้าง `my-dashboard.html` จากข้อมูลของเราแล้วเปิดให้ |
 | `dashboard-journal.html` | แดชบอร์ดแบบสมุดบันทึก (ร่างล่าสุด): แบนเนอร์ เมนูซ้ายมือ ปฏิทินวันจ่าย กราฟประเภทรายจ่าย ดับเบิลคลิกเปิดได้เลย |
 | `dashboard-folder.html` | แดชบอร์ดแบบแฟ้มเอกสาร (ร่าง) ดับเบิลคลิกเปิดได้เลย มีข้อมูลตัวอย่างฝังอยู่ |
@@ -41,9 +41,19 @@ python3 agent/cli.py --dir /tmp/try answer Q001 --type income --category Freelan
 python3 agent/cli.py --dir /tmp/try --today 2026-11-12 alerts --days 7
 ```
 
+## ภาษี (Pillar 3) จากเพื่อนในทีม
+
+โฟลเดอร์ `tax/` กับ skill `.agents/skills/tax` เป็นส่วนภาษีที่เพื่อนในทีมทำ (MIT, ดู `tax/LICENSE`) ใช้ Python standard library อย่างเดียว ไม่ต่ออินเทอร์เน็ต
+
+- เก็บรายการที่เกี่ยวกับภาษีใน `tax_preparation.csv` (คัดลอกจาก `tax_preparation.example.csv`) ลิงก์กับ `database.csv` ด้วย `transaction_id` ใช้ปี พ.ศ.
+- เทียบเงินเดือนที่เข้าบัญชีกับสลิปเงินเดือนหรือ 50 ทวิ (`finance_evidence.json`) โดยไม่แก้ยอดเงินสดใน ledger
+- `python3 agent/cli.py tax` แสดงงานที่ยังต้องมีเอกสารหรือคำตอบ หน้า Tax ในแดชบอร์ดแสดงประมาณการภาษี รายการภาษี และเอกสารที่ต้องตรวจ
+- รายการลดหย่อนเป็น `needs_review` จนกว่าจะมีเอกสารและตรวจกฎของปีนั้นแล้ว คู่มือคัดกรองอยู่ที่ `tax/THAI_TAX_GUIDE.md` แหล่งทางการอยู่ที่ `tax/TAX_RESEARCH.md` วิธีใช้ละเอียดอยู่ที่ `tax/WORKFLOW.md`
+- เทสต์: `cd tax && python3 -m unittest tests/test_workflow.py`
+
 ### สิ่งที่ pillar อื่นอ่านได้
 
-ทุกคำสั่งเขียน `agent_state.json` (schema `pillar1-state/1`) ใหม่ทุกครั้ง: `monthly` (รายรับ รายจ่าย เงินคืน เงินลงทุน แยกหมวดรายเดือน), `recurring`, `alerts`, `fixed_costs`, `review_queue`, `routing` Main agent, Tax, Investment อ่านไฟล์นี้ไฟล์เดียวโดยไม่ต้องแตะ `database.csv` เงินคืน (`Refund`) แยกออกจากรายได้แล้ว
+ทุกคำสั่งเขียน `agent_state.json` (schema `pillar1-state/1`) ใหม่ทุกครั้ง: `monthly` (รายรับ รายจ่าย เงินคืน เงินลงทุน แยกหมวดรายเดือน), `recurring`, `alerts`, `fixed_costs`, `review_queue`, `routing`, `tax` (รายการภาษี ยอดแยกสถานะ และงานที่ต้องตรวจ) Main agent, Tax, Investment อ่านไฟล์นี้ไฟล์เดียวโดยไม่ต้องแตะ `database.csv` เงินคืน (`Refund`) แยกออกจากรายได้แล้ว
 
 ## เริ่มใช้กับ Codex หรือ Claude
 
